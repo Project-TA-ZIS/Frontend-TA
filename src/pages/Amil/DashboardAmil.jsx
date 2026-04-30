@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { HandHeart, Users } from "lucide-react";
+import PageTransition from "../../components/PageTransition";
 
 // ─── Dummy Data Dinamis ─────────────────────────────────────────────────────
 // Menambahkan 'multiplier' agar bentuk grafik dan angkanya berbeda tiap kategori
@@ -105,8 +106,27 @@ const ChartArea = ({ title, subtitle, data, kategori, setKategori, waktu, setWak
         <YAxis hide />
         <Tooltip content={<CustomTooltip />} />
         <Legend wrapperStyle={{ fontSize: 12, paddingTop: 20, fontWeight: 700 }} iconType="circle" />
-        <Area type="monotone" dataKey="pemasukan" name="Pemasukan" stroke="#10B981" strokeWidth={3} fill="url(#colorPemasukan)" activeDot={{ r: 6, strokeWidth: 0, fill: '#10B981' }} />
-        <Area type="monotone" dataKey="pengeluaran" name="Pengeluaran" stroke="#EF4444" strokeWidth={2} strokeDasharray="5 5" fill="none" activeDot={{ r: 6, strokeWidth: 0, fill: '#EF4444' }} />
+      <Area
+          type="monotone"
+          dataKey="pemasukan"
+          name="Pemasukan"
+          stroke="#10B981" 
+          strokeWidth={3}
+          fill="url(#colorPemasukan)" 
+          dot={false}
+          activeDot={{ r: 5, fill: "#10B981", stroke: "#fff", strokeWidth: 2 }} 
+        />
+        <Area
+          type="monotone"
+          dataKey="pengeluaran"
+          name="Pengeluaran"
+          stroke="#EF4444" 
+          strokeWidth={2}
+          strokeDasharray="5 5"
+          fill="none"
+          dot={false}
+          activeDot={{ r: 4, fill: "#EF4444", stroke: "#fff", strokeWidth: 2 }} 
+        />
       </AreaChart>
     </ResponsiveContainer>
   </div>
@@ -118,6 +138,7 @@ export default function DashboardAmil() {
   const [zisWaktu, setZisWaktu] = useState("Bulanan");
 
   return (
+    <PageTransition>
     <div className="min-h-screen bg-gray-50 p-6 md:p-10" style={{ fontFamily: "Manrope, sans-serif" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
 
@@ -166,5 +187,6 @@ export default function DashboardAmil() {
         />
       </div>
     </div>
+    </PageTransition>
   );
 }

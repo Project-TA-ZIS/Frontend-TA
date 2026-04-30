@@ -1,38 +1,40 @@
 import React, { useState } from "react";
 import { Plus, Search, Edit, Trash2, X } from "lucide-react";
+import PageTransition from "../../components/PageTransition";
+
 
 // ─── Dummy Data Awal ───────────────────────────────────────────────────────
 const INITIAL_DATA = [
   {
-    id: "MZK-001",
+    id: "1",
     nama: "Bambang Wijaya",
     email: "bambang.w@email.com",
     telp: "081234567890",
     jenisKelamin: "Laki-laki",
   },
   {
-    id: "MZK-002",
+    id: "2",
     nama: "Siti Aminah",
     email: "siti.aminah@email.com",
     telp: "082345678901",
     jenisKelamin: "Perempuan",
   },
   {
-    id: "MZK-003",
+    id: "3",
     nama: "Haji Sulaiman",
     email: "h.sulaiman@email.com",
     telp: "083456789012",
     jenisKelamin: "Laki-laki",
   },
   {
-    id: "MZK-004",
+    id: "4",
     nama: "Agus Santoso",
     email: "agus.s@email.com",
     telp: "084567890123",
     jenisKelamin: "Laki-laki",
   },
   {
-    id: "MZK-005",
+    id: "5",
     nama: "Ratna Sari",
     email: "ratna.sari@email.com",
     telp: "085678901234",
@@ -118,6 +120,7 @@ export default function KelolaMuzzaki() {
   };
 
   return (
+    <PageTransition>
     <div className="min-h-screen bg-gray-50 p-6 md:p-10 font-['Manrope']">
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
 
@@ -185,22 +188,27 @@ export default function KelolaMuzzaki() {
                         {item.jenisKelamin}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                   <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="flex items-center justify-center gap-3">
+                        
+                        {/* Tombol Edit: Hijau Solid Standby */}
                         <button 
-                          onClick={() => handleEditClick(item)}
-                          className="text-gray-400 hover:text-[#10B981] transition-colors" 
+                          onClick={() => handleEditClick(item)} 
+                          className="text-[#10B981] bg-emerald-50 hover:bg-emerald-100 hover:text-[#064E3B] p-2 rounded-lg transition-colors shadow-sm" 
                           title="Edit"
                         >
                           <Edit size={18} />
                         </button>
+
+                        {/* Tombol Hapus: Merah Solid Standby */}
                         <button 
-                          onClick={() => handleDeleteClick(item.id)}
-                          className="text-gray-400 hover:text-red-500 transition-colors" 
+                          onClick={() => handleDeleteClick(item.id)} 
+                          className="text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-700 p-2 rounded-lg transition-colors shadow-sm" 
                           title="Hapus"
                         >
                           <Trash2 size={18} />
                         </button>
+
                       </div>
                     </td>
                   </tr>
@@ -275,5 +283,6 @@ export default function KelolaMuzzaki() {
       )}
 
     </div>
+    </PageTransition>
   );
 }

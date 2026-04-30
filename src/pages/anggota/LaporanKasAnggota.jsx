@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Download } from "lucide-react";
+import PageTransition from "../../components/PageTransition";
 
 // ─── Dummy Data Kas ────────────────────────────────────────────────────────
 const DUMMY_KAS = [
@@ -62,6 +63,7 @@ export default function LaporanKasAnggota() {
   const saldoTotal = 5100000;
 
   return (
+    <PageTransition>
     <div className="min-h-screen bg-gray-50 p-6 md:p-10" style={{ fontFamily: "Manrope, sans-serif" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
 
@@ -126,7 +128,7 @@ export default function LaporanKasAnggota() {
         {/* Action Button (Hanya Unduh) */}
         <div className="flex items-center w-full xl:w-auto">
           <button className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2.5 px-5 rounded-lg text-sm transition-all hover:bg-gray-50 shadow-sm">
-            <Download size={18} /> Unduh (CSV)
+            <Download size={18} /> Unduh Data
           </button>
         </div>
       </div>
@@ -166,5 +168,6 @@ export default function LaporanKasAnggota() {
       </div>
 
     </div>
+    </PageTransition>
   );
 }

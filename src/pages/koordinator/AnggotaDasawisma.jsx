@@ -1,38 +1,39 @@
 import React, { useState } from "react";
 import { Plus, Search, Edit, Trash2, X } from "lucide-react";
+import PageTransition from "../../components/PageTransition";
 
 // ─── Initial Dummy Data ────────────────────────────────────────────────────
 const INITIAL_DATA = [
   {
-    id: "DSW-001",
+    id: "1",
     nama: "Siti Aminah",
     role: "Koordinator",
     email: "siti.aminah@email.com",
     telp: "081234567890",
   },
   {
-    id: "DSW-002",
+    id: "2",
     nama: "Budi Santoso",
     role: "Anggota Dasawisma",
     email: "budi.santoso@email.com",
     telp: "082345678901",
   },
   {
-    id: "DSW-003",
+    id: "3",
     nama: "Ningsih Suryani",
     role: "Amil Zakat",
     email: "ningsih.s@email.com",
     telp: "083456789012",
   },
   {
-    id: "DSW-004",
+    id: "4",
     nama: "Ahmad Dahlan",
     role: "Anggota Dasawisma",
     email: "ahmad.d@email.com",
     telp: "084567890123",
   },
   {
-    id: "DSW-005",
+    id: "5",
     nama: "Ratna Sari",
     role: "Anggota Dasawisma",
     email: "ratna.sari@email.com",
@@ -78,6 +79,13 @@ export default function AnggotaDasawisma() {
     setIsModalOpen(true);
   };
 
+  // Handler saat tombol "Hapus" di tabel diklik
+  const handleDeleteClick = (id) => {
+    if (window.confirm("Apakah Anda yakin ingin menghapus data Anggota ini?")) {
+      setAnggotaList(anggotaList.filter((item) => item.id !== id));
+    }
+  };
+
   // Handler saat tombol "Edit" di tabel diklik (Mode Edit)
   const handleEditClick = (anggota) => {
     setEditingId(anggota.id); // Simpan ID yang mau diedit
@@ -117,6 +125,7 @@ export default function AnggotaDasawisma() {
   };
 
   return (
+    <PageTransition>
     <div
       className="min-h-screen bg-gray-50 p-6 md:p-10 relative"
       style={{ fontFamily: "Manrope, sans-serif" }}
@@ -193,17 +202,25 @@ export default function AnggotaDasawisma() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600 text-center">{item.telp}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="flex items-center justify-center gap-3">
-                        {/* Tombol Edit memanggil handleEditClick dan mengirim data baris tersebut */}
+                        
+                        {/* Tombol Edit: Hijau Solid Standby */}
                         <button 
-                          onClick={() => handleEditClick(item)}
-                          className="text-gray-400 hover:text-[#10B981] transition-colors" 
+                          onClick={() => handleEditClick(item)} 
+                          className="text-[#10B981] bg-emerald-50 hover:bg-emerald-100 hover:text-[#064E3B] p-2 rounded-lg transition-colors shadow-sm" 
                           title="Edit"
                         >
                           <Edit size={18} />
                         </button>
-                        <button className="text-gray-400 hover:text-red-500 transition-colors" title="Hapus">
+
+                        {/* Tombol Hapus: Merah Solid Standby */}
+                        <button 
+                          onClick={() => handleDeleteClick(item.id)} 
+                          className="text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-700 p-2 rounded-lg transition-colors shadow-sm" 
+                          title="Hapus"
+                        >
                           <Trash2 size={18} />
                         </button>
+
                       </div>
                     </td>
                   </tr>
@@ -329,5 +346,6 @@ export default function AnggotaDasawisma() {
       )}
 
     </div>
+    </PageTransition>
   );
 }

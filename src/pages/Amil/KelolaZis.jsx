@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Download, Plus, Search, X } from "lucide-react";
+import PageTransition from "../../components/PageTransition";
 
 // ─── Dummy Data Awal ───────────────────────────────────────────────────────
 const INITIAL_TRANSACTIONS = [
@@ -84,6 +85,7 @@ export default function KelolaZis() {
   };
 
   return (
+    <PageTransition>
     <div className="min-h-screen bg-gray-50 p-6 md:p-10 font-['Manrope']">
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
 
@@ -137,7 +139,7 @@ export default function KelolaZis() {
         </div>
         <div className="flex items-center gap-3 w-full xl:w-auto">
           <button className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2.5 px-4 rounded-lg text-sm hover:bg-gray-50 shadow-sm transition-all">
-            <Download size={18} /> Unduh (CSV)
+            <Download size={18} /> Unduh Data
           </button>
           <button onClick={() => setIsModalOpen(true)} className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-[#10B981] text-white font-bold py-2.5 px-4 rounded-lg text-sm hover:bg-[#059669] shadow-sm transition-all">
             <Plus size={18} strokeWidth={2.5} /> Catat ZIS
@@ -263,5 +265,6 @@ export default function KelolaZis() {
         </div>
       )}
     </div>
+    </PageTransition>
   );
 }

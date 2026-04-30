@@ -1,24 +1,25 @@
 import React, { useState } from "react";
 import { Download, Plus, X } from "lucide-react";
+import PageTransition from "../../components/PageTransition";
 
 // ─── Initial Dummy Data ────────────────────────────────────────────────────
 const INITIAL_TRANSACTIONS = [
   {
-    id: "#KAS-2023-102",
+    id: "1",
     tanggal: "2023-12-12",
     deskripsi: "Iuran Bulanan RT 05",
     jenis: "MASUK",
     nominal: 1250000,
   },
   {
-    id: "#KAS-2023-103",
+    id: "2",
     tanggal: "2023-12-10",
     deskripsi: "Pembelian Alat Kebersihan",
     jenis: "KELUAR",
     nominal: 450000,
   },
   {
-    id: "#KAS-2023-104",
+    id: "3",
     tanggal: "2023-12-08",
     deskripsi: "Biaya Maintenance Taman",
     jenis: "KELUAR",
@@ -84,6 +85,7 @@ export default function KelolaKas() {
   };
 
   return (
+    <PageTransition>
     <div className="min-h-screen bg-gray-50 p-6 md:p-10" style={{ fontFamily: "Manrope, sans-serif" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
 
@@ -254,5 +256,6 @@ export default function KelolaKas() {
         </div>
       )}
     </div>
+    </PageTransition>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Download, Search } from "lucide-react";
+import PageTransition from "../../components/PageTransition";
 
 // ─── Dummy Data Transaksi ZIS ──────────────────────────────────────────────
 const DUMMY_ZIS = [
@@ -62,6 +63,7 @@ export default function LaporanZIS() {
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
+    <PageTransition>
     <div
       className="min-h-screen bg-gray-50 p-6 md:p-10"
       style={{ fontFamily: "Manrope, sans-serif" }}
@@ -149,7 +151,7 @@ export default function LaporanZIS() {
         {/* Action Button */}
         <button className="flex items-center justify-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-2 px-4 rounded-lg transition-colors shadow-sm text-sm w-full md:w-auto">
           <Download size={16} />
-          Unduh CSV
+          Unduh Data
         </button>
       </div>
 
@@ -185,10 +187,12 @@ export default function LaporanZIS() {
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
                   KATEGORI
                 </th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">
+                {/* NOMINAL tetap di kanan, tapi padding disesuaikan agar tidak terlalu mepet */}
+                <th className="px-8 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">
                   NOMINAL (RP)
                 </th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                {/* TIPE diubah menjadi text-center agar memiliki jarak alami dari Nominal */}
+                <th className="px-8 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
                   TIPE
                 </th>
               </tr>
@@ -212,14 +216,15 @@ export default function LaporanZIS() {
                     {item.kategori}
                   </td>
                   <td
-                    className={`px-6 py-4 whitespace-nowrap text-sm font-bold text-right ${
+                    className={`px-8 py-4 whitespace-nowrap text-sm font-bold text-right ${
                       item.tipe === "Pemasukan" ? "text-[#10B981]" : "text-[#EF4444]"
                     }`}
                   >
                     {formatRupiah(item.nominal).replace("Rp", "").trim()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
+                  <td className="px-8 py-4 whitespace-nowrap">
+                    {/* flex ditambahkan justify-center agar posisi titik dan teks tepat di tengah */}
+                    <div className="flex items-center justify-center gap-2">
                       <span
                         className={`w-2 h-2 rounded-full ${
                           item.tipe === "Pemasukan" ? "bg-[#10B981]" : "bg-[#EF4444]"
@@ -277,5 +282,6 @@ export default function LaporanZIS() {
         </div>
       </div>
     </div>
+    </PageTransition>
   );
 }

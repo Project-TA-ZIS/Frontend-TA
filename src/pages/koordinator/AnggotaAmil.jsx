@@ -1,22 +1,23 @@
 import React, { useState } from "react";
 import { Plus, Search, Edit, Trash2, X } from "lucide-react";
+import PageTransition from "../../components/PageTransition";
 
 // ─── Initial Dummy Data (Khusus Amil) ──────────────────────────────────────
 const INITIAL_DATA = [
   {
-    id: "AML-001",
+    id: "1",
     nama: "Ustadz Abdul Somad",
     email: "abdul.somad@email.com",
     telp: "081234567890",
   },
   {
-    id: "AML-002",
+    id: "2",
     nama: "Kyai Hasyim",
     email: "hasyim.muzadi@email.com",
     telp: "082345678901",
   },
   {
-    id: "AML-003",
+    id: "3",
     nama: "Ustazah Oki",
     email: "oki.setiana@email.com",
     telp: "083456789012",
@@ -51,6 +52,15 @@ export default function AnggotaAmil() {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Handler saat tombol "Hapus" di tabel diklik
+ // Handler saat tombol "Hapus" di tabel diklik
+  const handleDeleteClick = (id) => {
+    if (window.confirm("Apakah Anda yakin ingin menghapus data Amil ini?")) {
+      // Ubah amilList menjadi anggotaList (atau sesuaikan jika nama state Anda berbeda)
+      setAnggotaList(anggotaList.filter((item) => item.id !== id)); 
+    }
   };
 
   // Handler saat tombol "+ Amil" diklik (Mode Tambah)
@@ -98,6 +108,7 @@ export default function AnggotaAmil() {
   };
 
   return (
+    <PageTransition>
     <div
       className="min-h-screen bg-gray-50 p-6 md:p-10 relative"
       style={{ fontFamily: "Manrope, sans-serif" }}
@@ -162,16 +173,25 @@ export default function AnggotaAmil() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600 text-center">{item.telp}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="flex items-center justify-center gap-3">
+                        
+                        {/* Tombol Edit: Hijau Solid Standby */}
                         <button 
-                          onClick={() => handleEditClick(item)}
-                          className="text-gray-400 hover:text-[#10B981] transition-colors" 
+                          onClick={() => handleEditClick(item)} 
+                          className="text-[#10B981] bg-emerald-50 hover:bg-emerald-100 hover:text-[#064E3B] p-2 rounded-lg transition-colors shadow-sm" 
                           title="Edit"
                         >
                           <Edit size={18} />
                         </button>
-                        <button className="text-gray-400 hover:text-red-500 transition-colors" title="Hapus">
+
+                        {/* Tombol Hapus: Merah Solid Standby */}
+                        <button 
+                          onClick={() => handleDeleteClick(item.id)} 
+                          className="text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-700 p-2 rounded-lg transition-colors shadow-sm" 
+                          title="Hapus"
+                        >
                           <Trash2 size={18} />
                         </button>
+
                       </div>
                     </td>
                   </tr>
@@ -284,5 +304,6 @@ export default function AnggotaAmil() {
       )}
 
     </div>
+    </PageTransition>
   );
 }

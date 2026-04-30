@@ -14,6 +14,9 @@ import DashboardAmil from './pages/amil/DashboardAmil';
 import KelolaZis from './pages/amil/KelolaZis';
 import KelolaMuzzaki from './pages/amil/KelolaMuzzaki';
 import KelolaMustahik from './pages/amil/KelolaMustahik';
+import PengaturanAmil from './pages/amil/PengaturanAmil';
+import PengaturanKoordinator from './pages/koordinator/PengaturanKoordinator'; // Atau sesuaikan dengan struktur folder Anda
+import PengaturanAnggota from './pages/anggota/PengaturanAnggota';
 // 1. Tambahkan import komponen baru di sini
 import KelolaKas from './pages/koordinator/KelolaKas'; 
 
@@ -90,6 +93,24 @@ function App() {
           <AmilLayout>
             <KelolaMustahik />
           </AmilLayout>
+        } />
+
+        <Route path="/amil/pengaturan" element={
+          <AmilLayout>
+            <PengaturanAmil />
+          </AmilLayout>
+        } />
+
+        <Route path="/pengaturan" element={
+          <DashboardLayout> 
+            <PengaturanKoordinator />
+          </DashboardLayout>
+        } />
+
+        <Route path="/anggota/pengaturan" element={
+          <AnggotaLayout>
+            <PengaturanAnggota />
+          </AnggotaLayout>
         } />
 
         <Route path="/" element={<Navigate to="/login" />} />

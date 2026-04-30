@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { HandHeart, Users, Wallet, UsersRound } from "lucide-react";
+import PageTransition from "../../components/PageTransition";
 
 // ─── Helper Dummy Data (Visualnya dibuat berbeda tiap kategori) ───────────────
 const generateData = (kategori, isTahunan = false) => {
@@ -227,6 +228,7 @@ export default function DashboardAnggota() {
   const [kasWaktu,    setKasWaktu]    = useState("Bulanan");
 
   return (
+    <PageTransition>
     <div
       className="min-h-screen bg-gray-50 p-6 md:p-10"
       style={{ fontFamily: "Manrope, sans-serif" }}
@@ -299,5 +301,6 @@ export default function DashboardAnggota() {
         />
       </div>
     </div>
+    </PageTransition>
   );
 }

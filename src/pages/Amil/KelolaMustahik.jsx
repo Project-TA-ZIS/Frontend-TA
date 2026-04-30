@@ -1,38 +1,39 @@
 import React, { useState } from "react";
 import { Plus, Search, Edit, Trash2, X } from "lucide-react";
+import PageTransition from "../../components/PageTransition";
 
 // ─── Dummy Data Awal ───────────────────────────────────────────────────────
 const INITIAL_DATA = [
   {
-    id: "MST-001",
+    id: "1",
     nama: "Bapak Ahmad",
     telp: "081111111111",
     kategori: "Fakir",
     jenisKelamin: "Laki-laki",
   },
   {
-    id: "MST-002",
+    id: "2",
     nama: "Ibu Maryam",
     telp: "082222222222",
     kategori: "Miskin",
     jenisKelamin: "Perempuan",
   },
   {
-    id: "MST-003",
+    id: "3",
     nama: "Keluarga Bapak Budi",
     telp: "083333333333",
     kategori: "Gharimin (Banyak Hutang)",
     jenisKelamin: "Laki-laki",
   },
   {
-    id: "MST-004",
+    id: "4",
     nama: "Panti Asuhan Al-Ikhlas",
     telp: "084444444444",
     kategori: "Fisabilillah",
     jenisKelamin: "Perempuan",
   },
   {
-    id: "MST-005",
+    id: "5",
     nama: "Siti Nurhaliza",
     telp: "085555555555",
     kategori: "Mualaf",
@@ -119,6 +120,7 @@ export default function KelolaMustahik() {
   };
 
   return (
+    <PageTransition>
     <div className="min-h-screen bg-gray-50 p-6 md:p-10 font-['Manrope']">
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
 
@@ -192,20 +194,25 @@ export default function KelolaMustahik() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="flex items-center justify-center gap-3">
+                        
+                        {/* Tombol Edit: Hijau Solid Standby */}
                         <button 
-                          onClick={() => handleEditClick(item)}
-                          className="text-gray-400 hover:text-[#10B981] transition-colors" 
+                          onClick={() => handleEditClick(item)} 
+                          className="text-[#10B981] bg-emerald-50 hover:bg-emerald-100 hover:text-[#064E3B] p-2 rounded-lg transition-colors shadow-sm" 
                           title="Edit"
                         >
                           <Edit size={18} />
                         </button>
+
+                        {/* Tombol Hapus: Merah Solid Standby */}
                         <button 
-                          onClick={() => handleDeleteClick(item.id)}
-                          className="text-gray-400 hover:text-red-500 transition-colors" 
+                          onClick={() => handleDeleteClick(item.id)} 
+                          className="text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-700 p-2 rounded-lg transition-colors shadow-sm" 
                           title="Hapus"
                         >
                           <Trash2 size={18} />
                         </button>
+
                       </div>
                     </td>
                   </tr>
@@ -291,5 +298,6 @@ export default function KelolaMustahik() {
       )}
 
     </div>
+    </PageTransition>
   );
 }
