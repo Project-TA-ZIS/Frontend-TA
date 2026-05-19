@@ -1,51 +1,35 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Plus, Search, Edit, Trash2, X } from "lucide-react";
 import PageTransition from "../../components/PageTransition";
+import {
+  createMuzakki,
+  deleteMuzakki,
+  getAllMuzakki,
+  updateMuzakki,
+} from "../../services/muzakki.service";
 
 
-// ─── Dummy Data Awal ───────────────────────────────────────────────────────
-const INITIAL_DATA = [
-  {
-    id: "1",
-    nama: "Bambang Wijaya",
-    email: "bambang.w@email.com",
-    telp: "081234567890",
-    jenisKelamin: "Laki-laki",
-  },
-  {
-    id: "2",
-    nama: "Siti Aminah",
-    email: "siti.aminah@email.com",
-    telp: "082345678901",
-    jenisKelamin: "Perempuan",
-  },
-  {
-    id: "3",
-    nama: "Haji Sulaiman",
-    email: "h.sulaiman@email.com",
-    telp: "083456789012",
-    jenisKelamin: "Laki-laki",
-  },
-  {
-    id: "4",
-    nama: "Agus Santoso",
-    email: "agus.s@email.com",
-    telp: "084567890123",
-    jenisKelamin: "Laki-laki",
-  },
-  {
-    id: "5",
-    nama: "Ratna Sari",
-    email: "ratna.sari@email.com",
-    telp: "085678901234",
-    jenisKelamin: "Perempuan",
-  },
-];
+const mapApiToRow = (item) => ({
+  id: String(item?.id ?? ""),
+  nama: item?.nama_lengkap ?? "-",
+  email: item?.email ?? "-",
+  telp: item?.nomor_telpon ?? "-",
+  jenisKelamin: item?.jenis_kelamin ?? "-",
+});
+
+const mapFormToApi = (form) => ({
+  nama_lengkap: form.nama,
+  email: form.email,
+  nomor_telpon: form.telp,
+  jenis_kelamin: form.jenisKelamin,
+});
 
 export default function KelolaMuzzaki() {
   // ─── States ───
-  const [muzzakiList, setMuzzakiList] = useState(INITIAL_DATA);
+  const [muzzakiList, setMuzzakiList] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   
   // State untuk Modal Pop-up
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -59,11 +43,36 @@ export default function KelolaMuzzaki() {
     jenisKelamin: "Laki-laki",
   });
 
+  const loadData = async () => {
+    setIsLoading(true);
+    setErrorMsg("");
+    try {
+      const res = await getAllMuzakki();
+      const rows = Array.isArray(res?.data) ? res.data.map(mapApiToRow) : [];
+      setMuzzakiList(rows);
+    } catch (err) {
+      // BE mengembalikan 404 jika data kosong
+      if (err?.response?.status === 404) {
+        setMuzzakiList([]);
+        return;
+      }
+      setErrorMsg(err?.response?.data?.message || err?.message || "Gagal memuat data muzzaki");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
   // ─── Filter Pencarian ───
-  const filteredMuzzaki = muzzakiList.filter((item) =>
-    item.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.id.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredMuzzaki = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    return muzzakiList.filter((item) =>
+      item.nama.toLowerCase().includes(q) || item.id.toLowerCase().includes(q),
+    );
+  }, [muzzakiList, searchQuery]);
 
   // ─── Handlers ───
   const handleInputChange = (e) => {
@@ -88,30 +97,35 @@ export default function KelolaMuzzaki() {
     setIsModalOpen(true);
   };
 
-  const handleDeleteClick = (id) => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus data Muzzaki ini?")) {
-      setMuzzakiList(muzzakiList.filter((item) => item.id !== id));
+  const handleDeleteClick = async (id) => {
+    if (!window.confirm("Apakah Anda yakin ingin menghapus data Muzzaki ini?")) return;
+    try {
+      await deleteMuzakki(id);
+      await loadData();
+    } catch (err) {
+      setErrorMsg(err?.response?.data?.message || err?.message || "Gagal menghapus muzzaki");
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (editingId) {
-      // PROSES EDIT
-      setMuzzakiList(muzzakiList.map((item) => 
-        item.id === editingId ? { ...formData, id: editingId } : item
-      ));
-    } else {
-      // PROSES TAMBAH BARU
-      const newId = `MZK-00${muzzakiList.length + 1}`;
-      const newMuzzaki = { id: newId, ...formData };
-      setMuzzakiList([...muzzakiList, newMuzzaki]);
+    setErrorMsg("");
+
+    try {
+      const payload = mapFormToApi(formData);
+      if (editingId) {
+        await updateMuzakki(editingId, payload);
+      } else {
+        await createMuzakki(payload);
+      }
+      setIsModalOpen(false);
+      setEditingId(null);
+      setFormData({ nama: "", email: "", telp: "", jenisKelamin: "Laki-laki" });
+      await loadData();
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.response?.data?.error || err?.message;
+      setErrorMsg(msg || "Gagal menyimpan data muzzaki");
     }
-    
-    setIsModalOpen(false);
-    setEditingId(null);
-    setFormData({ nama: "", email: "", telp: "", jenisKelamin: "Laki-laki" });
   };
 
   const handleCloseModal = () => {
@@ -133,6 +147,12 @@ export default function KelolaMuzzaki() {
           Beberapa Muzzaki yang sudah Terdaftar
         </p>
       </div>
+
+      {errorMsg && (
+        <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl">
+          <p className="text-sm font-bold text-red-700">{errorMsg}</p>
+        </div>
+      )}
 
       {/* ─── Tombol Tambah ─── */}
       <div className="mb-8">
@@ -174,7 +194,13 @@ export default function KelolaMuzzaki() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredMuzzaki.length > 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-8 text-center text-sm font-medium text-gray-500">
+                    Memuat data...
+                  </td>
+                </tr>
+              ) : filteredMuzzaki.length > 0 ? (
                 filteredMuzzaki.map((item, index) => (
                   <tr key={index} className="hover:bg-emerald-50/30 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#0F766E] text-center">{item.id}</td>

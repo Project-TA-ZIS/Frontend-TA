@@ -3,11 +3,13 @@ import { User, LogOut, Settings, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 // Pastikan nama import sidebar ini sesuai dengan file Anda
 import AnggotaSidebar from './AnggotaSidebar'; 
+import useAuthStore from '../../store/useAuthStore';
 
 export default function AnggotaLayout({ children }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+  const logout = useAuthStore((s) => s.setLogout);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -20,7 +22,7 @@ export default function AnggotaLayout({ children }) {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('token'); 
+    logout();
     navigate('/login');
   };
 

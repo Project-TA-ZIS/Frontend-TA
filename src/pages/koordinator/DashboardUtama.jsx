@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AreaChart,
   Area,
@@ -11,8 +11,115 @@ import {
 } from "recharts";
 import { HandHeart, Users, Wallet, UsersRound } from "lucide-react";
 import PageTransition from "../../components/PageTransition";
+import { getAllMuzakki } from "../../services/muzakki.service";
+import { getAllMustahik } from "../../services/mustahik.service";
+import dasawismaService from "../../services/dasawisma.service";
+import amilService from "../../services/amil.service";
+import {
+  getAllPemasukanZIS,
+  getAllPengeluaranZIS,
+} from "../../services/zisTransaksi.service";
 
-// ─── Helper Dummy Data (Visualnya dibuat berbeda tiap kategori) ───────────────
+const MONTH_LABELS = [
+  "JAN",
+  "FEB",
+  "MAR",
+  "APR",
+  "MEI",
+  "JUN",
+  "JUL",
+  "AGT",
+  "SEP",
+  "OKT",
+  "NOV",
+  "DES",
+];
+
+const parseLocalDateOnly = (dateStr) => {
+  if (!dateStr) return null;
+  const safe = String(dateStr).trim();
+  if (!safe) return null;
+  const d = new Date(`${safe}T00:00:00`);
+  // Invalid date check
+  if (Number.isNaN(d.getTime())) return null;
+  return d;
+};
+
+const toUiZisKategori = (kategori) => {
+  const k = (kategori || "").toString().trim().toLowerCase();
+  if (!k) return null;
+  if (k.includes("zakat mal")) return "Zakat Maal";
+  if (k.includes("zakat fitrah")) return "Zakat Fitrah";
+  if (k === "infaq") return "Infaq";
+  if (k === "shodaqoh") return "Sedekah";
+  return null;
+};
+
+const buildEmptySeries = (mode, now = new Date()) => {
+  const currentYear = now.getFullYear();
+  if (mode === "Tahunan") {
+    const years = Array.from({ length: 7 }, (_, i) => String(currentYear - 6 + i));
+    return years.map((y) => ({ label: y, pemasukan: 0, pengeluaran: 0 }));
+  }
+  return MONTH_LABELS.map((m) => ({ label: m, pemasukan: 0, pengeluaran: 0 }));
+};
+
+const buildZisSeries = ({
+  pemasukanItems,
+  pengeluaranItems,
+  uiKategori,
+  mode,
+  now = new Date(),
+}) => {
+  const currentYear = now.getFullYear();
+  const result = buildEmptySeries(mode, now);
+
+  const addValue = (idx, key, amount) => {
+    if (idx < 0 || idx >= result.length) return;
+    result[idx][key] += amount;
+  };
+
+  (pemasukanItems || []).forEach((item) => {
+    if (toUiZisKategori(item?.kategori) !== uiKategori) return;
+    const d = parseLocalDateOnly(item?.tanggal_penghimpunan);
+    if (!d) return;
+    const amount = Number.parseFloat(item?.jumlah ?? 0) || 0;
+
+    if (mode === "Tahunan") {
+      const year = d.getFullYear();
+      const idx = year - (currentYear - 6);
+      addValue(idx, "pemasukan", amount);
+    } else {
+      if (d.getFullYear() !== currentYear) return;
+      addValue(d.getMonth(), "pemasukan", amount);
+    }
+  });
+
+  (pengeluaranItems || []).forEach((item) => {
+    if (toUiZisKategori(item?.kategori) !== uiKategori) return;
+    const d = parseLocalDateOnly(item?.tanggal_penyaluran);
+    if (!d) return;
+    const amount = Number.parseFloat(item?.jumlah ?? 0) || 0;
+
+    if (mode === "Tahunan") {
+      const year = d.getFullYear();
+      const idx = year - (currentYear - 6);
+      addValue(idx, "pengeluaran", amount);
+    } else {
+      if (d.getFullYear() !== currentYear) return;
+      addValue(d.getMonth(), "pengeluaran", amount);
+    }
+  });
+
+  // Ensure integers for nicer tooltip formatting
+  return result.map((row) => ({
+    ...row,
+    pemasukan: Math.round(row.pemasukan),
+    pengeluaran: Math.round(row.pengeluaran),
+  }));
+};
+
+// ─── Helper Dummy Data (Kas Dasawisma masih dummy) ──────────────────────────
 const generateData = (kategori, isTahunan = false) => {
   const labelsBulanan = ["JAN", "FEB", "MAR", "APR", "MEI", "JUN", "JUL", "AGT", "SEP", "OKT", "NOV", "DES"];
   const labelsTahunan = ["2020", "2021", "2022", "2023", "2024", "2025", "2026"];
@@ -54,24 +161,16 @@ const generateData = (kategori, isTahunan = false) => {
   });
 };
 
-// ─── Static Data JSON ─────────────────────────────────────────────────────────
-const DATA = {
-  kpi: [
-    { id: 1, icon: HandHeart, label: "JUMLAH MUZZAKI",            value: 152 },
-    { id: 2, icon: Users,     label: "JUMLAH MUSTAHIQ",           value: 45  },
-    { id: 3, icon: Wallet,    label: "JUMLAH AMIL",               value: 8   },
-    { id: 4, icon: UsersRound,label: "JUMLAH ANGGOTA DASAWISMA",  value: 42  },
-  ],
-  trenZIS: {
-    "Zakat Maal":   { "Bulanan": generateData("Zakat Maal"),   "Tahunan": generateData("Zakat Maal", true)   },
-    "Zakat Fitrah": { "Bulanan": generateData("Zakat Fitrah"), "Tahunan": generateData("Zakat Fitrah", true) },
-    "Infaq":        { "Bulanan": generateData("Infaq"),        "Tahunan": generateData("Infaq", true) },
-    "Sedekah":      { "Bulanan": generateData("Sedekah"),      "Tahunan": generateData("Sedekah", true) },
-  },
-  trenKas: {
-    "Bulanan": generateData("Kas"), 
-    "Tahunan": generateData("Kas", true)
-  }
+const KPI_TEMPLATE = [
+  { id: 1, icon: HandHeart, label: "JUMLAH MUZZAKI", key: "muzakki" },
+  { id: 2, icon: Users, label: "JUMLAH MUSTAHIQ", key: "mustahik" },
+  { id: 3, icon: Wallet, label: "JUMLAH AMIL", key: "amil" },
+  { id: 4, icon: UsersRound, label: "JUMLAH ANGGOTA DASAWISMA", key: "anggota" },
+];
+
+const DUMMY_TREN_KAS = {
+  Bulanan: generateData("Kas"),
+  Tahunan: generateData("Kas", true),
 };
 
 // ─── Theme Constants ──────────────────────────────────────────────────────────
@@ -227,6 +326,107 @@ export default function DashboardUtama() {
   const [zisWaktu,    setZisWaktu]    = useState("Bulanan");
   const [kasWaktu,    setKasWaktu]    = useState("Bulanan");
 
+  const [kpiCounts, setKpiCounts] = useState({
+    muzakki: 0,
+    mustahik: 0,
+    amil: 0,
+    anggota: 0,
+  });
+  const [zisPemasukanItems, setZisPemasukanItems] = useState([]);
+  const [zisPengeluaranItems, setZisPengeluaranItems] = useState([]);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const unwrapToArray = (res, arraySelector) => {
+      const arr = arraySelector?.(res);
+      return Array.isArray(arr) ? arr : [];
+    };
+
+    const is404 = (err) => err?.response?.status === 404;
+
+    const load = async () => {
+      setErrorMsg("");
+      try {
+        const settled = await Promise.allSettled([
+          getAllMuzakki(),
+          getAllMustahik(),
+          amilService.getAllAmil(),
+          dasawismaService.getAllAnggotaDasawisma(),
+          getAllPemasukanZIS(),
+          getAllPengeluaranZIS(),
+        ]);
+
+        const pick = (idx, selector) => {
+          const r = settled[idx];
+          if (r.status === "fulfilled") return unwrapToArray(r.value, selector);
+          if (is404(r.reason)) return [];
+          // non-404 errors are reported, but we still try to render what we can
+          return null;
+        };
+
+        const muzakkiArr = pick(0, (v) => v?.data);
+        const mustahikArr = pick(1, (v) => v?.data);
+        const amilArr = pick(2, (v) => v?.data);
+        const anggotaArr = pick(3, (v) => v?.data);
+        const pemasukanArr = pick(4, (v) => v?.data);
+        const pengeluaranArr = pick(5, (v) => v);
+
+        if (!cancelled) {
+          setKpiCounts({
+            muzakki: Array.isArray(muzakkiArr) ? muzakkiArr.length : 0,
+            mustahik: Array.isArray(mustahikArr) ? mustahikArr.length : 0,
+            amil: Array.isArray(amilArr) ? amilArr.length : 0,
+            anggota: Array.isArray(anggotaArr) ? anggotaArr.length : 0,
+          });
+          setZisPemasukanItems(Array.isArray(pemasukanArr) ? pemasukanArr : []);
+          setZisPengeluaranItems(Array.isArray(pengeluaranArr) ? pengeluaranArr : []);
+
+          const firstError = settled.find(
+            (x) => x.status === "rejected" && !is404(x.reason),
+          );
+          if (firstError) {
+            setErrorMsg(
+              firstError.reason?.response?.data?.message ||
+                firstError.reason?.message ||
+                "Gagal memuat sebagian data dashboard",
+            );
+          }
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setErrorMsg(
+            err?.response?.data?.message ||
+              err?.message ||
+              "Gagal memuat data dashboard",
+          );
+        }
+      }
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const zisChartData = useMemo(() => {
+    return buildZisSeries({
+      pemasukanItems: zisPemasukanItems,
+      pengeluaranItems: zisPengeluaranItems,
+      uiKategori: zisKategori,
+      mode: zisWaktu,
+    });
+  }, [zisPemasukanItems, zisPengeluaranItems, zisKategori, zisWaktu]);
+
+  const kpiCards = useMemo(() => {
+    return KPI_TEMPLATE.map((t) => ({
+      ...t,
+      value: kpiCounts[t.key] ?? 0,
+    }));
+  }, [kpiCounts]);
+
   return (
     <PageTransition>
     <div
@@ -250,7 +450,7 @@ export default function DashboardUtama() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-        {DATA.kpi.map((card) => (
+        {kpiCards.map((card) => (
           <KpiCard
             key={card.id}
             icon={card.icon}
@@ -260,6 +460,12 @@ export default function DashboardUtama() {
         ))}
       </div>
 
+      {errorMsg && (
+        <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl">
+          <p className="text-sm font-bold text-red-700">{errorMsg}</p>
+        </div>
+      )}
+
       {/* Charts */}
       <div className="flex flex-col gap-6">
         
@@ -267,7 +473,7 @@ export default function DashboardUtama() {
         <TrenChart
           title="Tren Transaksi ZIS"
           subtitle="Laporan akumulasi dana bulanan 2024"
-          data={DATA.trenZIS[zisKategori][zisWaktu]} 
+          data={zisChartData}
           gradientId="gradZIS"
           rightControls={
             <>
@@ -289,7 +495,7 @@ export default function DashboardUtama() {
         <TrenChart
           title="Tren Transaksi Kas Dasawisma"
           subtitle="Laporan akumulasi dana bulanan 2024"
-          data={DATA.trenKas[kasWaktu]}
+          data={DUMMY_TREN_KAS[kasWaktu]}
           gradientId="gradKas"
           rightControls={
             <ToggleGroup

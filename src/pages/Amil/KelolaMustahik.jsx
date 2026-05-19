@@ -1,50 +1,34 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Plus, Search, Edit, Trash2, X } from "lucide-react";
 import PageTransition from "../../components/PageTransition";
+import {
+  createMustahik,
+  deleteMustahik,
+  getAllMustahik,
+  updateMustahik,
+} from "../../services/mustahik.service";
 
-// ─── Dummy Data Awal ───────────────────────────────────────────────────────
-const INITIAL_DATA = [
-  {
-    id: "1",
-    nama: "Bapak Ahmad",
-    telp: "081111111111",
-    kategori: "Fakir",
-    jenisKelamin: "Laki-laki",
-  },
-  {
-    id: "2",
-    nama: "Ibu Maryam",
-    telp: "082222222222",
-    kategori: "Miskin",
-    jenisKelamin: "Perempuan",
-  },
-  {
-    id: "3",
-    nama: "Keluarga Bapak Budi",
-    telp: "083333333333",
-    kategori: "Gharimin (Banyak Hutang)",
-    jenisKelamin: "Laki-laki",
-  },
-  {
-    id: "4",
-    nama: "Panti Asuhan Al-Ikhlas",
-    telp: "084444444444",
-    kategori: "Fisabilillah",
-    jenisKelamin: "Perempuan",
-  },
-  {
-    id: "5",
-    nama: "Siti Nurhaliza",
-    telp: "085555555555",
-    kategori: "Mualaf",
-    jenisKelamin: "Perempuan",
-  },
-];
+const mapApiToRow = (item) => ({
+  id: String(item?.id ?? ""),
+  nama: item?.nama_lengkap ?? "-",
+  telp: item?.nomor_telpon ?? "-",
+  kategori: item?.kategori ?? "-",
+  jenisKelamin: item?.jenis_kelamin ?? "-",
+});
+
+const mapFormToApi = (form) => ({
+  nama_lengkap: form.nama,
+  nomor_telpon: form.telp,
+  kategori: form.kategori,
+  jenis_kelamin: form.jenisKelamin,
+});
 
 export default function KelolaMustahik() {
   // ─── States ───
-  const [mustahikList, setMustahikList] = useState(INITIAL_DATA);
+  const [mustahikList, setMustahikList] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   
   // State untuk Modal Pop-up
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -58,12 +42,38 @@ export default function KelolaMustahik() {
     jenisKelamin: "Laki-laki",
   });
 
+  const loadData = async () => {
+    setIsLoading(true);
+    setErrorMsg("");
+    try {
+      const res = await getAllMustahik();
+      const rows = Array.isArray(res?.data) ? res.data.map(mapApiToRow) : [];
+      setMustahikList(rows);
+    } catch (err) {
+      if (err?.response?.status === 404) {
+        setMustahikList([]);
+        return;
+      }
+      const msg = err?.response?.data?.message || err?.response?.data?.error || err?.message;
+      setErrorMsg(msg || "Gagal memuat data mustahik");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
   // ─── Filter Pencarian ───
-  const filteredMustahik = mustahikList.filter((item) =>
-    item.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.kategori.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredMustahik = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    return mustahikList.filter((item) =>
+      item.nama.toLowerCase().includes(q) ||
+      item.id.toLowerCase().includes(q) ||
+      item.kategori.toLowerCase().includes(q),
+    );
+  }, [mustahikList, searchQuery]);
 
   // ─── Handlers ───
   const handleInputChange = (e) => {
@@ -88,30 +98,35 @@ export default function KelolaMustahik() {
     setIsModalOpen(true);
   };
 
-  const handleDeleteClick = (id) => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus data Mustahik ini?")) {
-      setMustahikList(mustahikList.filter((item) => item.id !== id));
+  const handleDeleteClick = async (id) => {
+    if (!window.confirm("Apakah Anda yakin ingin menghapus data Mustahik ini?")) return;
+    try {
+      await deleteMustahik(id);
+      await loadData();
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.response?.data?.error || err?.message;
+      setErrorMsg(msg || "Gagal menghapus mustahik");
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (editingId) {
-      // PROSES EDIT
-      setMustahikList(mustahikList.map((item) => 
-        item.id === editingId ? { ...formData, id: editingId } : item
-      ));
-    } else {
-      // PROSES TAMBAH BARU
-      const newId = `MST-00${mustahikList.length + 1}`;
-      const newMustahik = { id: newId, ...formData };
-      setMustahikList([...mustahikList, newMustahik]);
+    setErrorMsg("");
+    try {
+      const payload = mapFormToApi(formData);
+      if (editingId) {
+        await updateMustahik(editingId, payload);
+      } else {
+        await createMustahik(payload);
+      }
+      setIsModalOpen(false);
+      setEditingId(null);
+      setFormData({ nama: "", telp: "", kategori: "Fakir", jenisKelamin: "Laki-laki" });
+      await loadData();
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.response?.data?.error || err?.message;
+      setErrorMsg(msg || "Gagal menyimpan data mustahik");
     }
-    
-    setIsModalOpen(false);
-    setEditingId(null);
-    setFormData({ nama: "", telp: "", kategori: "Fakir", jenisKelamin: "Laki-laki" });
   };
 
   const handleCloseModal = () => {
@@ -133,6 +148,12 @@ export default function KelolaMustahik() {
           Beberapa Mustahik yang sudah Terdaftar
         </p>
       </div>
+
+      {errorMsg && (
+        <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl">
+          <p className="text-sm font-bold text-red-700">{errorMsg}</p>
+        </div>
+      )}
 
       {/* ─── Tombol Tambah ─── */}
       <div className="mb-8">
@@ -174,7 +195,13 @@ export default function KelolaMustahik() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredMustahik.length > 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-8 text-center text-sm font-medium text-gray-500">
+                    Memuat data...
+                  </td>
+                </tr>
+              ) : filteredMustahik.length > 0 ? (
                 filteredMustahik.map((item, index) => (
                   <tr key={index} className="hover:bg-emerald-50/30 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#0F766E] text-center">{item.id}</td>

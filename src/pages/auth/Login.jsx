@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import useAuthStore from '../../store/useAuthStore';
+import { login as loginRequest, getMe } from '../../services/auth.service';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -10,9 +12,7 @@ export default function Login() {
   const [errorMsg, setErrorMsg] = useState('');
 
   const navigate = useNavigate();
-
- // URL Backend Anda
-  const API_URL = "https://pg9jf61k-4000.asse.devtunnels.ms";
+  const setLogin = useAuthStore((s) => s.setLogin);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -20,49 +20,38 @@ export default function Login() {
     setErrorMsg('');
 
     try {
-      // 1. Tembak endpoint API sesuai dengan di Postman
-      const response = await fetch(`${API_URL}/auth/post/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email,
-          password: password
-        }),
-      });
+      const data = await loginRequest({ email, password });
+      const token = data?.token;
+      if (!token) {
+        setErrorMsg('Login berhasil tapi token tidak ditemukan.');
+        return;
+      }
 
-      const data = await response.json();
+      let userData = null;
+      try {
+        const me = await getMe();
+        userData = me?.user || null;
+      } catch {
+        // Jika /me gagal, tetap lanjut dengan token saja.
+      }
 
-      if (response.ok) {
-        console.log("Login sukses!", data);
-        
-        // 2. Simpan token ke localStorage agar bisa dipakai untuk endpoint /auth/get/me nanti
-        // Catatan: Pastikan 'data.token' sesuai dengan struktur respon JSON dari backend Anda. 
-        // Jika backend Anda menaruh token di dalam objek data (misal: data.data.token), sesuaikan kodenya.
-        const token = data.token || data.data?.token;
-        if (token) {
-          localStorage.setItem('token', token);
-        }
+      setLogin(userData, token);
 
-        // 3. Logika Percabangan Role (Sesuai komentar di Postman Anda)
-        // Cek struktur data yang dikembalikan backend. Jika ada info role, kita bisa langsung arahkan.
-        const userRole = data.role || data.data?.role; // Sesuaikan dengan field role dari backend
-
-        if (userRole === "ANGGOTA DAWIS") {
-          navigate('/anggota/dashboard');
-        } else {
-          // Jika Koordinator atau Amil, arahkan ke Dashboard Utama Koordinator
-          navigate('/dashboard'); 
-        }
-
+      const role = userData?.roles;
+      if (role === 'anggota dasawisma') {
+        navigate('/anggota/dashboard');
+      } else if (role === 'amil zakat') {
+        navigate('/amil/dashboard');
       } else {
-        // Tangkap pesan error dari backend jika login gagal
-        setErrorMsg(data.message || "Email atau password tidak valid.");
+        // default: koordinator dasawisma
+        navigate('/dashboard');
       }
     } catch (error) {
-      console.error("Detail kegagalan:", error);
-      setErrorMsg("Gagal terhubung ke server. Pastikan backend menyala.");
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        'Gagal login. Pastikan backend menyala.';
+      setErrorMsg(message);
     } finally {
       setIsLoading(false);
     }
