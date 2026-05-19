@@ -20,11 +20,21 @@ async function deleteAnggotaDasawisma(id) {
   return res.data;
 }
 
+async function updatePassword(arg1, arg2) {
+  // Backward-compatible:
+  // - preferred usage: updatePassword(payload)
+  // - legacy usage:   updatePassword(id, payload)
+  const payload = arg2 ?? arg1;
+  const res = await api.put(`/dasawisma/update/updatePassword`, payload);
+  return res.data;
+}
+
 const dasawismaService = {
   getAllAnggotaDasawisma,
   createAnggotaDasawisma,
   updateAnggotaDasawisma,
   deleteAnggotaDasawisma,
+  updatePassword,
 };
 
 export default dasawismaService;

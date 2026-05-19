@@ -15,10 +15,10 @@ import { getAllMuzakki } from "../../services/muzakki.service";
 import { getAllMustahik } from "../../services/mustahik.service";
 import dasawismaService from "../../services/dasawisma.service";
 import amilService from "../../services/amil.service";
-import {
-  getAllPemasukanZIS,
-  getAllPengeluaranZIS,
-} from "../../services/zisTransaksi.service";
+import pemasukanZISService from "../../services/pemasukanZIS.service";
+import pengeluaranZISService from "../../services/pengeluaranZIS.service";
+import pemasukanDasawismaService from "../../services/pemasukanDasawisma.service";
+import pengeluaranDasawismaService from "../../services/pengeluaranDasawisma.service";
 
 const MONTH_LABELS = [
   "JAN",
@@ -35,14 +35,33 @@ const MONTH_LABELS = [
   "DES",
 ];
 
-const parseLocalDateOnly = (dateStr) => {
-  if (!dateStr) return null;
-  const safe = String(dateStr).trim();
+const parseDateSafe = (dateLike) => {
+  if (!dateLike) return null;
+  if (dateLike instanceof Date) {
+    return Number.isNaN(dateLike.getTime()) ? null : dateLike;
+  }
+  const safe = String(dateLike).trim();
   if (!safe) return null;
-  const d = new Date(`${safe}T00:00:00`);
-  // Invalid date check
-  if (Number.isNaN(d.getTime())) return null;
-  return d;
+
+  // If it already looks like an ISO datetime (has 'T' or time part), parse directly.
+  const looksLikeDateTime = safe.includes("T") || /\d{2}:\d{2}/.test(safe);
+  const d = looksLikeDateTime ? new Date(safe) : new Date(`${safe}T00:00:00`);
+  if (!Number.isNaN(d.getTime())) return d;
+
+  // Fallback: try direct parse.
+  const d2 = new Date(safe);
+  return Number.isNaN(d2.getTime()) ? null : d2;
+};
+
+const getMaxYearFromItems = (items, dateKey) => {
+  let maxYear = null;
+  (items || []).forEach((item) => {
+    const d = parseDateSafe(item?.[dateKey]);
+    if (!d) return;
+    const y = d.getFullYear();
+    if (maxYear == null || y > maxYear) maxYear = y;
+  });
+  return maxYear;
 };
 
 const toUiZisKategori = (kategori) => {
@@ -71,7 +90,7 @@ const buildZisSeries = ({
   mode,
   now = new Date(),
 }) => {
-  const currentYear = now.getFullYear();
+  const nowYear = now.getFullYear();
   const result = buildEmptySeries(mode, now);
 
   const addValue = (idx, key, amount) => {
@@ -79,34 +98,46 @@ const buildZisSeries = ({
     result[idx][key] += amount;
   };
 
-  (pemasukanItems || []).forEach((item) => {
-    if (toUiZisKategori(item?.kategori) !== uiKategori) return;
-    const d = parseLocalDateOnly(item?.tanggal_penghimpunan);
+  // For Bulanan: if current year has no data, show the latest year that exists in data.
+  const relevantMasuk = (pemasukanItems || []).filter(
+    (item) => toUiZisKategori(item?.kategori) === uiKategori,
+  );
+  const relevantKeluar = (pengeluaranItems || []).filter(
+    (item) => toUiZisKategori(item?.kategori) === uiKategori,
+  );
+  const latestYearInData = Math.max(
+    getMaxYearFromItems(relevantMasuk, "tanggal_penghimpunan") ?? -Infinity,
+    getMaxYearFromItems(relevantKeluar, "tanggal_penyaluran") ?? -Infinity,
+  );
+  const activeYear =
+    mode === "Tahunan" || latestYearInData === -Infinity ? nowYear : latestYearInData;
+
+  (relevantMasuk || []).forEach((item) => {
+    const d = parseDateSafe(item?.tanggal_penghimpunan);
     if (!d) return;
     const amount = Number.parseFloat(item?.jumlah ?? 0) || 0;
 
     if (mode === "Tahunan") {
       const year = d.getFullYear();
-      const idx = year - (currentYear - 6);
+      const idx = year - (nowYear - 6);
       addValue(idx, "pemasukan", amount);
     } else {
-      if (d.getFullYear() !== currentYear) return;
+      if (d.getFullYear() !== activeYear) return;
       addValue(d.getMonth(), "pemasukan", amount);
     }
   });
 
-  (pengeluaranItems || []).forEach((item) => {
-    if (toUiZisKategori(item?.kategori) !== uiKategori) return;
-    const d = parseLocalDateOnly(item?.tanggal_penyaluran);
+  (relevantKeluar || []).forEach((item) => {
+    const d = parseDateSafe(item?.tanggal_penyaluran);
     if (!d) return;
     const amount = Number.parseFloat(item?.jumlah ?? 0) || 0;
 
     if (mode === "Tahunan") {
       const year = d.getFullYear();
-      const idx = year - (currentYear - 6);
+      const idx = year - (nowYear - 6);
       addValue(idx, "pengeluaran", amount);
     } else {
-      if (d.getFullYear() !== currentYear) return;
+      if (d.getFullYear() !== activeYear) return;
       addValue(d.getMonth(), "pengeluaran", amount);
     }
   });
@@ -119,46 +150,58 @@ const buildZisSeries = ({
   }));
 };
 
-// ─── Helper Dummy Data (Kas Dasawisma masih dummy) ──────────────────────────
-const generateData = (kategori, isTahunan = false) => {
-  const labelsBulanan = ["JAN", "FEB", "MAR", "APR", "MEI", "JUN", "JUL", "AGT", "SEP", "OKT", "NOV", "DES"];
-  const labelsTahunan = ["2020", "2021", "2022", "2023", "2024", "2025", "2026"];
-  const labels = isTahunan ? labelsTahunan : labelsBulanan;
 
-  return labels.map((label, index) => {
-    let basePemasukan = 0;
-    let basePengeluaran = 0;
+const buildKasSeries = ({ pemasukanItems, pengeluaranItems, mode, now = new Date() }) => {
+  const nowYear = now.getFullYear();
+  const result = buildEmptySeries(mode, now);
 
-    // Membuat pola lekukan yang benar-benar berbeda agar visualnya berubah saat diklik
-    if (kategori === "Zakat Maal") {
-      basePemasukan = 12000000 + (index * 1500000) + (Math.random() * 2000000);
-      basePengeluaran = 8000000 + (index * 800000) + (Math.random() * 1000000);
-    } else if (kategori === "Zakat Fitrah") {
-      // Pola menggunung (lonjakan musiman)
-      const peak = (index > 2 && index < 6) || (isTahunan && index > 3) ? 3 : 1; 
-      basePemasukan = 5000000 * peak + (Math.random() * 1000000);
-      basePengeluaran = 2000000 * peak + (Math.random() * 500000);
-    } else if (kategori === "Infaq") {
-      // Pola zigzag (fluktuatif)
-      const zigzag = index % 2 === 0 ? 1.5 : 0.8;
-      basePemasukan = 8000000 * zigzag + (Math.random() * 500000);
-      basePengeluaran = 5000000 * zigzag + (Math.random() * 500000);
-    } else if (kategori === "Sedekah") {
-      // Pola stabil namun melandai di akhir
-      basePemasukan = 15000000 - (index * 400000) + (Math.random() * 1000000);
-      basePengeluaran = 10000000 - (index * 300000) + (Math.random() * 800000);
+  const latestYearInData = Math.max(
+    getMaxYearFromItems(pemasukanItems, "tanggal_penghimpunan") ?? -Infinity,
+    getMaxYearFromItems(pengeluaranItems, "tanggal_penyaluran") ?? -Infinity,
+  );
+  const activeYear =
+    mode === "Tahunan" || latestYearInData === -Infinity ? nowYear : latestYearInData;
+
+  const addValue = (idx, key, amount) => {
+    if (idx < 0 || idx >= result.length) return;
+    result[idx][key] += amount;
+  };
+
+  (pemasukanItems || []).forEach((item) => {
+    const d = parseDateSafe(item?.tanggal_penghimpunan);
+    if (!d) return;
+    const amount = Number.parseFloat(item?.jumlah ?? 0) || 0;
+
+    if (mode === "Tahunan") {
+      const year = d.getFullYear();
+      const idx = year - (nowYear - 6);
+      addValue(idx, "pemasukan", amount);
     } else {
-      // Default / Kas
-      basePemasukan = 7000000 + (Math.random() * 3000000);
-      basePengeluaran = 4000000 + (Math.random() * 2000000);
+      if (d.getFullYear() !== activeYear) return;
+      addValue(d.getMonth(), "pemasukan", amount);
     }
-
-    return {
-      label: label,
-      pemasukan: Math.round(basePemasukan),
-      pengeluaran: Math.round(basePengeluaran),
-    };
   });
+
+  (pengeluaranItems || []).forEach((item) => {
+    const d = parseDateSafe(item?.tanggal_penyaluran);
+    if (!d) return;
+    const amount = Number.parseFloat(item?.jumlah ?? 0) || 0;
+
+    if (mode === "Tahunan") {
+      const year = d.getFullYear();
+      const idx = year - (nowYear - 6);
+      addValue(idx, "pengeluaran", amount);
+    } else {
+      if (d.getFullYear() !== activeYear) return;
+      addValue(d.getMonth(), "pengeluaran", amount);
+    }
+  });
+
+  return result.map((row) => ({
+    ...row,
+    pemasukan: Math.round(row.pemasukan),
+    pengeluaran: Math.round(row.pengeluaran),
+  }));
 };
 
 const KPI_TEMPLATE = [
@@ -168,10 +211,6 @@ const KPI_TEMPLATE = [
   { id: 4, icon: UsersRound, label: "JUMLAH ANGGOTA DASAWISMA", key: "anggota" },
 ];
 
-const DUMMY_TREN_KAS = {
-  Bulanan: generateData("Kas"),
-  Tahunan: generateData("Kas", true),
-};
 
 // ─── Theme Constants ──────────────────────────────────────────────────────────
 const CLR = {
@@ -254,7 +293,40 @@ const KpiCard = ({ icon, label, value }) => {
 };
 
 // ─── Area Chart Block ─────────────────────────────────────────────────────────
-const TrenChart = ({ title, subtitle, data, gradientId, rightControls }) => (
+const TrenChart = ({
+  title,
+  subtitle,
+  data,
+  gradientId,
+  rightControls,
+  gradientColor = CLR.accent,
+  series,
+}) => {
+  const defaultSeries = [
+    {
+      dataKey: "pemasukan",
+      name: "Pemasukan",
+      stroke: CLR.accent,
+      strokeWidth: 3,
+      fill: `url(#${gradientId})`,
+      dot: false,
+      activeDot: { r: 5, fill: CLR.accent, stroke: "#fff", strokeWidth: 2 },
+    },
+    {
+      dataKey: "pengeluaran",
+      name: "Pengeluaran",
+      stroke: CLR.danger,
+      strokeWidth: 2,
+      strokeDasharray: "5 5",
+      fill: "none",
+      dot: false,
+      activeDot: { r: 4, fill: CLR.danger, stroke: "#fff", strokeWidth: 2 },
+    },
+  ];
+
+  const effectiveSeries = Array.isArray(series) && series.length ? series : defaultSeries;
+
+  return (
   <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
     <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
       <div>
@@ -278,8 +350,8 @@ const TrenChart = ({ title, subtitle, data, gradientId, rightControls }) => (
       <AreaChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
         <defs>
           <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%"  stopColor={CLR.accent} stopOpacity={0.25} />
-            <stop offset="95%" stopColor={CLR.accent} stopOpacity={0}    />
+            <stop offset="5%"  stopColor={gradientColor} stopOpacity={0.25} />
+            <stop offset="95%" stopColor={gradientColor} stopOpacity={0}    />
           </linearGradient>
         </defs>
         <CartesianGrid vertical={false} stroke="#F3F4F6" strokeDasharray="4 4" />
@@ -294,31 +366,25 @@ const TrenChart = ({ title, subtitle, data, gradientId, rightControls }) => (
         <Legend
           wrapperStyle={{ fontFamily: "Manrope, sans-serif", fontSize: 12, paddingTop: 16 }}
         />
-        <Area
-          type="monotone"
-          dataKey="pemasukan"
-          name="Pemasukan"
-          stroke={CLR.accent}
-          strokeWidth={3}
-          fill={`url(#${gradientId})`}
-          dot={false}
-          activeDot={{ r: 5, fill: CLR.accent, stroke: "#fff", strokeWidth: 2 }}
-        />
-        <Area
-          type="monotone"
-          dataKey="pengeluaran"
-          name="Pengeluaran"
-          stroke={CLR.danger}
-          strokeWidth={2}
-          strokeDasharray="5 5"
-          fill="none"
-          dot={false}
-          activeDot={{ r: 4, fill: CLR.danger, stroke: "#fff", strokeWidth: 2 }}
-        />
+        {effectiveSeries.map((s) => (
+          <Area
+            key={s.dataKey}
+            type="monotone"
+            dataKey={s.dataKey}
+            name={s.name}
+            stroke={s.stroke}
+            strokeWidth={s.strokeWidth}
+            strokeDasharray={s.strokeDasharray}
+            fill={s.fill}
+            dot={s.dot}
+            activeDot={s.activeDot}
+          />
+        ))}
       </AreaChart>
     </ResponsiveContainer>
   </div>
-);
+  );
+};
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function DashboardUtama() {
@@ -334,6 +400,8 @@ export default function DashboardUtama() {
   });
   const [zisPemasukanItems, setZisPemasukanItems] = useState([]);
   const [zisPengeluaranItems, setZisPengeluaranItems] = useState([]);
+  const [kasPemasukanItems, setKasPemasukanItems] = useState([]);
+  const [kasPengeluaranItems, setKasPengeluaranItems] = useState([]);
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
@@ -354,8 +422,10 @@ export default function DashboardUtama() {
           getAllMustahik(),
           amilService.getAllAmil(),
           dasawismaService.getAllAnggotaDasawisma(),
-          getAllPemasukanZIS(),
-          getAllPengeluaranZIS(),
+          pemasukanZISService.getAllPemasukanZIS(),
+          pengeluaranZISService.getAllPengeluaranZIS(),
+          pemasukanDasawismaService.getAllPemasukanKas(),
+          pengeluaranDasawismaService.getAllPengeluaran(),
         ]);
 
         const pick = (idx, selector) => {
@@ -371,7 +441,9 @@ export default function DashboardUtama() {
         const amilArr = pick(2, (v) => v?.data);
         const anggotaArr = pick(3, (v) => v?.data);
         const pemasukanArr = pick(4, (v) => v?.data);
-        const pengeluaranArr = pick(5, (v) => v);
+        const pengeluaranArr = pick(5, (v) => v?.data);
+        const kasMasukArr = pick(6, (v) => v?.data);
+        const kasKeluarArr = pick(7, (v) => v?.data);
 
         if (!cancelled) {
           setKpiCounts({
@@ -382,6 +454,8 @@ export default function DashboardUtama() {
           });
           setZisPemasukanItems(Array.isArray(pemasukanArr) ? pemasukanArr : []);
           setZisPengeluaranItems(Array.isArray(pengeluaranArr) ? pengeluaranArr : []);
+          setKasPemasukanItems(Array.isArray(kasMasukArr) ? kasMasukArr : []);
+          setKasPengeluaranItems(Array.isArray(kasKeluarArr) ? kasKeluarArr : []);
 
           const firstError = settled.find(
             (x) => x.status === "rejected" && !is404(x.reason),
@@ -419,6 +493,13 @@ export default function DashboardUtama() {
       mode: zisWaktu,
     });
   }, [zisPemasukanItems, zisPengeluaranItems, zisKategori, zisWaktu]);
+  const kasChartData = useMemo(() => {
+    return buildKasSeries({
+      pemasukanItems: kasPemasukanItems,
+      pengeluaranItems: kasPengeluaranItems,
+      mode: kasWaktu,
+    });
+  }, [kasPemasukanItems, kasPengeluaranItems, kasWaktu]);
 
   const kpiCards = useMemo(() => {
     return KPI_TEMPLATE.map((t) => ({
@@ -472,7 +553,7 @@ export default function DashboardUtama() {
         {/* Chart 1 – ZIS */}
         <TrenChart
           title="Tren Transaksi ZIS"
-          subtitle="Laporan akumulasi dana bulanan 2024"
+          subtitle={`Laporan akumulasi dana ${zisWaktu.toLowerCase()} ${new Date().getFullYear()}`}
           data={zisChartData}
           gradientId="gradZIS"
           rightControls={
@@ -494,8 +575,8 @@ export default function DashboardUtama() {
         {/* Chart 2 – Kas */}
         <TrenChart
           title="Tren Transaksi Kas Dasawisma"
-          subtitle="Laporan akumulasi dana bulanan 2024"
-          data={DUMMY_TREN_KAS[kasWaktu]}
+          subtitle={`Laporan akumulasi dana ${kasWaktu.toLowerCase()} ${new Date().getFullYear()}`}
+          data={kasChartData}
           gradientId="gradKas"
           rightControls={
             <ToggleGroup
