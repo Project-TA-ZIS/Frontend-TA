@@ -1,15 +1,50 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, User, LogOut, Settings, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import useAuthStore from '../../store/useAuthStore';
 
 // 👇 UBAH BAGIAN INI 👇
 // Ganti "Sidebar" dengan nama file komponen sidebar Anda yang sebenarnya
 import Sidebar from './Sidebar'; 
 
+const firstWord = (value) => {
+  const safe = (value || '').trim();
+  if (!safe) return '';
+  return safe.split(/\s+/)[0] || '';
+};
+
+const getInitials = (name) => {
+  const safe = (name || '').trim();
+  if (!safe) return 'U';
+  const parts = safe.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase();
+};
+
+const roleToLabel = (role) => {
+  if (!role) return '';
+  if (role === 'koordinator dasawisma') return 'Koordinator Dasawisma';
+  if (role === 'anggota dasawisma') return 'Anggota Dasawisma';
+  if (role === 'amil zakat') return 'Amil Zakat';
+  return role
+    .split(/\s+/)
+    .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
+    .join(' ');
+};
+
 export default function DashboardLayout({ children }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+  const logout = useAuthStore((s) => s.setLogout);
+  const user = useAuthStore((s) => s.user);
+  const role = useAuthStore((s) => s.role);
+
+  const rawDisplayName =
+    user?.nama_lengkap || user?.name || user?.nama || user?.username || user?.email || 'User';
+  const displayName = firstWord(rawDisplayName) || 'User';
+  const displayRole = roleToLabel(role);
+  const initials = getInitials(rawDisplayName);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -22,7 +57,7 @@ export default function DashboardLayout({ children }) {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('token'); 
+    logout();
     navigate('/login');
   };
 
@@ -47,12 +82,12 @@ export default function DashboardLayout({ children }) {
               className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 transition-all outline-none group"
             >
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-gray-900 group-hover:text-[#0F766E] transition-colors">Super Admin</p>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">ADMINISTRATOR UTAMA</p>
+                <p className="text-sm font-bold text-gray-900 group-hover:text-[#0F766E] transition-colors">{displayName}</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{displayRole || 'PENGGUNA'}</p>
               </div>
               <div className="relative">
                 <div className="w-10 h-10 bg-[#0F766E] rounded-full flex items-center justify-center text-white font-bold shadow-md border-2 border-white">
-                  SA
+                  {initials}
                 </div>
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-[#10B981] border-2 border-white rounded-full"></div>
               </div>

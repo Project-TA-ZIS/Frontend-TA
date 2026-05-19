@@ -2,11 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Search, User, LogOut, Settings, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AmilSidebar from './AmilSidebar';
+import useAuthStore from '../../store/useAuthStore';
 
 export default function AmilLayout({ children }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+  const logout = useAuthStore((s) => s.setLogout);
 
   // Menutup dropdown jika pengguna mengklik di luar area menu
   useEffect(() => {
@@ -21,7 +23,7 @@ export default function AmilLayout({ children }) {
 
   const handleLogout = () => {
     // 1. Hapus token atau data sesi dari storage
-    localStorage.removeItem('token'); 
+    logout();
     // 2. Arahkan kembali ke halaman login
     navigate('/login');
   };
