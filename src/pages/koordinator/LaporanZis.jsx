@@ -267,31 +267,59 @@ export default function LaporanZIS() {
         </div>
 
         {/* ─── Bottom Summary Cards (Kategori Breakdown) ─── */}
-         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3 shrink-0">
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Zakat Fitrah Beras</p>
-              <h3 className="text-xl font-extrabold text-gray-900">10 Kg</h3>
-            </div>
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Zakat Fitrah Uang</p>
-              <h3 className="text-xl font-extrabold text-gray-900">Rp 15.500.000</h3>
-            </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3 shrink-0">
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
+              Zakat Fitrah Beras
+            </p>
+
+            <h3 className="text-xl font-extrabold text-gray-900">
+              {getTotalByKategori("zakat fitrah beras")} Kg
+            </h3>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5 shrink-0">
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Zakat Maal</p>
-              <h3 className="text-lg font-extrabold text-gray-900">Rp 15.500.000</h3>
-            </div>
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Infaq</p>
-              <h3 className="text-lg font-extrabold text-gray-900">Rp 15.500.000</h3>
-            </div>
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Shodaqoh</p>
-              <h3 className="text-lg font-extrabold text-gray-900">Rp 15.500.000</h3>
-            </div>
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
+              Zakat Fitrah Uang
+            </p>
+
+            <h3 className="text-xl font-extrabold text-gray-900">
+              {formatRupiah(getTotalByKategori("zakat fitrah uang"))}
+            </h3>
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5 shrink-0">
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
+              Zakat Maal
+            </p>
+
+            <h3 className="text-lg font-extrabold text-gray-900">
+              {formatRupiah(getTotalByKategori("zakat mal"))}
+            </h3>
+          </div>
+
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
+              Infaq
+            </p>
+
+            <h3 className="text-lg font-extrabold text-gray-900">
+              {formatRupiah(getTotalByKategori("infaq"))}
+            </h3>
+          </div>
+
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
+              Shodaqoh
+            </p>
+
+            <h3 className="text-lg font-extrabold text-gray-900">
+              {formatRupiah(getTotalByKategori("shodaqoh"))}
+            </h3>
+          </div>
+        </div>
 
         {/* ─── Filter & Action Bar ─── */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 mt-5">

@@ -1,7 +1,16 @@
 import api from "./api";
+import { apiPublic } from "./apiPublic";
 
 async function getAllPemasukanZIS() {
-  const res = await api.get("/pemasukanZIS/get/getAllPemasukanZIS");
+  const res = await apiPublic.get("/pemasukanZIS/get/getAllPemasukanZIS");
+  return res.data;
+}
+
+async function getPemasukanZISByNIK(data) {
+  const res = await apiPublic.get(
+    `/pemasukanZIS/get/getRiwayatPemasukanZISByNik`,
+    { params: data },
+  );
   return res.data;
 }
 
@@ -15,12 +24,16 @@ export async function addPemasukanZIS(payload) {
 }
 
 async function updatePemasukanZIS(id, data) {
-  const res = await api.put(`/pemasukanZIS/update/updatePemasukanZIS/${id}`, data);
+  const res = await api.put(
+    `/pemasukanZIS/update/updatePemasukanZIS/${id}`,
+    data,
+  );
   return res.data;
 }
 
 const pemasukanZISService = {
   getAllPemasukanZIS,
+  getPemasukanZISByNIK,
   createPemasukanZIS,
   addPemasukanZIS,
   updatePemasukanZIS,

@@ -60,6 +60,7 @@ export default function KelolaMustahik() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [errors, setErrors] = useState({});
 
   // State untuk Modal Pop-up
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -181,9 +182,79 @@ export default function KelolaMustahik() {
     }
   };
 
+  const validateForm = () => {
+    let newErrors = {};
+
+    if (!(formData.nama || "").trim()) {
+      newErrors.nama = "Nama lengkap wajib diisi!";
+    }
+
+    if (!(formData.email || "").trim()) {
+      newErrors.email = "Alamat email wajib diisi!";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Format email tidak valid!";
+    }
+
+    if (!editingId) {
+      if (!(formData.password || "").trim()) {
+        newErrors.password = "Password wajib diisi!";
+      } else if (formData.password.length < 6) {
+        newErrors.password = "Password minimal 6 karakter!";
+      }
+    }
+
+    if (!(formData.telp || "").trim()) {
+      newErrors.telp = "Nomor telepon wajib diisi!";
+    } else if (!/^[0-9]+$/.test(formData.telp)) {
+      newErrors.telp = "Nomor telepon hanya boleh angka!";
+    } else if (formData.telp.length < 10) {
+      newErrors.telp = "Nomor telepon tidak valid!";
+    }
+
+    if (!formData.jenisKelamin) {
+      newErrors.jenisKelamin = "Jenis kelamin wajib dipilih!";
+    }
+
+    if (!(formData.alamat || "").trim()) {
+      newErrors.alamat = "Alamat wajib diisi!";
+    }
+
+    if (!(formData.npwp || "").trim()) {
+      newErrors.npwp = "NPWP wajib diisi!";
+    }
+
+    if (!(formData.nik || "").trim()) {
+      newErrors.nik = "NIK wajib diisi!";
+    } else if (!/^[0-9]+$/.test(formData.nik)) {
+      newErrors.nik = "NIK hanya boleh angka!";
+    } else if (formData.nik.length !== 16) {
+      newErrors.nik = "NIK harus 16 digit!";
+    }
+
+    if (!(formData.tempatLahir || "").trim()) {
+      newErrors.tempatLahir = "Tempat lahir wajib diisi!";
+    }
+
+    if (!formData.tanggalLahir) {
+      newErrors.tanggalLahir = "Tanggal lahir wajib diisi!";
+    } else if (isNaN(Date.parse(formData.tanggalLahir))) {
+      newErrors.tanggalLahir = "Tanggal lahir tidak valid!";
+    }
+
+    if (!(formData.pekerjaan || "").trim()) {
+      newErrors.pekerjaan = "Pekerjaan wajib diisi!";
+    }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
     setErrorMsg("");
+
     try {
       const payload = mapFormToApi(formData);
       if (editingId) {
@@ -399,20 +470,6 @@ export default function KelolaMustahik() {
                 className="flex flex-col flex-1 min-h-0"
               >
                 <div className="p-6 overflow-y-auto space-y-5">
-                  {/* {editingId && (
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                        ID Mustahik
-                      </label>
-                      <input
-                        type="text"
-                        value={editingId}
-                        disabled
-                        className="w-full bg-gray-100 border border-gray-200 text-gray-500 text-sm rounded-xl block px-4 py-3 font-semibold cursor-not-allowed"
-                      />
-                    </div>
-                  )} */}
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
@@ -427,6 +484,11 @@ export default function KelolaMustahik() {
                         className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
                         placeholder="Masukkan nama lengkap..."
                       />
+                      {errors.nama && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.nama}
+                        </p>
+                      )}
                     </div>
 
                     <div>
@@ -442,6 +504,11 @@ export default function KelolaMustahik() {
                         className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
                         placeholder="08xxxxxxxxxx"
                       />
+                      {errors.telp && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.telp}
+                        </p>
+                      )}
                     </div>
 
                     <div className="md:col-span-2">
@@ -456,6 +523,11 @@ export default function KelolaMustahik() {
                         className="w-full resize-none bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
                         placeholder="Masukkan alamat..."
                       />
+                      {errors.alamat && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.alamat}
+                        </p>
+                      )}
                     </div>
 
                     <div>
@@ -470,6 +542,11 @@ export default function KelolaMustahik() {
                         className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
                         placeholder="Masukkan NIK..."
                       />
+                      {errors.nik && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.nik}
+                        </p>
+                      )}
                     </div>
 
                     <div>
@@ -484,6 +561,11 @@ export default function KelolaMustahik() {
                         className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
                         placeholder="Masukkan tempat lahir..."
                       />
+                      {errors.tempatLahir && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.tempatLahir}
+                        </p>
+                      )}
                     </div>
 
                     <div>
@@ -497,6 +579,11 @@ export default function KelolaMustahik() {
                         onChange={handleInputChange}
                         className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
                       />
+                      {errors.tanggalLahir && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.tanggalLahir}
+                        </p>
+                      )}
                     </div>
 
                     <div>
@@ -513,6 +600,11 @@ export default function KelolaMustahik() {
                         <option value="laki-laki">Laki-laki</option>
                         <option value="perempuan">Perempuan</option>
                       </select>
+                      {errors.jenisKelamin && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.jenisKelamin}
+                        </p>
+                      )}
                     </div>
 
                     <div>
@@ -534,6 +626,11 @@ export default function KelolaMustahik() {
                         <option value="fisabilillah">Fisabilillah</option>
                         <option value="musafir">Musafir</option>
                       </select>
+                      {errors.kategori && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.kategori}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>

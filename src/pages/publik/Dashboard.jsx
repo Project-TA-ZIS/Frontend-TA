@@ -12,6 +12,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import PageTransition from "../../components/PageTransition";
+import Footer from "../../components/layout/Footer";
 
 // Kumpulan data dummy yang sudah diperbaiki strukturnya
 const chartDataMap = {
@@ -217,19 +218,21 @@ export default function Dashboard() {
 
               <div className="flex flex-wrap items-center gap-2">
                 <div className="flex bg-gray-50 p-0.5 rounded-lg border border-gray-100">
-                  {["Zakat Maal", "Zakat Fitrah", "Infaq", "Sedekah"].map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => setActiveCategory(cat)}
-                      className={`px-3 py-1.5 rounded-md text-[11px] font-bold transition-all ${
-                        activeCategory === cat
-                          ? "bg-[#10B981] text-white shadow-sm"
-                          : "text-gray-500 hover:text-gray-700"
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
+                  {["Zakat Maal", "Zakat Fitrah", "Infaq", "Sedekah"].map(
+                    (cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => setActiveCategory(cat)}
+                        className={`px-3 py-1.5 rounded-md text-[11px] font-bold transition-all ${
+                          activeCategory === cat
+                            ? "bg-[#10B981] text-white shadow-sm"
+                            : "text-gray-500 hover:text-gray-700"
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ),
+                  )}
                 </div>
 
                 <div className="flex bg-gray-50 p-0.5 rounded-lg border border-gray-100">
@@ -257,7 +260,11 @@ export default function Dashboard() {
                   data={currentChartData}
                   margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="#f3f4f6"
+                  />
                   <XAxis
                     dataKey="name"
                     axisLine={false}
@@ -297,16 +304,21 @@ export default function Dashboard() {
             <div className="flex items-center justify-center gap-6 mt-4">
               <div className="flex items-center gap-1.5">
                 <div className="w-2.5 h-2.5 rounded-full bg-[#0F766E]"></div>
-                <span className="text-xs font-bold text-gray-600">Pemasukan</span>
+                <span className="text-xs font-bold text-gray-600">
+                  Pemasukan
+                </span>
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="w-2.5 h-2.5 rounded-full bg-[#ef4444]"></div>
-                <span className="text-xs font-bold text-gray-600">Pengeluaran</span>
+                <span className="text-xs font-bold text-gray-600">
+                  Pengeluaran
+                </span>
               </div>
             </div>
           </div>
         </main>
       </div>
+      <Footer />
     </PageTransition>
   );
 }

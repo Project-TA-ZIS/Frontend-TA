@@ -273,7 +273,6 @@ function App() {
 
         </Routes>
       </AuthBootstrapper>
-      <Footer />
     </Router> 
   );
 }

@@ -1,4 +1,5 @@
 ﻿import api from "./api";
+import { apiPublic } from "./apiPublic";
 
 export async function getAllMustahik() {
   const res = await api.get("/mustahik/get/getAllMustahik");

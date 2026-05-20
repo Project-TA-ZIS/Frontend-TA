@@ -17,15 +17,6 @@ import totalZISService from "../../services/totalZIS.service";
 
 const PAGE_SIZE = 5;
 
-// ─── Helper untuk Format Rupiah ─────────────────────────────────────────────
-// const formatRupiah = (angka) => {
-//   return new Intl.NumberFormat("id-ID", {
-//     style: "currency",
-//     currency: "IDR",
-//     minimumFractionDigits: 0,
-//   }).format(angka);
-// };
-
 export default function KelolaZis() {
   // ─── States ───
   const [transactions, setTransactions] = useState([]);
@@ -412,6 +403,14 @@ export default function KelolaZis() {
     }
   };
 
+  const getTotalByKategori = (kategori) => {
+    const found = totalZIS.find(
+      (item) => item.kategori.toLowerCase() === kategori.toLowerCase(),
+    );
+
+    return found ? Number(found.jumlah_keseluruhan) : 0;
+  };
+
   return (
     <PageTransition>
       <div className="min-h-screen bg-gray-50 p-6 md:p-10 font-['Manrope']">
@@ -466,30 +465,58 @@ export default function KelolaZis() {
 
         {/* ─── Bottom Summary Cards (Kategori Breakdown) ─── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3 shrink-0">
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Zakat Fitrah Beras</p>
-              <h3 className="text-xl font-extrabold text-gray-900">10 Kg</h3>
-            </div>
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Zakat Fitrah Uang</p>
-              <h3 className="text-xl font-extrabold text-gray-900">Rp 15.500.000</h3>
-            </div>
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
+              Zakat Fitrah Beras
+            </p>
+
+            <h3 className="text-xl font-extrabold text-gray-900">
+              {getTotalByKategori("zakat fitrah beras")} Kg
+            </h3>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5 shrink-0">
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Zakat Maal</p>
-              <h3 className="text-lg font-extrabold text-gray-900">Rp 15.500.000</h3>
-            </div>
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Infaq</p>
-              <h3 className="text-lg font-extrabold text-gray-900">Rp 15.500.000</h3>
-            </div>
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Shodaqoh</p>
-              <h3 className="text-lg font-extrabold text-gray-900">Rp 15.500.000</h3>
-            </div>
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
+              Zakat Fitrah Uang
+            </p>
+
+            <h3 className="text-xl font-extrabold text-gray-900">
+              {formatRupiah(getTotalByKategori("zakat fitrah uang"))}
+            </h3>
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5 shrink-0">
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
+              Zakat Maal
+            </p>
+
+            <h3 className="text-lg font-extrabold text-gray-900">
+              {formatRupiah(getTotalByKategori("zakat mal"))}
+            </h3>
+          </div>
+
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
+              Infaq
+            </p>
+
+            <h3 className="text-lg font-extrabold text-gray-900">
+              {formatRupiah(getTotalByKategori("infaq"))}
+            </h3>
+          </div>
+
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
+              Shodaqoh
+            </p>
+
+            <h3 className="text-lg font-extrabold text-gray-900">
+              {formatRupiah(getTotalByKategori("shodaqoh"))}
+            </h3>
+          </div>
+        </div>
 
         {/* ─── Filter & Action Bar ─── */}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6 mt-5">
