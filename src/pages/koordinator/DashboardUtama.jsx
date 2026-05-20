@@ -11,8 +11,8 @@ import {
 } from "recharts";
 import { HandHeart, Users, Wallet, UsersRound } from "lucide-react";
 import PageTransition from "../../components/PageTransition";
-import { getAllMuzakki } from "../../services/muzakki.service";
-import { getAllMustahik } from "../../services/mustahik.service";
+import muzakkiService from "../../services/muzakki.service";
+import mustahikService from "../../services/mustahik.service";
 import dasawismaService from "../../services/dasawisma.service";
 import amilService from "../../services/amil.service";
 import pemasukanZISService from "../../services/pemasukanZIS.service";
@@ -418,8 +418,8 @@ export default function DashboardUtama() {
       setErrorMsg("");
       try {
         const settled = await Promise.allSettled([
-          getAllMuzakki(),
-          getAllMustahik(),
+          muzakkiService.getAllMuzakki(),
+          mustahikService.getAllMustahik(),
           amilService.getAllAmil(),
           dasawismaService.getAllAnggotaDasawisma(),
           pemasukanZISService.getAllPemasukanZIS(),

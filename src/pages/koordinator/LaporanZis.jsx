@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Download, Search } from "lucide-react";
 import PageTransition from "../../components/PageTransition";
 import { formatRupiah } from "../../utils/formatRupiah";
@@ -6,10 +6,14 @@ import { formattedDate } from "../../utils/formattedDate";
 import pemasukanZISService from "../../services/pemasukanZIS.service";
 import penyaluranZISService from "../../services/pengeluaranZIS.service";
 import totalZISService from "../../services/totalZIS.service";
+import mustahikService from "../../services/mustahik.service";
+
+const ITEMS_PER_PAGE = 5;
 
 export default function LaporanZIS() {
   // State untuk filter dan pencarian
   const [filterKategori, setFilterKategori] = useState("");
+  const [filterTipe, setFilterTipe] = useState("");
   const [filterBulan, setFilterBulan] = useState("");
   const [filterTahun, setFilterTahun] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -20,6 +24,21 @@ export default function LaporanZIS() {
   const [totalPenyaluran, setTotalPenyaluran] = useState(0);
   const [saldoZIS, setSaldoZIS] = useState(0);
   const [saldoUpdatedAt, setSaldoUpdatedAt] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const normalizeArray = (value) => {
+    if (Array.isArray(value)) return value;
+    if (Array.isArray(value?.data)) return value.data;
+    return [];
+  };
+
+  const parseDateSafe = (dateLike) => {
+    if (!dateLike) return null;
+    const raw = String(dateLike).trim();
+    if (!raw) return null;
+    const d = raw.includes("T") ? new Date(raw) : new Date(`${raw}T00:00:00`);
+    return Number.isNaN(d.getTime()) ? null : d;
+  };
 
   const loadZISData = async () => {
     try {
@@ -28,28 +47,65 @@ export default function LaporanZIS() {
       const results = await Promise.allSettled([
         pemasukanZISService.getAllPemasukanZIS(),
         penyaluranZISService.getAllPengeluaranZIS(),
+        mustahikService.getAllMustahik(),
       ]);
+
+      const is404 = (err) => err?.response?.status === 404;
 
       let pemasukan = [];
       let pengeluaran = [];
+      let mustahikArr = [];
 
       // PEMASUKAN
       if (results[0].status === "fulfilled") {
-        pemasukan = (results[0].value.data || []).map((item) => ({
-          ...item,
+        pemasukan = normalizeArray(results[0].value).map((item) => ({
+          id: `PZ-${item?.id ?? ""}`,
+          tanggal:
+            item?.tanggal_penghimpunan ?? item?.created_at ?? item?.updated_at,
+          nama: item?.nama_muzakki ?? "-",
+          kategori: item?.kategori ?? "-",
+          jumlah: Number(item?.jumlah ?? 0),
           tipe: "Pemasukan",
         }));
       }
 
       // PENGELUARAN
       if (results[1].status === "fulfilled") {
-        pengeluaran = (results[1].value.data || []).map((item) => ({
-          ...item,
+        pengeluaran = normalizeArray(results[1].value).map((item) => ({
+          id: `KZ-${item?.id ?? ""}`,
+          tanggal:
+            item?.tanggal_penyaluran ?? item?.created_at ?? item?.updated_at,
+          mustahik_id: item?.mustahik_id ?? null,
+          nama: "-",
+          kategori: item?.kategori ?? "-",
+          jumlah: Number(item?.jumlah ?? 0),
+          deskripsi: item?.deskripsi ?? "",
           tipe: "Pengeluaran",
         }));
       }
 
-      const combinedData = [...pemasukan, ...pengeluaran];
+      // MUSTAHIK (untuk nama pengeluaran)
+      if (results[2].status === "fulfilled") {
+        mustahikArr = normalizeArray(results[2].value);
+      } else if (results[2].status === "rejected" && is404(results[2].reason)) {
+        mustahikArr = [];
+      }
+
+      const mustahikNameById = new Map(
+        (mustahikArr || []).map((m) => [String(m?.id), m?.nama_lengkap || "-"]),
+      );
+
+      pengeluaran = pengeluaran.map((item) => ({
+        ...item,
+        nama:
+          mustahikNameById.get(String(item?.mustahik_id ?? "")) || item.nama,
+      }));
+
+      const combinedData = [...pemasukan, ...pengeluaran].sort((a, b) => {
+        const da = parseDateSafe(a?.tanggal)?.getTime() ?? 0;
+        const db = parseDateSafe(b?.tanggal)?.getTime() ?? 0;
+        return db - da;
+      });
 
       // TOTAL PEMASUKAN
       const totalMasuk = pemasukan.reduce(
@@ -102,32 +158,64 @@ export default function LaporanZIS() {
     return found ? Number(found.jumlah_keseluruhan) : 0;
   };
 
-  const filteredData = zisData.filter((item) => {
-    // SEARCH
-    const matchSearch =
-      item.nama_muzakki?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.kategori?.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredData = useMemo(() => {
+    return (zisData || []).filter((item) => {
+      // SEARCH
+      const q = searchQuery.toLowerCase();
+      const matchSearch =
+        (item.nama || "").toString().toLowerCase().includes(q) ||
+        (item.kategori || "").toString().toLowerCase().includes(q) ||
+        (item.tipe || "").toString().toLowerCase().includes(q) ||
+        (item.id || "").toString().toLowerCase().includes(q);
 
-    // FILTER KATEGORI
-    const matchKategori = filterKategori
-      ? item.kategori?.toLowerCase().includes(filterKategori.toLowerCase())
-      : true;
+      // FILTER KATEGORI
+      const matchKategori = filterKategori
+        ? item.kategori?.toLowerCase().includes(filterKategori.toLowerCase())
+        : true;
 
-    // FILTER BULAN
-    const matchBulan = filterBulan
-      ? new Date(item.tanggal_penghimpunan).toLocaleString("id-ID", {
-          month: "long",
-        }) === filterBulan
-      : true;
+      // FILTER TIPE
+      const matchTipe = filterTipe ? item.tipe === filterTipe : true;
 
-    // FILTER TAHUN
-    const matchTahun = filterTahun
-      ? new Date(item.tanggal_penghimpunan).getFullYear().toString() ===
-        filterTahun
-      : true;
+      // FILTER BULAN
+      const matchBulan = filterBulan
+        ? parseDateSafe(item.tanggal)?.toLocaleString("id-ID", {
+            month: "long",
+          }) === filterBulan
+        : true;
 
-    return matchSearch && matchKategori && matchBulan && matchTahun;
-  });
+      // FILTER TAHUN
+      const matchTahun = filterTahun
+        ? (parseDateSafe(item.tanggal)?.getFullYear?.() ?? "").toString() ===
+          filterTahun
+        : true;
+
+      return (
+        matchSearch && matchKategori && matchTipe && matchBulan && matchTahun
+      );
+    });
+  }, [
+    zisData,
+    searchQuery,
+    filterKategori,
+    filterTipe,
+    filterBulan,
+    filterTahun,
+  ]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterKategori, filterTipe, filterBulan, filterTahun]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredData.length / ITEMS_PER_PAGE),
+  );
+
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedData = useMemo(() => {
+    const start = (safePage - 1) * ITEMS_PER_PAGE;
+    return filteredData.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredData, safePage]);
 
   return (
     <PageTransition>
@@ -153,7 +241,7 @@ export default function LaporanZIS() {
             <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">
               TOTAL PENERIMAAN ZIS
             </p>
-            <h3 className="text-3xl font-extrabold text-gray-900">
+            <h3 className="text-3xl font-extrabold text-[#10B981]">
               {formatRupiah(totalPenerimaan)}
             </h3>
           </div>
@@ -161,7 +249,7 @@ export default function LaporanZIS() {
             <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">
               TOTAL PENYALURAN
             </p>
-            <h3 className="text-3xl font-extrabold text-gray-900">
+            <h3 className="text-3xl font-extrabold text-[#EF4444]">
               {formatRupiah(totalPenyaluran)}
             </h3>
           </div>
@@ -169,7 +257,7 @@ export default function LaporanZIS() {
             <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">
               SALDO ZIS
             </p>
-            <h3 className="text-3xl font-extrabold text-[#0F766E]">
+            <h3 className="text-3xl font-extrabold text-gray-900">
               {formatRupiah(saldoZIS)}
             </h3>
             <p className="text-xs text-gray-500 mt-1">
@@ -192,6 +280,16 @@ export default function LaporanZIS() {
               <option value="zakat fitrah">Zakat Fitrah</option>
               <option value="infaq">Infaq</option>
               <option value="shodaqoh">Sedekah</option>
+            </select>
+
+            <select
+              className="bg-gray-100 border-none text-gray-700 text-sm rounded-lg focus:ring-2 focus:ring-[#10B981] block px-4 py-2.5 font-semibold outline-none"
+              value={filterTipe}
+              onChange={(e) => setFilterTipe(e.target.value)}
+            >
+              <option value="">Tipe</option>
+              <option value="Pemasukan">Pemasukan</option>
+              <option value="Pengeluaran">Pengeluaran</option>
             </select>
 
             <select
@@ -275,21 +373,21 @@ export default function LaporanZIS() {
                     </td>
                   </tr>
                 ) : (
-                  filteredData.map((item, index) => (
+                  paginatedData.map((item, index) => (
                     <tr
                       key={index}
                       className="hover:bg-emerald-50/30 transition-colors"
                     >
                       <td className="px-6 py-4 text-sm font-bold text-[#10B981]">
-                        {index + 1}
+                        {(safePage - 1) * ITEMS_PER_PAGE + index + 1}
                       </td>
 
                       <td className="px-6 py-4 text-sm text-gray-600">
-                        {formattedDate(item.tanggal_penghimpunan)}
+                        {formattedDate(item.tanggal)}
                       </td>
 
                       <td className="px-6 py-4 text-sm font-bold text-gray-900">
-                        {item.nama_muzakki}
+                        {item.nama}
                       </td>
 
                       <td className="px-6 py-4 text-sm text-gray-600 capitalize">
@@ -332,6 +430,38 @@ export default function LaporanZIS() {
                 )}
               </tbody>
             </table>
+
+            <div className="flex items-center justify-between m-10">
+              <p className="text-sm text-gray-500 font-medium">
+                Halaman {safePage} dari {totalPages}
+              </p>
+
+              <div className="flex items-center gap-2">
+                <button
+                  disabled={safePage === 1}
+                  onClick={() => setCurrentPage((prev) => prev - 1)}
+                  className={`px-4 py-2 rounded-lg text-sm font-bold transition ${
+                    safePage === 1
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-700"
+                  }`}
+                >
+                  Sebelumnya
+                </button>
+
+                <button
+                  disabled={safePage === totalPages}
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
+                  className={`px-4 py-2 rounded-lg text-sm font-bold transition ${
+                    safePage === totalPages
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-[#10B981] hover:bg-[#059669] text-white"
+                  }`}
+                >
+                  Selanjutnya
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 

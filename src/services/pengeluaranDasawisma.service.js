@@ -13,7 +13,9 @@ async function createPengeluaran(payload) {
   return res.data;
 }
 
-export default {
+const pengeluaranDasawismaService = {
   getAllPengeluaran,
   createPengeluaran,
 };
+
+export default pengeluaranDasawismaService;

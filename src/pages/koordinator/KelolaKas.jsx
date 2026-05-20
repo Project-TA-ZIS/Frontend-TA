@@ -8,10 +8,13 @@ import { formatRupiah } from "../../utils/formatRupiah";
 import pengeluaranService from "../../services/pengeluaranDasawisma.service";
 import pemasukanDasawismaService from "../../services/pemasukanDasawisma.service";
 import dasawismaService from "../../services/dasawisma.service";
+import totalKasDasawismaService from "../../services/totalKasDasawisma.service";
 
 export default function KelolaKas() {
   const [anggotaList, setAnggotaList] = useState([]);
   const [searchAnggota, setSearchAnggota] = useState("");
+  const [saldoUpdatedAt, setSaldoUpdatedAt] = useState("");
+  const [saldoKasDasawisma, setSaldoKasDasawisma] = useState(0);
 
   const loadAnggotaDasawisma = async () => {
     try {
@@ -134,6 +137,16 @@ export default function KelolaKas() {
     }
   };
 
+  const loadTotalKasDasawisma = async () => {
+    try {
+      const res = await totalKasDasawismaService.getTotalKasDasawisma();
+      setSaldoKasDasawisma(res.data?.jumlah_keseluruhan || 0);
+      setSaldoUpdatedAt(res.data?.updated_at || "");
+    } catch (error) {
+      console.log("Gagal memuat total kas dasawisma");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -191,6 +204,7 @@ export default function KelolaKas() {
   useEffect(() => {
     loadKasData();
     loadAnggotaDasawisma();
+    loadTotalKasDasawisma();
   }, []);
 
   return (
@@ -234,8 +248,11 @@ export default function KelolaKas() {
               SALDO KAS SAAT INI
             </p>
             <h3 className="text-3xl font-extrabold text-gray-900">
-              {formatRupiah(summary.saldo)}
+              {formatRupiah(saldoKasDasawisma)}
             </h3>
+            <p className="text-xs text-gray-500 mt-1">
+              Terakhir diperbarui: {formattedDate(saldoUpdatedAt) || "N/A"}
+            </p>
           </div>
         </div>
 

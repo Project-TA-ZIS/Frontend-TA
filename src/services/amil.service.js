@@ -20,11 +20,17 @@ async function deleteAmil(id) {
   return res.data;
 }
 
+async function updateAmilPassword(payload) {
+  const res = await api.put("/amil/put/updateAmilPassword", payload);
+  return res.data;
+}
+
 const amilService = {
   getAllAmil,
   createAmil,
   updateAmil,
   deleteAmil,
+  updateAmilPassword,
 };
 
 export default amilService;

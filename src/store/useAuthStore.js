@@ -1,11 +1,15 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
-const TOKEN_KEY = 'dasawisma_token';
-const LEGACY_TOKEN_KEY = 'token';
-const USER_KEY = 'dasawisma_user';
+const TOKEN_KEY = "dasawisma_token";
+const LEGACY_TOKEN_KEY = "token";
+const USER_KEY = "dasawisma_user";
 
 function getInitialToken() {
-  return localStorage.getItem(TOKEN_KEY) || localStorage.getItem(LEGACY_TOKEN_KEY) || null;
+  return (
+    localStorage.getItem(TOKEN_KEY) ||
+    localStorage.getItem(LEGACY_TOKEN_KEY) ||
+    null
+  );
 }
 
 function getInitialUser() {
@@ -22,15 +26,28 @@ const useAuthStore = create((set) => ({
   token: getInitialToken(),
   role: getInitialUser()?.roles || null,
   isBootstrapping: false,
-  
+
   // Fungsi untuk menyimpan data saat login sukses
   setLogin: (userData, token) => {
+    // reset state lama dulu
+    set({
+      user: null,
+      token: null,
+      role: null,
+    });
+
     localStorage.setItem(TOKEN_KEY, token);
     localStorage.removeItem(LEGACY_TOKEN_KEY);
+
     if (userData) {
       localStorage.setItem(USER_KEY, JSON.stringify(userData));
     }
-    set({ user: userData || null, token, role: userData?.roles || null });
+
+    set({
+      user: userData || null,
+      token,
+      role: userData?.roles || null,
+    });
   },
 
   setUser: (userData) => {
@@ -45,12 +62,14 @@ const useAuthStore = create((set) => ({
   setBootstrapping: (isBootstrapping) => {
     set({ isBootstrapping });
   },
-  
+
   // Fungsi untuk menghapus data saat logout
   setLogout: () => {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(LEGACY_TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+
+    sessionStorage.clear();
     set({ user: null, token: null, role: null, isBootstrapping: false });
   },
 }));
