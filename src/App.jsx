@@ -3,7 +3,6 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
-  Navigate,
 } from "react-router-dom";
 import Login from "./pages/auth/Login";
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -23,10 +22,12 @@ import KelolaZis from "./pages/Amil/KelolaZis";
 import KelolaMuzzaki from "./pages/Amil/KelolaMuzzaki";
 import KelolaMustahik from "./pages/Amil/KelolaMustahik";
 import PengaturanAmil from "./pages/Amil/PengaturanAmil";
-import PengaturanKoordinator from "./pages/koordinator/PengaturanKoordinator"; // Atau sesuaikan dengan struktur folder Anda
+import PengaturanKoordinator from "./pages/koordinator/PengaturanKoordinator";
 import PengaturanAnggota from "./pages/anggota/PengaturanAnggota";
-// 1. Tambahkan import komponen baru di sini
 import KelolaKas from "./pages/koordinator/KelolaKas";
+import Home from './pages/publik/Home';
+import Dashboard from "./pages/publik/Dashboard";
+import ManajemenZis from "./pages/publik/ManajemenZis";
 
 const ROLE = {
   KOORDINATOR: "koordinator dasawisma",
@@ -36,7 +37,6 @@ const ROLE = {
 
 function AuthBootstrapper({ children }) {
   const token = useAuthStore((s) => s.token);
-  const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
   const setBootstrapping = useAuthStore((s) => s.setBootstrapping);
 
@@ -50,7 +50,6 @@ function AuthBootstrapper({ children }) {
 
       try {
         const me = await getMe();
-
         if (!cancelled) {
           setUser(me?.user || null);
         }
@@ -81,13 +80,11 @@ function AuthBootstrapper({ children }) {
           setUser(me?.user || null);
         }
       } catch {
-        // Biarkan interceptor yang handle (Swal + redirect).
+        // Biarkan interceptor yang handle
       }
     };
 
-    // Validasi berkala supaya token expired di tengah sesi ter-detect.
     const intervalId = window.setInterval(validate, 60_000);
-    // Juga validasi saat tab kembali aktif.
     const onVisibility = () => {
       if (document.visibilityState === "visible") validate();
     };
@@ -108,8 +105,10 @@ function App() {
     <Router>
       <AuthBootstrapper>
         <Routes>
+          {/* RUTE AUTENTIKASI */}
           <Route path="/login" element={<Login />} />
 
+          {/* === RUTE INTERNAL KOORDINATOR === */}
           <Route
             path="/dashboard"
             element={
@@ -121,7 +120,6 @@ function App() {
             }
           />
 
-          {/* 2. Tambahkan rute untuk Kelola Kas di dalam Layout yang sama */}
           <Route
             path="/kelola-kas"
             element={
@@ -166,7 +164,18 @@ function App() {
             }
           />
 
-          {/* === RUTE KHUSUS ANGGOTA === */}
+          <Route
+            path="/pengaturan"
+            element={
+              <ProtectedRoute allowedRoles={[ROLE.KOORDINATOR]}>
+                <DashboardLayout>
+                  <PengaturanKoordinator />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* === RUTE INTERNAL ANGGOTA === */}
           <Route
             path="/anggota/dashboard"
             element={
@@ -189,7 +198,18 @@ function App() {
             }
           />
 
-          {/* === RUTE KHUSUS AMIL === */}
+          <Route
+            path="/anggota/pengaturan"
+            element={
+              <ProtectedRoute allowedRoles={[ROLE.ANGGOTA]}>
+                <AnggotaLayout>
+                  <PengaturanAnggota />
+                </AnggotaLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* === RUTE INTERNAL AMIL === */}
           <Route
             path="/amil/dashboard"
             element={
@@ -245,29 +265,11 @@ function App() {
             }
           />
 
-          <Route
-            path="/pengaturan"
-            element={
-              <ProtectedRoute allowedRoles={[ROLE.KOORDINATOR]}>
-                <DashboardLayout>
-                  <PengaturanKoordinator />
-                </DashboardLayout>
-              </ProtectedRoute>
-            }
-          />
+          {/* === RUTE PUBLIK DEVELOPMENT === */}
+          <Route path="/" element={<Home />} />
+          <Route path="/dashboard-publik" element={<Dashboard />} />
+          <Route path="/zis-publik" element={<ManajemenZis />} />
 
-          <Route
-            path="/anggota/pengaturan"
-            element={
-              <ProtectedRoute allowedRoles={[ROLE.ANGGOTA]}>
-                <AnggotaLayout>
-                  <PengaturanAnggota />
-                </AnggotaLayout>
-              </ProtectedRoute>
-            }
-          />
-
-          <Route path="/" element={<Navigate to="/login" />} />
         </Routes>
       </AuthBootstrapper>
     </Router>
