@@ -1,12 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  Search,
-  Plus,
-  Calendar,
-  ArrowUpRight,
-  ArrowDownLeft,
-} from "lucide-react";
+import { Search } from "lucide-react";
 import PageTransition from "../../components/PageTransition";
 
 // Data dummy transaksi untuk tabel
@@ -47,7 +41,7 @@ const initialTransactions = [
     id: "#ZIS-2023-005",
     tanggal: "08 Apr 2024",
     nama: "Agus Santoso",
-    kategori: "Sedekah oumat",
+    kategori: "Sedekah Umat",
     nominal: "200.000",
     tipe: "Pemasukan",
   },
@@ -63,12 +57,11 @@ export default function ManajemenZis() {
 
   return (
     <PageTransition>
-      {/* Menggunakan h-screen flex flex-col untuk kontrol layout presisi */}
-      <div className="h-screen bg-gray-50 font-['Manrope'] overflow-hidden flex flex-col justify-between">
+      <div className="min-h-screen bg-gray-50 font-['Manrope'] flex flex-col">
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
 
         {/* ─── NAVBAR PUBLIK ─── */}
-        <nav className="w-full bg-[#F0FDF4] px-6 md:px-12 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50 shrink-0">
+        <nav className="w-full bg-[#F0FDF4] px-6 md:px-12 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-[#0F766E] rounded-xl flex items-center justify-center shadow-sm">
               <span className="text-white font-bold text-lg">D</span>
@@ -114,61 +107,79 @@ export default function ManajemenZis() {
           </div>
         </nav>
 
-        {/* ─── KONTEN UTAMA ─── */}
-        <main className="max-w-6xl w-full mx-auto px-6 py-6 flex-1 flex flex-col overflow-y-auto">
-          <div className="mb-4 shrink-0">
-            <h2 className="text-2xl font-extrabold text-[#0F766E] mb-0.5">
+        {/* ─── KONTEN UTAMA (full width) ─── */}
+        <main className="w-full px-6 md:px-12 lg:px-20 py-8 flex-1">
+          <div className="mb-6">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-[#0F766E] mb-2">
               Manajemen ZIS
             </h2>
-            <p className="text-xs text-gray-500 font-medium">
+            <p className="text-gray-500 font-medium">
               Kelola penerimaan dan penyaluran dana ZIS secara transparan.
             </p>
           </div>
 
-          {/* KARTU RINGKASAN (Dipadatkan menjadi grid-cols-3 agar hemat ruang) */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3 shrink-0">
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Total Penerimaan ZIS</p>
-              <h3 className="text-xl font-extrabold text-gray-900">Rp 15.500.000</h3>
+          {/* BARIS 1: Total Penerimaan, Penyaluran, Saldo */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-5">
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                Total Penerimaan ZIS
+              </p>
+              <h3 className="text-2xl font-extrabold text-gray-900">Rp 15.500.000</h3>
             </div>
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Total Penyaluran</p>
-              <h3 className="text-xl font-extrabold text-gray-900">Rp 4.200.000</h3>
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                Total Penyaluran
+              </p>
+              <h3 className="text-2xl font-extrabold text-gray-900">Rp 4.200.000</h3>
             </div>
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Saldo ZIS</p>
-              <h3 className="text-xl font-extrabold text-[#0F766E]">Rp 11.300.000</h3>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3 shrink-0">
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Zakat Fitrah Beras</p>
-              <h3 className="text-xl font-extrabold text-gray-900">10 Kg</h3>
-            </div>
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Zakat Fitrah Uang</p>
-              <h3 className="text-xl font-extrabold text-gray-900">Rp 15.500.000</h3>
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                Saldo ZIS
+              </p>
+              <h3 className="text-2xl font-extrabold text-[#0F766E]">Rp 11.300.000</h3>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5 shrink-0">
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Zakat Maal</p>
-              <h3 className="text-lg font-extrabold text-gray-900">Rp 15.500.000</h3>
+          {/* BARIS 2: Zakat Fitrah Beras & Uang */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                Zakat Fitrah Beras
+              </p>
+              <h3 className="text-2xl font-extrabold text-gray-900">10 Kg</h3>
             </div>
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Infaq</p>
-              <h3 className="text-lg font-extrabold text-gray-900">Rp 15.500.000</h3>
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                Zakat Fitrah Uang
+              </p>
+              <h3 className="text-2xl font-extrabold text-gray-900">Rp 15.500.000</h3>
             </div>
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Shodaqoh</p>
-              <h3 className="text-lg font-extrabold text-gray-900">Rp 15.500.000</h3>
+          </div>
+
+          {/* BARIS 3: Zakat Maal, Infaq, Shodaqoh */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                Zakat Maal
+              </p>
+              <h3 className="text-xl font-extrabold text-gray-900">Rp 15.500.000</h3>
+            </div>
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                Infaq
+              </p>
+              <h3 className="text-xl font-extrabold text-gray-900">Rp 15.500.000</h3>
+            </div>
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                Shodaqoh
+              </p>
+              <h3 className="text-xl font-extrabold text-gray-900">Rp 15.500.000</h3>
             </div>
           </div>
 
           {/* SEARCH & SUBMIT FORM */}
-          <form onSubmit={handleSearchSubmit} className="flex items-center gap-3 mb-4 max-w-xl shrink-0">
+          <form onSubmit={handleSearchSubmit} className="flex items-center gap-3 mb-5 max-w-xl">
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <input
@@ -187,31 +198,31 @@ export default function ManajemenZis() {
             </button>
           </form>
 
-          {/* TABEL TRANSAKSI (flex-1 & overflow-hidden agar pas mengisi area bawah) */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex-1 min-h-0 flex flex-col">
-            <div className="overflow-x-auto overflow-y-auto flex-1">
+          {/* TABEL TRANSAKSI */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="overflow-x-auto">
               <table className="w-full min-w-[800px] text-left border-collapse">
                 <thead>
-                  <tr className="bg-gray-50/70 border-b border-gray-100 sticky top-0 z-10">
-                    <th className="py-3 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center">ID Transaksi</th>
-                    <th className="py-3 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center">Tanggal</th>
-                    <th className="py-3 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Nama</th>
-                    <th className="py-3 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Kategori</th>
-                    <th className="py-3 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center">Nominal (Rp)</th>
-                    <th className="py-3 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center">Tipe</th>
+                  <tr className="bg-gray-50/70 border-b border-gray-100">
+                    <th className="py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center">ID Transaksi</th>
+                    <th className="py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center">Tanggal</th>
+                    <th className="py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Nama</th>
+                    <th className="py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Kategori</th>
+                    <th className="py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center">Nominal (Rp)</th>
+                    <th className="py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center">Tipe</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {initialTransactions.map((tx, idx) => (
                     <tr key={idx} className="hover:bg-gray-50/40 transition-colors">
-                      <td className="py-3 px-6 text-xs font-bold text-[#0F766E] text-center hover:underline cursor-pointer">{tx.id}</td>
-                      <td className="py-3 px-6 text-xs font-bold text-gray-400 text-center">{tx.tanggal}</td>
-                      <td className="py-3 px-6 text-xs font-extrabold text-gray-900">{tx.nama}</td>
-                      <td className="py-3 px-6 text-xs font-bold text-gray-500">{tx.kategori}</td>
-                      <td className={`py-3 px-6 text-xs font-extrabold text-center ${tx.tipe === "Pemasukan" ? "text-[#0F766E]" : "text-red-500"}`}>{tx.nominal}</td>
-                      <td className="py-3 px-6 text-center">
-                        <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-0.5 rounded-full ${tx.tipe === "Pemasukan" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
-                          <span className={`w-1 h-1 rounded-full ${tx.tipe === "Pemasukan" ? "bg-emerald-500" : "bg-red-500"}`}></span>
+                      <td className="py-4 px-6 text-xs font-bold text-[#0F766E] text-center hover:underline cursor-pointer">{tx.id}</td>
+                      <td className="py-4 px-6 text-xs font-bold text-gray-400 text-center">{tx.tanggal}</td>
+                      <td className="py-4 px-6 text-xs font-extrabold text-gray-900">{tx.nama}</td>
+                      <td className="py-4 px-6 text-xs font-bold text-gray-500">{tx.kategori}</td>
+                      <td className={`py-4 px-6 text-xs font-extrabold text-center ${tx.tipe === "Pemasukan" ? "text-[#0F766E]" : "text-red-500"}`}>{tx.nominal}</td>
+                      <td className="py-4 px-6 text-center">
+                        <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full ${tx.tipe === "Pemasukan" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${tx.tipe === "Pemasukan" ? "bg-emerald-500" : "bg-red-500"}`}></span>
                           {tx.tipe}
                         </span>
                       </td>

@@ -7,12 +7,11 @@ export default function Home() {
 
   return (
     <PageTransition>
-      {/* Gunakan h-screen, flex flex-col, dan overflow-hidden agar pas 1 layar penuh */}
-      <div className="h-screen bg-gray-50 font-['Manrope'] overflow-hidden flex flex-col justify-between">
+      <div className="min-h-screen bg-gray-50 font-['Manrope'] flex flex-col">
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
 
         {/* ─── NAVBAR PUBLIK ─── */}
-        <nav className="w-full bg-[#F0FDF4] px-6 md:px-12 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50 shrink-0">
+        <nav className="w-full bg-[#F0FDF4] px-6 md:px-12 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-[#0F766E] rounded-xl flex items-center justify-center shadow-sm">
               <span className="text-white font-bold text-lg">D</span>
@@ -58,8 +57,8 @@ export default function Home() {
           </div>
         </nav>
 
-        {/* ─── KONTEN UTAMA (flex-1 dan overflow-y-auto agar scroll mandiri) ─── */}
-        <main className="max-w-6xl w-full mx-auto px-6 py-8 flex-1 overflow-y-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+        {/* ─── KONTEN UTAMA ─── */}
+        <main className="w-full px-6 md:px-12 lg:px-20 py-10 flex-1 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="mb-12">
             <h2 className="text-3xl md:text-4xl font-extrabold text-[#0F766E] mb-2">
               Halaman Utama
@@ -70,15 +69,15 @@ export default function Home() {
           </div>
 
           {/* SECTION 1: DASAWISMA */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-20 items-center mb-20">
             <div className="order-2 md:order-1 space-y-4">
               <div className="inline-block px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-widest rounded-lg">
                 Tentang Kami
               </div>
-              <h3 className="text-2xl font-extrabold text-gray-900">
+              <h3 className="text-2xl md:text-3xl font-extrabold text-gray-900">
                 Apa itu Program Dasawisma?
               </h3>
-              <p className="text-gray-600 leading-relaxed font-medium text-sm">
+              <p className="text-gray-600 leading-relaxed font-medium text-sm md:text-base">
                 Dasawisma adalah kelompok ibu-ibu yang berasal dari 10 kepala
                 keluarga (KK) rumah yang bertetangga untuk mempermudah jalannya
                 suatu program desa atau kelurahan. Program ini sangat penting
@@ -97,7 +96,7 @@ export default function Home() {
           </div>
 
           {/* SECTION 2: ZIS */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center pb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-20 items-center pb-8">
             <div>
               <div className="w-full aspect-video bg-gray-200 rounded-2xl border-4 border-white shadow-md overflow-hidden relative">
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400 font-bold text-sm">
@@ -109,10 +108,10 @@ export default function Home() {
               <div className="inline-block px-3 py-1 bg-teal-100 text-teal-800 text-xs font-bold uppercase tracking-widest rounded-lg">
                 Transparansi
               </div>
-              <h3 className="text-2xl font-extrabold text-gray-900">
+              <h3 className="text-2xl md:text-3xl font-extrabold text-gray-900">
                 Pengelolaan Zakat, Infaq, & Shodaqoh
               </h3>
-              <p className="text-gray-600 leading-relaxed font-medium text-sm">
+              <p className="text-gray-600 leading-relaxed font-medium text-sm md:text-base">
                 Sistem kami tidak hanya mengelola data warga, tetapi juga
                 mengintegrasikan pencatatan penerimaan dan penyaluran ZIS secara
                 transparan. Hal ini memastikan setiap dana yang dititipkan oleh
@@ -122,6 +121,8 @@ export default function Home() {
             </div>
           </div>
         </main>
+
+       
       </div>
     </PageTransition>
   );
