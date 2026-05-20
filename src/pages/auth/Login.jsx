@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../../store/useAuthStore';
 import { login as loginRequest, getMe } from '../../services/auth.service';
@@ -208,6 +208,21 @@ export default function Login() {
                 <>
                   Masuk ke Dashboard
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full flex items-center justify-center gap-2 bg-[#0F766E] hover:bg-[#064E3B] text-white py-4 rounded-xl font-bold transition-all shadow-md shadow-emerald-900/10 disabled:opacity-70 disabled:cursor-not-allowed group"
+            >
+              {isLoading ? (
+                'Loading...'
+              ) : (
+                <>
+                <ArrowLeft className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  Kembali ke Home Page                  
+                  
                 </>
               )}
             </button>

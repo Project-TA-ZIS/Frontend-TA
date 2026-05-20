@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Coins, Users, Menu } from "lucide-react";
+import { Coins, Users } from "lucide-react";
 import {
   ComposedChart,
   Area,
@@ -63,7 +63,7 @@ const chartDataMap = {
     Bulanan: [
       { name: "JAN", pemasukan: 1000, pengeluaran: 900 },
       { name: "FEB", pemasukan: 1200, pengeluaran: 1000 },
-      { name: "MAR", pemasukan: 1500, pengeluaran: 1100 }, // Sudah diperbaiki dari 'flex' ke 'pengeluaran'
+      { name: "MAR", pemasukan: 1500, pengeluaran: 1100 },
       { name: "APR", pemasukan: 1300, pengeluaran: 1200 },
       { name: "MEI", pemasukan: 1800, pengeluaran: 1600 },
       { name: "JUN", pemasukan: 2000, pengeluaran: 1900 },
@@ -114,12 +114,11 @@ export default function Dashboard() {
 
   return (
     <PageTransition>
-      {/* h-screen dan flex-col agar pas tinggi layar monitor */}
-      <div className="h-screen bg-gray-50 font-['Manrope'] overflow-hidden flex flex-col justify-between">
+      <div className="min-h-screen bg-gray-50 font-['Manrope'] flex flex-col">
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
 
         {/* ─── NAVBAR PUBLIK ─── */}
-        <nav className="w-full bg-[#F0FDF4] px-6 md:px-12 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50 shrink-0">
+        <nav className="w-full bg-[#F0FDF4] px-6 md:px-12 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-[#0F766E] rounded-xl flex items-center justify-center shadow-sm">
               <span className="text-white font-bold text-lg">D</span>
@@ -166,51 +165,51 @@ export default function Dashboard() {
         </nav>
 
         {/* ─── KONTEN UTAMA ─── */}
-        <main className="max-w-6xl w-full mx-auto px-6 py-6 flex-1 flex flex-col justify-between overflow-y-auto min-h-0">
-          <div className="shrink-0 mb-4">
-            <h2 className="text-2xl font-extrabold text-[#0F766E] mb-1">
+        <main className="w-full px-6 md:px-12 lg:px-20 py-8 flex-1">
+          <div className="mb-6">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-[#0F766E] mb-2">
               Dashboard Utama ZIS
             </h2>
-            <p className="text-gray-500 font-medium text-xs">
+            <p className="text-gray-500 font-medium">
               Selamat datang kembali, pantau aktivitas Dasawisma hari ini.
             </p>
           </div>
 
           {/* CARDS RINGKASAN */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 shrink-0">
-            <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-              <div className="w-10 h-10 bg-[#F0FDF4] rounded-xl flex items-center justify-center text-[#10B981]">
-                <Coins size={20} strokeWidth={2.5} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5 hover:shadow-md transition-shadow">
+              <div className="w-14 h-14 bg-[#F0FDF4] rounded-xl flex items-center justify-center text-[#10B981]">
+                <Coins size={28} strokeWidth={2.5} />
               </div>
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">
                   Jumlah Muzzaki
                 </p>
-                <h3 className="text-2xl font-extrabold text-gray-900">152</h3>
+                <h3 className="text-3xl font-extrabold text-gray-900">152</h3>
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-              <div className="w-10 h-10 bg-[#F0FDF4] rounded-xl flex items-center justify-center text-[#10B981]">
-                <Users size={20} strokeWidth={2.5} />
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5 hover:shadow-md transition-shadow">
+              <div className="w-14 h-14 bg-[#F0FDF4] rounded-xl flex items-center justify-center text-[#10B981]">
+                <Users size={28} strokeWidth={2.5} />
               </div>
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">
                   Jumlah Mustahiq
                 </p>
-                <h3 className="text-2xl font-extrabold text-gray-900">45</h3>
+                <h3 className="text-3xl font-extrabold text-gray-900">45</h3>
               </div>
             </div>
           </div>
 
-          {/* AREA CHART (flex-1 agar meninggi otomatis mengisi layar penuh) */}
-          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex-1 flex flex-col justify-between min-h-[300px]">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 shrink-0">
+          {/* AREA CHART (tinggi fixed agar Recharts ResponsiveContainer dapat ukuran) */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
-                <h3 className="text-base font-extrabold text-gray-900">
+                <h3 className="text-lg font-extrabold text-gray-900">
                   Tren Transaksi ZIS
                 </h3>
-                <p className="text-[11px] text-gray-500 font-medium">
+                <p className="text-xs text-gray-500 font-medium">
                   Laporan akumulasi dana{" "}
                   {activePeriod === "Bulanan" ? "bulanan" : "tahunan"}
                 </p>
@@ -222,7 +221,7 @@ export default function Dashboard() {
                     <button
                       key={cat}
                       onClick={() => setActiveCategory(cat)}
-                      className={`px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+                      className={`px-3 py-1.5 rounded-md text-[11px] font-bold transition-all ${
                         activeCategory === cat
                           ? "bg-[#10B981] text-white shadow-sm"
                           : "text-gray-500 hover:text-gray-700"
@@ -238,7 +237,7 @@ export default function Dashboard() {
                     <button
                       key={period}
                       onClick={() => setActivePeriod(period)}
-                      className={`px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+                      className={`px-3 py-1.5 rounded-md text-[11px] font-bold transition-all ${
                         activePeriod === period
                           ? "bg-[#10B981] text-white shadow-sm"
                           : "text-gray-500 hover:text-gray-700"
@@ -251,7 +250,8 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="w-full flex-1 min-h-0">
+            {/* ⚠️ Wrapper dengan TINGGI EKSPLISIT — wajib untuk ResponsiveContainer */}
+            <div className="w-full h-[400px]">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart
                   data={currentChartData}
@@ -294,7 +294,7 @@ export default function Dashboard() {
               </ResponsiveContainer>
             </div>
 
-            <div className="flex items-center justify-center gap-6 mt-3 shrink-0">
+            <div className="flex items-center justify-center gap-6 mt-4">
               <div className="flex items-center gap-1.5">
                 <div className="w-2.5 h-2.5 rounded-full bg-[#0F766E]"></div>
                 <span className="text-xs font-bold text-gray-600">Pemasukan</span>

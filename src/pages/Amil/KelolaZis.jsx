@@ -465,30 +465,31 @@ export default function KelolaZis() {
         </div>
 
         {/* ─── Bottom Summary Cards (Kategori Breakdown) ─── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {totalZIS.map((item) => (
-            <div
-              key={item.id}
-              className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"
-            >
-              <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">
-                {item.kategori}
-              </p>
-
-              <h3 className="text-2xl font-extrabold text-gray-900">
-                {item.kategori.toLowerCase() === "zakat fitrah beras"
-                  ? `${Number(item.jumlah_keseluruhan)} Kg`
-                  : formatRupiah(Number(item.jumlah_keseluruhan))}
-              </h3>
-
-              {item.updated_at && (
-                <p className="text-xs text-gray-400 mt-2">
-                  Update terakhir: {formattedDate(item.updated_at)}
-                </p>
-              )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3 shrink-0">
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Zakat Fitrah Beras</p>
+              <h3 className="text-xl font-extrabold text-gray-900">10 Kg</h3>
             </div>
-          ))}
-        </div>
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Zakat Fitrah Uang</p>
+              <h3 className="text-xl font-extrabold text-gray-900">Rp 15.500.000</h3>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5 shrink-0">
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Zakat Maal</p>
+              <h3 className="text-lg font-extrabold text-gray-900">Rp 15.500.000</h3>
+            </div>
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Infaq</p>
+              <h3 className="text-lg font-extrabold text-gray-900">Rp 15.500.000</h3>
+            </div>
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Shodaqoh</p>
+              <h3 className="text-lg font-extrabold text-gray-900">Rp 15.500.000</h3>
+            </div>
+          </div>
 
         {/* ─── Filter & Action Bar ─── */}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6 mt-5">

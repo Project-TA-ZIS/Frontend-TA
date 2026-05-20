@@ -28,6 +28,7 @@ import KelolaKas from "./pages/koordinator/KelolaKas";
 import Home from './pages/publik/Home';
 import Dashboard from "./pages/publik/Dashboard";
 import ManajemenZis from "./pages/publik/ManajemenZis";
+import Footer from "./components/layout/Footer";
 
 const ROLE = {
   KOORDINATOR: "koordinator dasawisma",
@@ -272,7 +273,8 @@ function App() {
 
         </Routes>
       </AuthBootstrapper>
-    </Router>
+      <Footer />
+    </Router> 
   );
 }
 
