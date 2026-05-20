@@ -1,42 +1,132 @@
-import React, { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { HandHeart, Users } from "lucide-react";
 import PageTransition from "../../components/PageTransition";
+import muzakkiService from "../../services/muzakki.service";
+import mustahikService from "../../services/mustahik.service";
+import pemasukanZISService from "../../services/pemasukanZIS.service";
+import pengeluaranZISService from "../../services/pengeluaranZIS.service";
 
-// ─── Dummy Data Dinamis ─────────────────────────────────────────────────────
-// Menambahkan 'multiplier' agar bentuk grafik dan angkanya berbeda tiap kategori
-const generateData = (isTahunan = false, multiplier = 1) => {
-  const labels = isTahunan 
-    ? ["2020", "2021", "2022", "2023", "2024", "2025", "2026"]
-    : ["JAN", "FEB", "MAR", "APR", "MEI", "JUN", "JUL", "AGT", "SEP", "OKT", "NOV", "DES"];
+const MONTH_LABELS = [
+  "JAN",
+  "FEB",
+  "MAR",
+  "APR",
+  "MEI",
+  "JUN",
+  "JUL",
+  "AGT",
+  "SEP",
+  "OKT",
+  "NOV",
+  "DES",
+];
 
-  return labels.map((label, index) => ({
-    label,
-    pemasukan: Math.round((10000000 + (Math.random() * 5000000) + (index * 500000)) * multiplier),
-    pengeluaran: Math.round((5000000 + (Math.random() * 2000000) + (index * 300000)) * multiplier),
-  }));
+const parseDateSafe = (dateLike) => {
+  if (!dateLike) return null;
+  if (dateLike instanceof Date) {
+    return Number.isNaN(dateLike.getTime()) ? null : dateLike;
+  }
+
+  const safe = String(dateLike).trim();
+  if (!safe) return null;
+
+  const looksLikeDateTime = safe.includes("T") || /\d{2}:\d{2}/.test(safe);
+  const d = looksLikeDateTime ? new Date(safe) : new Date(`${safe}T00:00:00`);
+  if (!Number.isNaN(d.getTime())) return d;
+
+  const d2 = new Date(safe);
+  return Number.isNaN(d2.getTime()) ? null : d2;
 };
 
-// Struktur data sekarang dipisah berdasarkan Kategori lalu Waktu
-const DATA = {
-  tren: {
-    "Zakat Maal": {
-      "Bulanan": generateData(false, 1.2),
-      "Tahunan": generateData(true, 1.2)
-    },
-    "Zakat Fitrah": {
-      "Bulanan": generateData(false, 0.8),
-      "Tahunan": generateData(true, 0.8)
-    },
-    "Infaq": {
-      "Bulanan": generateData(false, 0.5),
-      "Tahunan": generateData(true, 0.5)
-    },
-    "Sedekah": {
-      "Bulanan": generateData(false, 0.3),
-      "Tahunan": generateData(true, 0.3)
-    }
+const getMaxYearFromItems = (items, dateKey) => {
+  let maxYear = null;
+  (items || []).forEach((item) => {
+    const d = parseDateSafe(item?.[dateKey]);
+    if (!d) return;
+    const y = d.getFullYear();
+    if (maxYear == null || y > maxYear) maxYear = y;
+  });
+  return maxYear;
+};
+
+const toUiZisKategori = (kategori) => {
+  const k = (kategori || "").toString().trim().toLowerCase();
+  if (!k) return null;
+  if (k.includes("zakat mal")) return "Zakat Maal";
+  if (k.includes("zakat fitrah")) return "Zakat Fitrah";
+  if (k === "infaq") return "Infaq";
+  if (k === "shodaqoh") return "Sedekah";
+  return null;
+};
+
+const buildEmptySeries = (mode, now = new Date()) => {
+  const currentYear = now.getFullYear();
+  if (mode === "Tahunan") {
+    const years = Array.from({ length: 7 }, (_, i) => String(currentYear - 6 + i));
+    return years.map((y) => ({ label: y, pemasukan: 0, pengeluaran: 0 }));
   }
+  return MONTH_LABELS.map((m) => ({ label: m, pemasukan: 0, pengeluaran: 0 }));
+};
+
+const buildZisSeries = ({ pemasukanItems, pengeluaranItems, uiKategori, mode, now = new Date() }) => {
+  const nowYear = now.getFullYear();
+  const result = buildEmptySeries(mode, now);
+
+  const addValue = (idx, key, amount) => {
+    if (idx < 0 || idx >= result.length) return;
+    result[idx][key] += amount;
+  };
+
+  const relevantMasuk = (pemasukanItems || []).filter(
+    (item) => toUiZisKategori(item?.kategori) === uiKategori,
+  );
+  const relevantKeluar = (pengeluaranItems || []).filter(
+    (item) => toUiZisKategori(item?.kategori) === uiKategori,
+  );
+
+  const latestYearInData = Math.max(
+    getMaxYearFromItems(relevantMasuk, "tanggal_penghimpunan") ?? -Infinity,
+    getMaxYearFromItems(relevantKeluar, "tanggal_penyaluran") ?? -Infinity,
+  );
+  const activeYear =
+    mode === "Tahunan" || latestYearInData === -Infinity ? nowYear : latestYearInData;
+
+  (relevantMasuk || []).forEach((item) => {
+    const d = parseDateSafe(item?.tanggal_penghimpunan);
+    if (!d) return;
+    const amount = Number.parseFloat(item?.jumlah ?? 0) || 0;
+
+    if (mode === "Tahunan") {
+      const year = d.getFullYear();
+      const idx = year - (nowYear - 6);
+      addValue(idx, "pemasukan", amount);
+    } else {
+      if (d.getFullYear() !== activeYear) return;
+      addValue(d.getMonth(), "pemasukan", amount);
+    }
+  });
+
+  (relevantKeluar || []).forEach((item) => {
+    const d = parseDateSafe(item?.tanggal_penyaluran);
+    if (!d) return;
+    const amount = Number.parseFloat(item?.jumlah ?? 0) || 0;
+
+    if (mode === "Tahunan") {
+      const year = d.getFullYear();
+      const idx = year - (nowYear - 6);
+      addValue(idx, "pengeluaran", amount);
+    } else {
+      if (d.getFullYear() !== activeYear) return;
+      addValue(d.getMonth(), "pengeluaran", amount);
+    }
+  });
+
+  return result.map((row) => ({
+    ...row,
+    pemasukan: Math.round(row.pemasukan),
+    pengeluaran: Math.round(row.pengeluaran),
+  }));
 };
 
 // ─── Komponen Bantuan ───────────────────────────────────────────────────────
@@ -136,6 +226,88 @@ const ChartArea = ({ title, subtitle, data, kategori, setKategori, waktu, setWak
 export default function DashboardAmil() {
   const [zisKategori, setZisKategori] = useState("Zakat Maal");
   const [zisWaktu, setZisWaktu] = useState("Bulanan");
+  const [kpiCounts, setKpiCounts] = useState({ muzakki: 0, mustahik: 0 });
+  const [zisPemasukanItems, setZisPemasukanItems] = useState([]);
+  const [zisPengeluaranItems, setZisPengeluaranItems] = useState([]);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const normalizeArray = (value) => {
+      if (Array.isArray(value)) return value;
+      if (Array.isArray(value?.data)) return value.data;
+      return [];
+    };
+
+    const is404 = (err) => err?.response?.status === 404;
+
+    const load = async () => {
+      setErrorMsg("");
+      try {
+        const settled = await Promise.allSettled([
+          muzakkiService.getAllMuzakki(),
+          mustahikService.getAllMustahik(),
+          pemasukanZISService.getAllPemasukanZIS(),
+          pengeluaranZISService.getAllPengeluaranZIS(),
+        ]);
+
+        const pickArray = (idx) => {
+          const r = settled[idx];
+          if (r.status === "fulfilled") return normalizeArray(r.value);
+          if (is404(r.reason)) return [];
+          return null;
+        };
+
+        const muzakkiArr = pickArray(0);
+        const mustahikArr = pickArray(1);
+        const pemasukanArr = pickArray(2);
+        const pengeluaranArr = pickArray(3);
+
+        if (!cancelled) {
+          setKpiCounts({
+            muzakki: Array.isArray(muzakkiArr) ? muzakkiArr.length : 0,
+            mustahik: Array.isArray(mustahikArr) ? mustahikArr.length : 0,
+          });
+          setZisPemasukanItems(Array.isArray(pemasukanArr) ? pemasukanArr : []);
+          setZisPengeluaranItems(Array.isArray(pengeluaranArr) ? pengeluaranArr : []);
+
+          const firstError = settled.find(
+            (x) => x.status === "rejected" && !is404(x.reason),
+          );
+          if (firstError) {
+            setErrorMsg(
+              firstError.reason?.response?.data?.message ||
+                firstError.reason?.message ||
+                "Gagal memuat sebagian data dashboard",
+            );
+          }
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setErrorMsg(
+            err?.response?.data?.message ||
+              err?.message ||
+              "Gagal memuat data dashboard",
+          );
+        }
+      }
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const zisChartData = useMemo(() => {
+    return buildZisSeries({
+      pemasukanItems: zisPemasukanItems,
+      pengeluaranItems: zisPengeluaranItems,
+      uiKategori: zisKategori,
+      mode: zisWaktu,
+    });
+  }, [zisPemasukanItems, zisPengeluaranItems, zisKategori, zisWaktu]);
 
   return (
     <PageTransition>
@@ -157,7 +329,7 @@ export default function DashboardAmil() {
             </div>
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">JUMLAH MUZZAKI</p>
-              <p className="text-4xl font-extrabold text-gray-900">152</p>
+              <p className="text-4xl font-extrabold text-gray-900">{kpiCounts.muzakki}</p>
             </div>
           </div>
           
@@ -167,19 +339,24 @@ export default function DashboardAmil() {
             </div>
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">JUMLAH MUSTAHIQ</p>
-              <p className="text-4xl font-extrabold text-gray-900">45</p>
+              <p className="text-4xl font-extrabold text-gray-900">{kpiCounts.mustahik}</p>
             </div>
           </div>
         </div>
       </div>
 
+      {errorMsg && (
+        <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl">
+          <p className="text-sm font-bold text-red-700">{errorMsg}</p>
+        </div>
+      )}
+
       {/* Chart ZIS */}
       <div className="flex flex-col gap-6">
         <ChartArea 
           title="Tren Transaksi ZIS" 
-          subtitle="Laporan akumulasi dana bulanan 2024"
-          // INI KUNCINYA: Data yang dipanggil sekarang menyesuaikan Kategori dan Waktu yang sedang aktif
-          data={DATA.tren[zisKategori][zisWaktu]}
+          subtitle={`Laporan akumulasi dana ${zisWaktu.toLowerCase()} ${new Date().getFullYear()}`}
+          data={zisChartData}
           kategori={zisKategori}
           setKategori={setZisKategori}
           waktu={zisWaktu}

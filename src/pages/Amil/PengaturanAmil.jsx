@@ -1,31 +1,40 @@
 import React, { useState } from "react";
 import { User, Mail, Phone, Lock, Camera, Check } from "lucide-react";
 import PageTransition from "../../components/PageTransition";
+import amilService from "../../services/amil.service";
+import useAuthStore from "../../store/useAuthStore";
+import { formattedDate, formatDateInput } from "../../utils/formattedDate";
+import Swal from "sweetalert2";
 
 export default function PengaturanAmil() {
-  // ─── STATE DATA PROFIL ───
-  const [formData, setFormData] = useState({
-    nama: "Petugas Amil",
-    email: "amil@dasawisma.com",
-    telp: "081234567890",
-    passwordLama: "",
-    passwordBaru: "",
-    konfirmasiPassword: "",
-  });
-
-  // STATE UNTUK VALIDASI (Pesan Error & Sukses)
+  const user = useAuthStore((s) => s.user) || {};
+  const role = useAuthStore((s) => s.role);
   const [errors, setErrors] = useState({});
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    nama: user?.nama_lengkap || "",
+    email: user?.email || "",
+    telp: user?.nomor_telpon || "",
+    alamat: user?.alamat || "",
+    role: role || "",
+  });
 
-  // ─── HANDLER ───
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    
-    // Hapus pesan error saat user mulai mengetik
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
     if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
     }
+
     setIsSuccess(false);
   };
 
@@ -33,9 +42,8 @@ export default function PengaturanAmil() {
   const validateForm = () => {
     let newErrors = {};
 
-    // Validasi Wajib Isi & Format
     if (!formData.nama.trim()) newErrors.nama = "Nama lengkap wajib diisi!";
-    
+
     if (!formData.email.trim()) {
       newErrors.email = "Alamat email wajib diisi!";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -47,177 +55,405 @@ export default function PengaturanAmil() {
     } else if (!/^[0-9]+$/.test(formData.telp)) {
       newErrors.telp = "Nomor telepon hanya boleh angka!";
     }
-
-    // Validasi Password (Opsional, tapi jika diisi harus sesuai aturan)
-    if (formData.passwordBaru) {
-      if (formData.passwordBaru.length < 6) {
-        newErrors.passwordBaru = "Kata sandi minimal 6 karakter!";
-      }
-      if (formData.passwordBaru !== formData.konfirmasiPassword) {
-        newErrors.konfirmasiPassword = "Konfirmasi kata sandi tidak cocok!";
-      }
-      if (!formData.passwordLama) {
-        newErrors.passwordLama = "Masukkan kata sandi lama untuk mengubah kata sandi!";
-      }
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0; // Lolos validasi jika tidak ada error
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (validateForm()) {
-      // SIMULASI PROSES SIMPAN KE BACKEND
-      console.log("Data berhasil divalidasi dan disimpan:", formData);
-      setIsSuccess(true);
-      
-      // Reset field password setelah sukses
-      setFormData((prev) => ({ ...prev, passwordLama: "", passwordBaru: "", konfirmasiPassword: "" }));
-      
-      // Hilangkan pesan sukses setelah 3 detik
-      setTimeout(() => setIsSuccess(false), 3000);
+
+    if (!validateForm()) {
+      Swal.fire({
+        icon: "error",
+        title: "Validasi Gagal",
+        text: "Periksa kembali data yang diisi.",
+        confirmButtonColor: "#10B981",
+      });
+
+      return;
     }
+
+    try {
+      setIsSubmitting(true);
+      const payload = {
+        nama_lengkap: formData.nama,
+        email: formData.email,
+        nomor_telpon: formData.telp,
+        alamat: formData.alamat,
+      };
+      await amilService.updateAmil(user.id, payload);
+      setIsSuccess(true);
+
+      Swal.fire({
+        icon: "success",
+        title: "Sukses",
+        text: "Profil berhasil diperbarui!",
+        confirmButtonColor: "#10B981",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
+      setTimeout(() => {
+        setIsSuccess(false);
+      }, 3000);
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Terjadi Kesalahan",
+        text: error?.response?.data?.message || "Gagal memperbarui profil.",
+        confirmButtonColor: "#10B981",
+      });
+    }
+  };
+
+  const getInitials = (name) => {
+    const safe = (name || "").trim();
+    if (!safe) return "U";
+    const parts = safe.split(/\s+/).filter(Boolean);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return `${parts[0][0] || ""}${parts[1][0] || ""}`.toUpperCase();
+  };
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [passwordData, setPasswordData] = useState({
+    passwordLama: "",
+    passwordBaru: "",
+  });
+
+  const [passwordErrors, setPasswordErrors] = useState({});
+
+  const handlePasswordChange = async (e) => {
+    const { name, value } = e.target;
+
+    setPasswordData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    if (passwordErrors[name]) {
+      setPasswordErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
+  };
+
+  const handleSubmitPassword = async (e) => {
+    e.preventDefault();
+
+    let errors = {};
+
+    if (!passwordData.passwordLama) {
+      errors.passwordLama = "Password lama wajib diisi!";
+    }
+
+    if (!passwordData.passwordBaru) {
+      errors.passwordBaru = "Password baru wajib diisi!";
+    } else if (passwordData.passwordBaru.length < 6) {
+      errors.passwordBaru = "Password minimal 6 karakter!";
+    }
+
+    setPasswordErrors(errors);
+
+    if (Object.keys(errors).length > 0) return;
+
+    try {
+      const data = {
+        oldPassword: passwordData.passwordLama,
+        newPassword: passwordData.passwordBaru,
+      };
+
+      const rs = await amilService.updateAmilPassword(data);
+
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil!",
+        text: "Password berhasil diperbarui.",
+        confirmButtonColor: "#10B981",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      console.log("Error ganti password:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Gagal!",
+        text:
+          error?.response?.data?.message ||
+          "Terjadi kesalahan saat mengganti password.",
+        confirmButtonColor: "#EF4444",
+      });
+    }
+
+    setIsModalOpen(false);
+
+    setPasswordData({
+      passwordLama: "",
+      passwordBaru: "",
+    });
   };
 
   return (
     <PageTransition>
-    <div className="min-h-screen bg-gray-50 p-6 md:p-10 font-['Manrope']">
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
+      <div className="min-h-screen bg-gray-50 p-6 md:p-10 font-['Manrope']">
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
 
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-extrabold text-[#0F766E]">Pengaturan Profil</h1>
-        <p className="text-sm text-gray-600 mt-1 font-medium">Kelola informasi data diri dan keamanan akun Anda.</p>
-      </div>
-
-      <div className="flex flex-col lg:flex-row gap-8">
-        
-        {/* ─── KIRI: FOTO PROFIL ─── */}
-        <div className="w-full lg:w-1/3">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center flex flex-col items-center">
-            <div className="relative mb-6">
-              <div className="w-32 h-32 bg-[#0F766E] rounded-full flex items-center justify-center text-white font-bold text-4xl shadow-md border-4 border-white">
-                AM
-              </div>
-              <button className="absolute bottom-0 right-0 bg-[#10B981] hover:bg-[#059669] text-white p-2.5 rounded-full shadow-lg border-2 border-white transition-colors">
-                <Camera size={18} />
-              </button>
-            </div>
-            <h3 className="text-xl font-extrabold text-gray-900">{formData.nama || "Nama Pengguna"}</h3>
-            <p className="text-sm font-bold text-[#10B981] mt-1 uppercase tracking-wider">AMIL ZAKAT</p>
-            <p className="text-sm text-gray-500 mt-2">Format foto JPEG/PNG maks. 2MB</p>
-          </div>
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#0F766E]">
+            Pengaturan Profil
+          </h1>
+          <p className="text-sm text-gray-600 mt-1 font-medium">
+            Kelola informasi data diri dan keamanan akun Anda.
+          </p>
         </div>
 
-        {/* ─── KANAN: FORM EDIT PROFIL ─── */}
-        <div className="w-full lg:w-2/3">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
-            
-            {/* Notifikasi Sukses */}
-            {isSuccess && (
-              <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
-                <div className="w-8 h-8 bg-[#10B981] rounded-full flex items-center justify-center text-white shrink-0">
-                  <Check size={16} strokeWidth={3} />
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* ─── KIRI: FOTO PROFIL ─── */}
+          <div className="w-full lg:w-1/3">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center flex flex-col items-center">
+              <div className="relative mb-6">
+                <div className="w-32 h-32 bg-[#0F766E] rounded-full flex items-center justify-center text-white font-bold text-4xl shadow-md border-4 border-white">
+                  {getInitials(formData.nama)}
                 </div>
-                <p className="text-sm font-bold text-emerald-800">Profil berhasil diperbarui!</p>
               </div>
-            )}
+              <h3 className="text-xl font-extrabold text-gray-900">
+                {formData.nama || "Nama Pengguna"}
+              </h3>
+              <p className="text-sm font-bold text-[#10B981] mt-1 uppercase tracking-wider">
+                {formData.role || ""}
+              </p>
+            </div>
+          </div>
 
-            {/* Note: noValidate ditambahkan agar validasi HTML bawaan mati dan digantikan logika validasi React kita */}
-            <form onSubmit={handleSubmit} noValidate className="space-y-6">
-              
-              <div className="border-b border-gray-100 pb-6">
-                <h4 className="text-base font-extrabold text-gray-900 mb-4">Informasi Dasar</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  
-                  {/* Input Nama Lengkap */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Nama Lengkap</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><User className="h-4 w-4 text-gray-400" /></div>
-                      <input 
-                        type="text" name="nama" value={formData.nama} onChange={handleInputChange} 
-                        className={`w-full pl-11 pr-4 py-3 bg-gray-50 text-sm rounded-xl outline-none font-semibold transition-all border ${errors.nama ? 'border-red-500 focus:ring-red-500 bg-red-50/50' : 'border-gray-200 focus:ring-2 focus:ring-[#10B981]'}`}
-                      />
-                    </div>
-                    {errors.nama && <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">{errors.nama}</p>}
+          {/* ─── KANAN: FORM EDIT PROFIL ─── */}
+          <div className="w-full lg:w-2/3">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
+              {/* Notifikasi Sukses */}
+              {isSuccess && (
+                <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                  <div className="w-8 h-8 bg-[#10B981] rounded-full flex items-center justify-center text-white shrink-0">
+                    <Check size={16} strokeWidth={3} />
                   </div>
-
-                  {/* Input Nomor Telepon */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Nomor Telepon</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><Phone className="h-4 w-4 text-gray-400" /></div>
-                      <input 
-                        type="text" name="telp" value={formData.telp} onChange={handleInputChange} 
-                        className={`w-full pl-11 pr-4 py-3 bg-gray-50 text-sm rounded-xl outline-none font-semibold transition-all border ${errors.telp ? 'border-red-500 focus:ring-red-500 bg-red-50/50' : 'border-gray-200 focus:ring-2 focus:ring-[#10B981]'}`}
-                      />
-                    </div>
-                    {errors.telp && <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">{errors.telp}</p>}
-                  </div>
-
-                  {/* Input Email (Full Width) */}
-                  <div className="md:col-span-2">
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Alamat Email</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><Mail className="h-4 w-4 text-gray-400" /></div>
-                      <input 
-                        type="email" name="email" value={formData.email} onChange={handleInputChange} 
-                        className={`w-full pl-11 pr-4 py-3 bg-gray-50 text-sm rounded-xl outline-none font-semibold transition-all border ${errors.email ? 'border-red-500 focus:ring-red-500 bg-red-50/50' : 'border-gray-200 focus:ring-2 focus:ring-[#10B981]'}`}
-                      />
-                    </div>
-                    {errors.email && <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">{errors.email}</p>}
-                  </div>
-
+                  <p className="text-sm font-bold text-emerald-800">
+                    Profil berhasil diperbarui!
+                  </p>
                 </div>
+              )}
+
+              {/* Note: noValidate ditambahkan agar validasi HTML bawaan mati dan digantikan logika validasi React kita */}
+              <form onSubmit={handleSubmit} noValidate className="space-y-6">
+                <div className="border-b border-gray-100 pb-6">
+                  <h4 className="text-base font-extrabold text-gray-900 mb-4">
+                    Informasi Dasar
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Input Nama Lengkap */}
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                        Nama Lengkap
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                          <User className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <input
+                          type="text"
+                          name="nama"
+                          value={formData.nama}
+                          onChange={handleInputChange}
+                          className={`w-full pl-11 pr-4 py-3 bg-gray-50 text-sm rounded-xl outline-none font-semibold transition-all border ${errors.nama ? "border-red-500 focus:ring-red-500 bg-red-50/50" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`}
+                        />
+                      </div>
+                      {errors.nama && (
+                        <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                          {errors.nama}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Input Nomor Telepon */}
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                        Nomor Telepon
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                          <Phone className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <input
+                          type="text"
+                          name="telp"
+                          value={formData.telp}
+                          onChange={handleInputChange}
+                          className={`w-full pl-11 pr-4 py-3 bg-gray-50 text-sm rounded-xl outline-none font-semibold transition-all border ${errors.telp ? "border-red-500 focus:ring-red-500 bg-red-50/50" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`}
+                        />
+                      </div>
+                      {errors.telp && (
+                        <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                          {errors.telp}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Input Email (Full Width) */}
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                        Alamat Email
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                          <Mail className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <input
+                          type="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          className={`w-full pl-11 pr-4 py-3 bg-gray-50 text-sm rounded-xl outline-none font-semibold transition-all border ${errors.email ? "border-red-500 focus:ring-red-500 bg-red-50/50" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`}
+                        />
+                      </div>
+                      {errors.email && (
+                        <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                          {errors.email}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* alamat */}
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                    Alamat
+                  </label>
+                  <textarea
+                    name="alamat"
+                    value={formData.alamat}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 bg-gray-50 text-sm rounded-xl outline-none font-semibold transition-all border ${errors.alamat ? "border-red-500 focus:ring-red-500 bg-red-50/50" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`}
+                    placeholder="Masukkan alamat"
+                    rows="3"
+                  />
+                  {errors.alamat && (
+                    <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                      {errors.alamat}
+                    </p>
+                  )}
+                </div>
+
+                {/* ─── Tombol CTA dengan Pewarnaan Sesuai Revisi (Poin 4) ─── */}
+                <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(true)}
+                    className="px-6 py-3 rounded-xl text-sm font-bold text-white bg-amber-500 hover:bg-amber-600 transition-colors"
+                  >
+                    Ganti Password
+                  </button>
+
+                  <button
+                    type="submit"
+                    className="px-6 py-3 rounded-xl text-sm font-bold text-white bg-[#10B981] hover:bg-[#059669] shadow-md shadow-emerald-900/10 transition-colors"
+                  >
+                    Simpan Perubahan
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* ─── MODAL POP-UP edit password ─── */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            {/* Header */}
+            <div className="bg-[#0F766E] px-6 py-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-white">Ganti Password</h2>
+
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-white text-xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Body */}
+            <form onSubmit={handleSubmitPassword} className="p-6 space-y-5">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  Password Lama
+                </label>
+
+                <input
+                  type="password"
+                  name="passwordLama"
+                  value={passwordData.passwordLama}
+                  onChange={handlePasswordChange}
+                  className={`w-full px-4 py-3 bg-gray-50 text-sm rounded-xl outline-none font-semibold transition-all border ${
+                    passwordErrors.passwordLama
+                      ? "border-red-500"
+                      : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"
+                  }`}
+                  placeholder="Masukkan password lama"
+                />
+
+                {passwordErrors.passwordLama && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {passwordErrors.passwordLama}
+                  </p>
+                )}
               </div>
 
               <div>
-                <h4 className="text-base font-extrabold text-gray-900 mb-4">Ubah Kata Sandi <span className="text-xs font-medium text-gray-400 normal-case">(Opsional)</span></h4>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Kata Sandi Lama</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><Lock className="h-4 w-4 text-gray-400" /></div>
-                      <input type="password" name="passwordLama" placeholder="••••••••" value={formData.passwordLama} onChange={handleInputChange} className={`w-full pl-11 pr-4 py-3 bg-gray-50 text-sm rounded-xl outline-none font-semibold transition-all border ${errors.passwordLama ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:ring-[#10B981]'}`}/>
-                    </div>
-                    {errors.passwordLama && <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">{errors.passwordLama}</p>}
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Kata Sandi Baru</label>
-                      <input type="password" name="passwordBaru" placeholder="••••••••" value={formData.passwordBaru} onChange={handleInputChange} className={`w-full px-4 py-3 bg-gray-50 text-sm rounded-xl outline-none font-semibold transition-all border ${errors.passwordBaru ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:ring-[#10B981]'}`}/>
-                      {errors.passwordBaru && <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">{errors.passwordBaru}</p>}
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Konfirmasi Sandi Baru</label>
-                      <input type="password" name="konfirmasiPassword" placeholder="••••••••" value={formData.konfirmasiPassword} onChange={handleInputChange} className={`w-full px-4 py-3 bg-gray-50 text-sm rounded-xl outline-none font-semibold transition-all border ${errors.konfirmasiPassword ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:ring-[#10B981]'}`}/>
-                      {errors.konfirmasiPassword && <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">{errors.konfirmasiPassword}</p>}
-                    </div>
-                  </div>
-                </div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  Password Baru
+                </label>
+
+                <input
+                  type="password"
+                  name="passwordBaru"
+                  value={passwordData.passwordBaru}
+                  onChange={handlePasswordChange}
+                  className={`w-full px-4 py-3 bg-gray-50 text-sm rounded-xl outline-none font-semibold transition-all border ${
+                    passwordErrors.passwordBaru
+                      ? "border-red-500"
+                      : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"
+                  }`}
+                  placeholder="Masukkan password baru"
+                />
+
+                {passwordErrors.passwordBaru && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {passwordErrors.passwordBaru}
+                  </p>
+                )}
               </div>
 
-              {/* ─── Tombol CTA dengan Pewarnaan Sesuai Revisi (Poin 4) ─── */}
-              <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
-                {/* Tombol Batal: Abu-abu netral */}
-                <button type="button" className="px-6 py-3 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">
+              {/* Footer */}
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+                >
                   Batal
                 </button>
-                {/* Tombol Simpan: Hijau solid dan mencolok */}
-                <button type="submit" className="px-6 py-3 rounded-xl text-sm font-bold text-white bg-[#10B981] hover:bg-[#059669] shadow-md shadow-emerald-900/10 transition-colors">
-                  Simpan Perubahan
+
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#10B981] hover:bg-[#059669] shadow-sm transition-colors"
+                >
+                  Simpan Password
                 </button>
               </div>
-
             </form>
           </div>
         </div>
-
-      </div>
-    </div>
+      )}
     </PageTransition>
   );
 }

@@ -94,8 +94,6 @@ export default function PengaturanKoordinator() {
         user?.id,
         payload,
       );
-      console.log("UPDATE PROFILE:", res);
-
       setIsSuccess(true);
 
       Swal.fire({
@@ -178,7 +176,6 @@ export default function PengaturanKoordinator() {
     if (Object.keys(errors).length > 0) return;
 
     try {
-      console.log("Ganti password:", passwordData);
 
       const data = {
         oldPassword: passwordData.passwordLama,

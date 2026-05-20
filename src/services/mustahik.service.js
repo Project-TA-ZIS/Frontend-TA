@@ -1,12 +1,12 @@
-import api from './api';
+﻿import api from "./api";
 
 export async function getAllMustahik() {
-  const res = await api.get('/mustahik/get/getAllMustahik');
+  const res = await api.get("/mustahik/get/getAllMustahik");
   return res.data;
 }
 
 export async function createMustahik(payload) {
-  const res = await api.post('/mustahik/post/createMustahik', payload);
+  const res = await api.post("/mustahik/post/createMustahik", payload);
   return res.data;
 }
 
@@ -19,3 +19,12 @@ export async function deleteMustahik(id) {
   const res = await api.delete(`/mustahik/delete/deleteMustahik/${id}`);
   return res.data;
 }
+
+const mustahikService = {
+  getAllMustahik,
+  createMustahik,
+  updateMustahik,
+  deleteMustahik
+};
+
+export default mustahikService;

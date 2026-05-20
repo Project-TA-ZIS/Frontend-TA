@@ -13,6 +13,7 @@ export default function Login() {
 
   const navigate = useNavigate();
   const setLogin = useAuthStore((s) => s.setLogin);
+  const setLogout = useAuthStore((s) => s.setLogout);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -27,12 +28,18 @@ export default function Login() {
         return;
       }
 
+      // Simpan token dulu supaya interceptor axios bisa mengirim Authorization saat memanggil /me.
+      setLogin(null, token);
+
       let userData = null;
       try {
         const me = await getMe();
         userData = me?.user || null;
       } catch {
-        // Jika /me gagal, tetap lanjut dengan token saja.
+        // Kalau /me gagal, jangan lanjut navigate karena role belum diketahui dan route guard akan me-redirect.
+        setLogout();
+        setErrorMsg('Gagal mengambil profil pengguna. Silakan coba login ulang.');
+        return;
       }
 
       setLogin(userData, token);

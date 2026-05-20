@@ -10,7 +10,9 @@ async function getTotalZIS() {
   return res.data;
 }
 
-export default {
+const totalZISService = {
   getTotalZISbyKategori,
   getTotalZIS,
 };
+
+export default totalZISService;

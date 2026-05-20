@@ -23,8 +23,10 @@ export async function getTotalKas() {
   return res.data;
 }
 
-export default {
+const pemasukanDasawismaService = {
   getAllPemasukanKas,
   createPemasukanKas,
   getTotalKas,
-};
+}
+
+export default pemasukanDasawismaService;
