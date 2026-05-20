@@ -464,8 +464,34 @@ export default function KelolaZis() {
           </div>
         </div>
 
+        {/* ─── Bottom Summary Cards (Kategori Breakdown) ─── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {totalZIS.map((item) => (
+            <div
+              key={item.id}
+              className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"
+            >
+              <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                {item.kategori}
+              </p>
+
+              <h3 className="text-2xl font-extrabold text-gray-900">
+                {item.kategori.toLowerCase() === "zakat fitrah beras"
+                  ? `${Number(item.jumlah_keseluruhan)} Kg`
+                  : formatRupiah(Number(item.jumlah_keseluruhan))}
+              </h3>
+
+              {item.updated_at && (
+                <p className="text-xs text-gray-400 mt-2">
+                  Update terakhir: {formattedDate(item.updated_at)}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+
         {/* ─── Filter & Action Bar ─── */}
-        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6">
+        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6 mt-5">
           <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
             <select
               className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-[#10B981] px-4 py-2.5 font-semibold shadow-sm flex-1 md:flex-none cursor-pointer"
@@ -662,31 +688,6 @@ export default function KelolaZis() {
               Berikutnya
             </button>
           </div>
-        </div>
-
-        {/* ─── Bottom Summary Cards (Rincian Kategori) ─── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[
-            { title: "ZAKAT MAAL", amount: calcTotalKategori("Zakat Maal") },
-            {
-              title: "ZAKAT FITRAH",
-              amount: calcTotalKategori("Zakat Fitrah"),
-            },
-            { title: "INFAQ", amount: calcTotalKategori("Infaq") },
-            { title: "SEDEKAH", amount: calcTotalKategori("Sedekah") },
-          ].map((item, idx) => (
-            <div
-              key={idx}
-              className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-center text-center"
-            >
-              <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">
-                {item.title}
-              </p>
-              <h3 className="text-2xl font-extrabold text-gray-900">
-                {formatRupiah(item.amount)}
-              </h3>
-            </div>
-          ))}
         </div>
 
         {/* ─── MODAL POP-UP CATAT ZIS ─── */}

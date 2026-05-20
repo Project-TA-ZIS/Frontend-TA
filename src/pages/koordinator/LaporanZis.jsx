@@ -266,8 +266,34 @@ export default function LaporanZIS() {
           </div>
         </div>
 
+        {/* ─── Bottom Summary Cards (Kategori Breakdown) ─── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {totalZIS.map((item) => (
+            <div
+              key={item.id}
+              className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"
+            >
+              <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                {item.kategori}
+              </p>
+
+              <h3 className="text-2xl font-extrabold text-gray-900">
+                {item.kategori.toLowerCase() === "zakat fitrah beras"
+                  ? `${Number(item.jumlah_keseluruhan)} Kg`
+                  : formatRupiah(Number(item.jumlah_keseluruhan))}
+              </h3>
+
+              {item.updated_at && (
+                <p className="text-xs text-gray-400 mt-2">
+                  Update terakhir: {formattedDate(item.updated_at)}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+
         {/* ─── Filter & Action Bar ─── */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 mt-5">
           {/* Dropdown Filters */}
           <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
             <select
@@ -463,32 +489,6 @@ export default function LaporanZIS() {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* ─── Bottom Summary Cards (Kategori Breakdown) ─── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {totalZIS.map((item) => (
-            <div
-              key={item.id}
-              className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"
-            >
-              <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">
-                {item.kategori}
-              </p>
-
-              <h3 className="text-2xl font-extrabold text-gray-900">
-                {item.kategori.toLowerCase() === "zakat fitrah beras"
-                  ? `${Number(item.jumlah_keseluruhan)} Kg`
-                  : formatRupiah(Number(item.jumlah_keseluruhan))}
-              </h3>
-
-              {item.updated_at && (
-                <p className="text-xs text-gray-400 mt-2">
-                  Update terakhir: {formattedDate(item.updated_at)}
-                </p>
-              )}
-            </div>
-          ))}
         </div>
       </div>
     </PageTransition>
