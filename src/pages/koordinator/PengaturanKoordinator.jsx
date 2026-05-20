@@ -58,6 +58,15 @@ export default function PengaturanKoordinator() {
     if (!formData.nik.trim()) {
       newErrors.nik = "NIK wajib diisi!";
     }
+    if (!formData.tanggal_lahir.trim()) {
+      newErrors.tanggal_lahir = "Tanggal lahir wajib diisi!";
+    }
+    if (!formData.tempat_lahir.trim()) {
+      newErrors.tempat_lahir = "Tempat lahir wajib diisi!";
+    }
+    if (!formData.alamat.trim()) {
+      newErrors.alamat = "Alamat wajib diisi!";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;

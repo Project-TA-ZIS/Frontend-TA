@@ -4,27 +4,6 @@ import PageTransition from "../../components/PageTransition";
 import dasawismaService from "../../services/dasawisma.service";
 import Swal from "sweetalert2";
 
-const roleUiToApi = (roleUi) => {
-  if (roleUi === "Koordinator") return "koordinator dasawisma";
-  if (roleUi === "Anggota Dasawisma") return "anggota dasawisma";
-  return null;
-};
-
-const roleApiToUi = (roleApi) => {
-  if (roleApi === "koordinator dasawisma") return "Koordinator";
-  if (roleApi === "anggota dasawisma") return "Anggota Dasawisma";
-  if (roleApi === "amil zakat") return "Amil Zakat";
-  return roleApi || "-";
-};
-
-const mapApiToRow = (item) => ({
-  id: String(item?.id ?? ""),
-  nama: item?.nama_lengkap ?? "",
-  role: roleApiToUi(item?.roles),
-  email: item?.email ?? "",
-  telp: item?.nomor_telpon ?? "",
-});
-
 export default function AnggotaDasawisma() {
   // ─── States ───
   const [anggotaList, setAnggotaList] = useState([]);
@@ -33,6 +12,7 @@ export default function AnggotaDasawisma() {
   const [errorMsg, setErrorMsg] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+  const [errors, setErrors] = useState({});
 
   // State untuk Modal Pop-up
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -48,6 +28,65 @@ export default function AnggotaDasawisma() {
     telp: "",
     password: "",
   });
+
+  const roleUiToApi = (roleUi) => {
+    if (roleUi === "Koordinator") return "koordinator dasawisma";
+    if (roleUi === "Anggota Dasawisma") return "anggota dasawisma";
+    return null;
+  };
+
+  const roleApiToUi = (roleApi) => {
+    if (roleApi === "koordinator dasawisma") return "Koordinator";
+    if (roleApi === "anggota dasawisma") return "Anggota Dasawisma";
+    if (roleApi === "amil zakat") return "Amil Zakat";
+    return roleApi || "-";
+  };
+
+  const mapApiToRow = (item) => ({
+    id: String(item?.id ?? ""),
+    nama: item?.nama_lengkap ?? "",
+    role: roleApiToUi(item?.roles),
+    email: item?.email ?? "",
+    telp: item?.nomor_telpon ?? "",
+  });
+
+  const validateForm = () => {
+    let newErrors = {};
+
+    if (!(formData.nama || "").trim()) {
+      newErrors.nama = "Nama lengkap wajib diisi!";
+    }
+
+    if (!(formData.email || "").trim()) {
+      newErrors.email = "Alamat email wajib diisi!";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Format email tidak valid!";
+    }
+
+    if (!editingId) {
+      if (!(formData.password || "").trim()) {
+        newErrors.password = "Password wajib diisi!";
+      } else if (formData.password.length < 6) {
+        newErrors.password = "Password minimal 6 karakter!";
+      }
+    }
+
+    if (!(formData.telp || "").trim()) {
+      newErrors.telp = "Nomor telepon wajib diisi!";
+    } else if (!/^[0-9]+$/.test(formData.telp)) {
+      newErrors.telp = "Nomor telepon hanya boleh angka!";
+    } else if (formData.telp.length < 10) {
+      newErrors.telp = "Nomor telepon tidak valid!";
+    }
+
+    if (!formData.role) {
+      newErrors.role = "Role wajib dipilih!";
+    }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  };
 
   const loadData = async () => {
     setIsLoading(true);
@@ -95,7 +134,16 @@ export default function AnggotaDasawisma() {
   // ─── Handlers ───
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
   };
 
   // Handler saat tombol "+ Dasawisma" diklik (Mode Tambah)
@@ -162,7 +210,9 @@ export default function AnggotaDasawisma() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
     setErrorMsg("");
+
     try {
       const roleApi = roleUiToApi(formData.role);
       if (!roleApi) {
@@ -438,6 +488,11 @@ export default function AnggotaDasawisma() {
                       className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] focus:border-transparent block px-4 py-3 font-semibold outline-none transition-all"
                       placeholder="email@contoh.com"
                     />
+                    {errors.email && (
+                      <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                        {errors.email}
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -455,6 +510,11 @@ export default function AnggotaDasawisma() {
                       className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] focus:border-transparent block px-4 py-3 font-semibold outline-none transition-all"
                       placeholder="Masukkan password..."
                     />
+                    {errors.password && (
+                      <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                        {errors.password}
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -471,6 +531,11 @@ export default function AnggotaDasawisma() {
                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] focus:border-transparent block px-4 py-3 font-semibold outline-none transition-all"
                     placeholder="Masukkan nama..."
                   />
+                  {errors.nama && (
+                    <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                      {errors.nama}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -487,21 +552,6 @@ export default function AnggotaDasawisma() {
                     <option value="Koordinator">Koordinator</option>
                   </select>
                 </div>
-
-                {/* <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    Nomor Telepon
-                  </label>
-                  <input
-                    type="text"
-                    name="telp"
-                    required
-                    value={formData.telp}
-                    onChange={handleInputChange}
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] focus:border-transparent block px-4 py-3 font-semibold outline-none transition-all"
-                    placeholder="08xxxxxxxxxx"
-                  />
-                </div> */}
 
                 {/* Action Buttons */}
                 <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 mt-6">

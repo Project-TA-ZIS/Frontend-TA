@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import PageTransition from "../../components/PageTransition";
+import Footer from "../../components/layout/Footer";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -115,15 +116,14 @@ export default function Home() {
                 Sistem kami tidak hanya mengelola data warga, tetapi juga
                 mengintegrasikan pencatatan penerimaan dan penyaluran ZIS secara
                 transparan. Hal ini memastikan setiap dana yang dititipkan oleh
-                Muzzaki dapat dipantau dan disalurkan dengan tepat sasaran kepada
-                para Mustahik di lingkungan sekitar.
+                Muzzaki dapat dipantau dan disalurkan dengan tepat sasaran
+                kepada para Mustahik di lingkungan sekitar.
               </p>
             </div>
           </div>
         </main>
-
-       
       </div>
+      <Footer />
     </PageTransition>
   );
 }

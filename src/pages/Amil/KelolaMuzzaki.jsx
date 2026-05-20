@@ -9,53 +9,13 @@ import {
 } from "../../services/muzakki.service";
 import Swal from "sweetalert2";
 
-const toGenderLabel = (value) => {
-  if (value === "laki-laki") return "Laki-laki";
-  if (value === "perempuan") return "Perempuan";
-  return value ?? "-";
-};
-
-const toDateOnly = (value) => {
-  if (!value) return "";
-  const raw = String(value);
-  // jika ISO string, ambil yyyy-mm-dd
-  if (raw.includes("T")) return raw.slice(0, 10);
-  return raw;
-};
-
-const mapApiToRow = (item) => ({
-  id: String(item?.id ?? ""),
-  nama: item?.nama_lengkap ?? "-",
-  email: item?.email ?? "-",
-  telp: item?.nomor_telpon ?? "-",
-  alamat: item?.alamat ?? "",
-  npwp: item?.npwp ?? "",
-  nik: item?.nik ?? "",
-  tempatLahir: item?.tempat_lahir ?? "",
-  tanggalLahir: toDateOnly(item?.tanggal_lahir),
-  jenisKelamin: item?.jenis_kelamin ?? "laki-laki",
-  pekerjaan: item?.pekerjaan ?? "",
-});
-
-const mapFormToApi = (form) => ({
-  nama_lengkap: form.nama,
-  email: form.email,
-  nomor_telpon: form.telp,
-  alamat: form.alamat,
-  npwp: form.npwp,
-  nik: form.nik,
-  tempat_lahir: form.tempatLahir,
-  tanggal_lahir: form.tanggalLahir,
-  jenis_kelamin: form.jenisKelamin,
-  pekerjaan: form.pekerjaan,
-});
-
 export default function KelolaMuzzaki() {
   // ─── States ───
   const [muzzakiList, setMuzzakiList] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [errors, setErrors] = useState({});
 
   // State untuk Modal Pop-up
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -73,6 +33,47 @@ export default function KelolaMuzzaki() {
     tanggalLahir: "",
     jenisKelamin: "laki-laki",
     pekerjaan: "",
+  });
+
+  const toGenderLabel = (value) => {
+    if (value === "laki-laki") return "Laki-laki";
+    if (value === "perempuan") return "Perempuan";
+    return value ?? "-";
+  };
+
+  const toDateOnly = (value) => {
+    if (!value) return "";
+    const raw = String(value);
+    // jika ISO string, ambil yyyy-mm-dd
+    if (raw.includes("T")) return raw.slice(0, 10);
+    return raw;
+  };
+
+  const mapApiToRow = (item) => ({
+    id: String(item?.id ?? ""),
+    nama: item?.nama_lengkap ?? "-",
+    email: item?.email ?? "-",
+    telp: item?.nomor_telpon ?? "-",
+    alamat: item?.alamat ?? "",
+    npwp: item?.npwp ?? "",
+    nik: item?.nik ?? "",
+    tempatLahir: item?.tempat_lahir ?? "",
+    tanggalLahir: toDateOnly(item?.tanggal_lahir),
+    jenisKelamin: item?.jenis_kelamin ?? "laki-laki",
+    pekerjaan: item?.pekerjaan ?? "",
+  });
+
+  const mapFormToApi = (form) => ({
+    nama_lengkap: form.nama,
+    email: form.email,
+    nomor_telpon: form.telp,
+    alamat: form.alamat,
+    npwp: form.npwp,
+    nik: form.nik,
+    tempat_lahir: form.tempatLahir,
+    tanggal_lahir: form.tanggalLahir,
+    jenis_kelamin: form.jenisKelamin,
+    pekerjaan: form.pekerjaan,
   });
 
   const loadData = async () => {
@@ -183,8 +184,77 @@ export default function KelolaMuzzaki() {
     }
   };
 
+  const validateForm = () => {
+    let newErrors = {};
+
+    if (!(formData.nama || "").trim()) {
+      newErrors.nama = "Nama lengkap wajib diisi!";
+    }
+
+    if (!(formData.email || "").trim()) {
+      newErrors.email = "Alamat email wajib diisi!";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Format email tidak valid!";
+    }
+
+    if (!editingId) {
+      if (!(formData.password || "").trim()) {
+        newErrors.password = "Password wajib diisi!";
+      } else if (formData.password.length < 6) {
+        newErrors.password = "Password minimal 6 karakter!";
+      }
+    }
+
+    if (!(formData.telp || "").trim()) {
+      newErrors.telp = "Nomor telepon wajib diisi!";
+    } else if (!/^[0-9]+$/.test(formData.telp)) {
+      newErrors.telp = "Nomor telepon hanya boleh angka!";
+    } else if (formData.telp.length < 10) {
+      newErrors.telp = "Nomor telepon tidak valid!";
+    }
+
+    if (!formData.jenisKelamin) {
+      newErrors.jenisKelamin = "Jenis kelamin wajib dipilih!";
+    }
+
+    if (!(formData.alamat || "").trim()) {
+      newErrors.alamat = "Alamat wajib diisi!";
+    }
+
+    if (!(formData.npwp || "").trim()) {
+      newErrors.npwp = "NPWP wajib diisi!";
+    }
+
+    if (!(formData.nik || "").trim()) {
+      newErrors.nik = "NIK wajib diisi!";
+    } else if (!/^[0-9]+$/.test(formData.nik)) {
+      newErrors.nik = "NIK hanya boleh angka!";
+    } else if (formData.nik.length !== 16) {
+      newErrors.nik = "NIK harus 16 digit!";
+    }
+
+    if (!(formData.tempatLahir || "").trim()) {
+      newErrors.tempatLahir = "Tempat lahir wajib diisi!";
+    }
+
+    if (!formData.tanggalLahir) {
+      newErrors.tanggalLahir = "Tanggal lahir wajib diisi!";
+    } else if (isNaN(Date.parse(formData.tanggalLahir))) {
+      newErrors.tanggalLahir = "Tanggal lahir tidak valid!";
+    }
+
+    if (!(formData.pekerjaan || "").trim()) {
+      newErrors.pekerjaan = "Pekerjaan wajib diisi!";
+    }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
     setErrorMsg("");
 
     try {
@@ -289,12 +359,6 @@ export default function KelolaMuzzaki() {
             Beberapa Muzzaki yang sudah Terdaftar
           </p>
         </div>
-
-        {/* {errorMsg && (
-          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl">
-            <p className="text-sm font-bold text-red-700">{errorMsg}</p>
-          </div>
-        )} */}
 
         {/* ─── Tombol Tambah ─── */}
         <div className="mb-8">
@@ -445,20 +509,6 @@ export default function KelolaMuzzaki() {
                 className="flex-1 overflow-hidden flex flex-col"
               >
                 <div className="p-6 overflow-y-auto space-y-6">
-                  {/* {editingId && (
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                        ID Muzzaki
-                      </label>
-                      <input
-                        type="text"
-                        value={editingId}
-                        disabled
-                        className="w-full bg-gray-100 border border-gray-200 text-gray-500 text-sm rounded-xl block px-4 py-3 font-semibold cursor-not-allowed"
-                      />
-                    </div>
-                  )} */}
-
                   <div className="border-b border-gray-100 pb-6">
                     <h4 className="text-base font-extrabold text-gray-900 mb-4">
                       Informasi Dasar
@@ -477,6 +527,11 @@ export default function KelolaMuzzaki() {
                           className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
                           placeholder="Masukkan nama..."
                         />
+                        {errors.nama && (
+                          <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                            {errors.nama}
+                          </p>
+                        )}
                       </div>
 
                       <div>
@@ -492,6 +547,11 @@ export default function KelolaMuzzaki() {
                           <option value="laki-laki">Laki-laki</option>
                           <option value="perempuan">Perempuan</option>
                         </select>
+                        {errors.jenisKelamin && (
+                          <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                            {errors.jenisKelamin}
+                          </p>
+                        )}
                       </div>
 
                       <div>
@@ -507,6 +567,11 @@ export default function KelolaMuzzaki() {
                           className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
                           placeholder="08xxxxxxxxxx"
                         />
+                        {errors.telp && (
+                          <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                            {errors.telp}
+                          </p>
+                        )}
                       </div>
 
                       <div>
@@ -522,6 +587,11 @@ export default function KelolaMuzzaki() {
                           className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
                           placeholder="email@contoh.com"
                         />
+                        {errors.email && (
+                          <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                            {errors.email}
+                          </p>
+                        )}
                       </div>
 
                       <div className="md:col-span-2">
@@ -536,6 +606,11 @@ export default function KelolaMuzzaki() {
                           className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
                           placeholder="Bandung, Jawa Barat"
                         />
+                        {errors.alamat && (
+                          <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                            {errors.alamat}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -557,6 +632,11 @@ export default function KelolaMuzzaki() {
                           className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
                           placeholder="3201123456789001"
                         />
+                        {errors.nik && (
+                          <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                            {errors.nik}
+                          </p>
+                        )}
                       </div>
 
                       <div>
@@ -571,6 +651,11 @@ export default function KelolaMuzzaki() {
                           className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
                           placeholder="15.555.678.9-015.000"
                         />
+                        {errors.npwp && (
+                          <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                            {errors.npwp}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -592,6 +677,11 @@ export default function KelolaMuzzaki() {
                           className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
                           placeholder="Bandung"
                         />
+                        {errors.tempatLahir && (
+                          <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                            {errors.tempatLahir}
+                          </p>
+                        )}
                       </div>
 
                       <div>
@@ -605,6 +695,11 @@ export default function KelolaMuzzaki() {
                           onChange={handleInputChange}
                           className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
                         />
+                        {errors.tanggalLahir && (
+                          <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                            {errors.tanggalLahir}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -626,6 +721,11 @@ export default function KelolaMuzzaki() {
                           className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
                           placeholder="Karyawan Swasta"
                         />
+                        {errors.pekerjaan && (
+                          <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                            {errors.pekerjaan}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>

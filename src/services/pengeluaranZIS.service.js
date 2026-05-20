@@ -1,7 +1,8 @@
 import api from "./api";
+import { apiPublic } from "./apiPublic";
 
 async function getAllPengeluaranZIS() {
-  const res = await api.get("/pengeluaranZIS/get/getAllPengeluaranZIS");
+  const res = await apiPublic.get("/pengeluaranZIS/get/getAllPengeluaranZIS");
   return res.data;
 }
 

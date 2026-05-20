@@ -1,12 +1,12 @@
-import api from "./api";
+import { apiPublic } from "./apiPublic";
 
 async function getTotalZISbyKategori() {
-  const res = await api.get("/totalZIS/get/getTotalZISByKategori");
+  const res = await apiPublic.get("/totalZIS/get/getTotalZISByKategori");
   return res.data;
 }
 
 async function getTotalZIS() {
-  const res = await api.get("/totalZIS/get/getTotalAllPemasukanZIS");
+  const res = await apiPublic.get("/totalZIS/get/getTotalAllPemasukanZIS");
   return res.data;
 }
 

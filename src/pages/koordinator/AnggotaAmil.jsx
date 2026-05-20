@@ -31,6 +31,8 @@ export default function AnggotaAmil() {
     alamat: "",
     password: "",
   });
+  const [errors, setErrors] = useState({});
+  const [errorMsg, setErrorMsg] = useState("");
 
   const loadAmilData = async () => {
     try {
@@ -129,8 +131,48 @@ export default function AnggotaAmil() {
     setIsModalOpen(true);
   };
 
+  const validateForm = () => {
+    let newErrors = {};
+
+    if (!formData.nama.trim()) {
+      newErrors.nama = "Nama lengkap wajib diisi!";
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Alamat email wajib diisi!";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Format email tidak valid!";
+    }
+
+    if (!editingId) {
+      if (!formData.password.trim()) {
+        newErrors.password = "Password wajib diisi!";
+      } else if (formData.password.length < 6) {
+        newErrors.password = "Password minimal 6 karakter!";
+      }
+    }
+
+    if (!formData.telp.trim()) {
+      newErrors.telp = "Nomor telepon wajib diisi!";
+    } else if (!/^[0-9]+$/.test(formData.telp)) {
+      newErrors.telp = "Nomor telepon hanya boleh angka!";
+    } else if (formData.telp.length < 10) {
+      newErrors.telp = "Nomor telepon tidak valid!";
+    }
+
+    if (!formData.role) {
+      newErrors.role = "Role wajib dipilih!";
+    }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
+    setErrorMsg("");
 
     try {
       if (editingId) {
@@ -380,6 +422,12 @@ export default function AnggotaAmil() {
                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] focus:border-transparent block px-4 py-3 font-semibold outline-none transition-all"
                     placeholder="Masukkan nama amil..."
                   />
+
+                  {errors.nama && (
+                    <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                      {errors.nama}
+                    </p>
+                  )}
                 </div>
 
                 {/* Input Role dihapus di halaman ini */}
@@ -397,6 +445,11 @@ export default function AnggotaAmil() {
                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] focus:border-transparent block px-4 py-3 font-semibold outline-none transition-all"
                     placeholder="email@contoh.com"
                   />
+                  {errors.email && (
+                    <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                      {errors.email}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -412,6 +465,11 @@ export default function AnggotaAmil() {
                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] focus:border-transparent block px-4 py-3 font-semibold outline-none transition-all"
                     placeholder="08xxxxxxxxxx"
                   />
+                  {errors.telp && (
+                    <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                      {errors.telp}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -427,6 +485,11 @@ export default function AnggotaAmil() {
                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] focus:border-transparent block px-4 py-3 font-semibold outline-none transition-all"
                     placeholder="Alamat lengkap..."
                   />
+                  {errors.alamat && (
+                    <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                      {errors.alamat}
+                    </p>
+                  )}
                 </div>
                 {!editingId && (
                   <div>
@@ -443,6 +506,11 @@ export default function AnggotaAmil() {
                       className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] focus:border-transparent block px-4 py-3 font-semibold outline-none transition-all"
                       placeholder="Masukkan password..."
                     />
+                    {errors.password && (
+                      <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                        {errors.password}
+                      </p>
+                    )}
                   </div>
                 )}
 
