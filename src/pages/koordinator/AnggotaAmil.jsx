@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Plus, Search, Edit, Trash2, X } from "lucide-react";
+import { Plus, Search, Edit, Trash2, X, Info } from "lucide-react";
 import PageTransition from "../../components/PageTransition";
 import amilService from "../../services/amil.service";
 import Swal from "sweetalert2";
+import { formattedDate } from "../../utils/formattedDate";
+
 
 const mapApiAmilToRowData = (amil) => ({
   id: amil.id || "",
@@ -33,6 +35,9 @@ export default function AnggotaAmil() {
   });
   const [errors, setErrors] = useState({});
   const [errorMsg, setErrorMsg] = useState("");
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const loadAmilData = async () => {
     try {
@@ -134,25 +139,25 @@ export default function AnggotaAmil() {
   const validateForm = () => {
     let newErrors = {};
 
-    if (!(formData.nama).trim()) {
+    if (!formData.nama.trim()) {
       newErrors.nama = "Nama lengkap wajib diisi!";
     }
 
-    if (!(formData.email).trim()) {
+    if (!formData.email.trim()) {
       newErrors.email = "Alamat email wajib diisi!";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Format email tidak valid!";
     }
 
     if (!editingId) {
-      if (!(formData.password).trim()) {
+      if (!formData.password.trim()) {
         newErrors.password = "Password wajib diisi!";
       } else if (formData.password.length < 6) {
         newErrors.password = "Password minimal 6 karakter!";
       }
     }
 
-    if (!(formData.telp).trim()) {
+    if (!formData.telp.trim()) {
       newErrors.telp = "Nomor telepon wajib diisi!";
     } else if (!/^[0-9]+$/.test(formData.telp)) {
       newErrors.telp = "Nomor telepon hanya boleh angka!";
@@ -257,6 +262,27 @@ export default function AnggotaAmil() {
     }
   };
 
+  const handleInfoClick = async (id) => {
+    try {
+      setIsLoadingDetail(true);
+      
+      const res = await amilService.getAmilById(id);
+
+      setSelectedUser(res.data);
+
+      setIsInfoModalOpen(true);
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Gagal",
+        text: error?.response?.data?.message || "Gagal mengambil detail amil",
+        confirmButtonColor: "#EF4444",
+      });
+    } finally {
+      setIsLoadingDetail(false);
+    }
+  };
+
   return (
     <PageTransition>
       <div
@@ -293,7 +319,7 @@ export default function AnggotaAmil() {
           </div>
           <input
             type="text"
-            placeholder="Cari data warga atau transaksi..."
+            placeholder="Cari data amil berdasarkan nama..."
             className="bg-gray-200/60 border-none text-gray-700 text-sm rounded-lg focus:ring-2 focus:ring-[#10B981] block w-full pl-11 pr-5 py-3.5 font-medium outline-none transition-all placeholder-gray-400"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -307,7 +333,7 @@ export default function AnggotaAmil() {
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/80">
                   <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center w-20">
-                    ID
+                    No
                   </th>
                   <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
                     NAMA
@@ -350,6 +376,13 @@ export default function AnggotaAmil() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <div className="flex items-center justify-center gap-3">
+                          <button
+                            onClick={() => handleInfoClick(item.id)}
+                            className="text-blue-500 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 p-2 rounded-lg transition-colors shadow-sm"
+                            title="Info"
+                          >
+                            <Info size={18} />
+                          </button>
                           {/* Tombol Edit: Hijau Solid Standby */}
                           <button
                             onClick={() => handleEditClick(item)}
@@ -373,12 +406,22 @@ export default function AnggotaAmil() {
                   ))
                 ) : (
                   <tr>
-                    <td
-                      colSpan="5"
-                      className="px-6 py-8 text-center text-sm font-medium text-gray-500"
-                    >
-                      Data Amil tidak ditemukan
-                    </td>
+                    {searchQuery ? (
+                      <td
+                        colSpan="6"
+                        className="px-6 py-8 text-center text-sm font-medium text-gray-500"
+                      >
+                        Tidak ada data yang cocok dengan pencarian "
+                        {searchQuery}"
+                      </td>
+                    ) : (
+                      <td
+                        colSpan="6"
+                        className="px-6 py-8 text-center text-sm font-medium text-gray-500"
+                      >
+                        Belum ada data anggota amil. Klik tombol "Tambah Anggota Amil" untuk menambahkan data pertama Anda.
+                      </td>
+                    )}
                   </tr>
                 )}
               </tbody>
@@ -527,6 +570,110 @@ export default function AnggotaAmil() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* ─── MODAL DETAIL USER ─── */}
+        {isInfoModalOpen && selectedUser && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
+              {/* Header */}
+              <div className="bg-blue-600 px-6 py-4 flex items-center justify-between">
+                <h2 className="text-lg font-bold text-white">
+                  Detail kader dasawisma
+                </h2>
+
+                <button
+                  onClick={() => setIsInfoModalOpen(false)}
+                  className="text-blue-100 hover:text-white transition"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="md:col-span-2">
+                  <p className="text-xs font-bold text-gray-400 uppercase">
+                    Nama Lengkap
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 mt-1">
+                    {selectedUser.nama_lengkap}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs font-bold text-gray-400 uppercase">
+                    Role
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 mt-1 capitalize">
+                    {selectedUser.roles}
+                  </p>
+                </div>
+
+                <div className="md:col-span-2">
+                  <p className="text-xs font-bold text-gray-400 uppercase">
+                    Email
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 mt-1">
+                    {selectedUser.email}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs font-bold text-gray-400 uppercase">
+                    Nomor Telepon
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 mt-1">
+                    {selectedUser.nomor_telpon || "-"}
+                  </p>
+                </div>
+
+                <div className="md:col-span-2">
+                  <p className="text-xs font-bold text-gray-400 uppercase">
+                    Alamat
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 mt-1">
+                    {selectedUser.alamat || "-"}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs font-bold text-gray-400 uppercase">
+                    Created At
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 mt-1">
+                    {formattedDate(selectedUser.created_at)}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs font-bold text-gray-400 uppercase">
+                    Updated At
+                  </p>
+
+                  <p className="text-sm font-semibold text-gray-800 mt-1">
+                    {formattedDate(selectedUser.updated_at)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-gray-100 flex justify-end">
+                <button
+                  onClick={() => setIsInfoModalOpen(false)}
+                  className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 transition"
+                >
+                  Tutup
+                </button>
+              </div>
             </div>
           </div>
         )}

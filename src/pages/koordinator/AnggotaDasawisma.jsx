@@ -34,13 +34,15 @@ export default function AnggotaDasawisma() {
   });
 
   const roleUiToApi = (roleUi) => {
-    if (roleUi === "penanggung jawab dasawisma") return "penanggung jawab dasawisma";
+    if (roleUi === "penanggung jawab dasawisma")
+      return "penanggung jawab dasawisma";
     if (roleUi === "kader dasawisma") return "kader dasawisma";
     return null;
   };
 
   const roleApiToUi = (roleApi) => {
-    if (roleApi === "penanggung jawab dasawisma") return "penanggung jawab dasawisma";
+    if (roleApi === "penanggung jawab dasawisma")
+      return "penanggung jawab dasawisma";
     if (roleApi === "kader dasawisma") return "kader dasawisma";
     if (roleApi === "amil zakat") return "Amil Zakat";
     return roleApi || "-";
@@ -354,7 +356,7 @@ export default function AnggotaDasawisma() {
           </div>
           <input
             type="text"
-            placeholder="Cari data warga berdasarkan nama atau ID..."
+            placeholder="Cari data anggota dasawisma berdasarkan nama..."
             className="bg-gray-200/60 border-none text-gray-700 text-sm rounded-lg focus:ring-2 focus:ring-[#10B981] block w-full pl-11 pr-5 py-3.5 font-medium outline-none transition-all placeholder-gray-400"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -368,7 +370,7 @@ export default function AnggotaDasawisma() {
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/80">
                   <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center w-20">
-                    Nomor
+                    No
                   </th>
                   <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
                     NAMA
@@ -459,12 +461,22 @@ export default function AnggotaDasawisma() {
                   ))
                 ) : (
                   <tr>
-                    <td
-                      colSpan="6"
-                      className="px-6 py-8 text-center text-sm font-medium text-gray-500"
-                    >
-                      Tidak ada data yang cocok dengan pencarian "{searchQuery}"
-                    </td>
+                    {searchQuery ? (
+                      <td
+                        colSpan="6"
+                        className="px-6 py-8 text-center text-sm font-medium text-gray-500"
+                      >
+                        Tidak ada data yang cocok dengan pencarian "
+                        {searchQuery}"
+                      </td>
+                    ) : (
+                      <td
+                        colSpan="6"
+                        className="px-6 py-8 text-center text-sm font-medium text-gray-500"
+                      >
+                        Belum ada data anggota dasawisma. Klik tombol "Tambah Anggota Dasawisma" untuk menambahkan data pertama Anda.
+                      </td>
+                    )}
                   </tr>
                 )}
               </tbody>
@@ -599,7 +611,9 @@ export default function AnggotaDasawisma() {
                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] focus:border-transparent block px-4 py-3 font-semibold outline-none transition-all"
                   >
                     <option value="kader dasawisma">kader dasawisma</option>
-                    <option value="penanggung jawab dasawisma">penanggung jawab dasawisma</option>
+                    <option value="penanggung jawab dasawisma">
+                      penanggung jawab dasawisma
+                    </option>
                   </select>
                 </div>
 

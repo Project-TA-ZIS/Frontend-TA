@@ -173,7 +173,7 @@ export default function ManajemenZis() {
         const logoHeight = 25;
 
         doc.addImage(
-          LogoDasawismaPNG,
+          logoDasawisma,
           "PNG",
           pageWidth - logoWidth, // posisi kanan
           10,
@@ -209,14 +209,14 @@ export default function ManajemenZis() {
               "jumlah",
             ],
           ],
-          body: historyData.map((tx, index) => [
+          body: filteredData.map((tx, index) => [
             index + 1,
             formattedDate(tx.tanggal),
             tx.nama || "-",
             tx.kategori || "-",
             tx.deskripsi || "-",
             tx.tipe || "-",
-            formatRupiah(tx.nominal || 0),
+            formatRupiah(tx.jumlah),
           ]),
           styles: {
             fontSize: 9,
@@ -226,16 +226,36 @@ export default function ManajemenZis() {
           },
         });
 
-        const total = historyData.reduce(
-          (sum, item) => sum + Number(item.nominal || 0),
+        const totalPemasukan = filteredData
+          .filter((item) => item.tipe?.toLowerCase() === "pemasukan")
+          .reduce((sum, item) => sum + Number(item.jumlah || 0), 0);
+
+        const totalPengeluaran = filteredData
+          .filter((item) => item.tipe?.toLowerCase() === "pengeluaran")
+          .reduce((sum, item) => sum + Number(item.jumlah || 0), 0);
+
+        const total = filteredData.reduce(
+          (sum, item) => sum + Number(item.jumlah || 0),
           0,
+        );
+        const finalY = doc.lastAutoTable.finalY + 10;
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+
+        doc.text(
+          `Total Pemasukan: ${formatRupiah(totalPemasukan)}`,
+          14,
+          finalY,
         );
 
         doc.text(
-          `Total Transaksi: ${formatRupiah(total)}`,
+          `Total Pengeluaran: ${formatRupiah(totalPengeluaran)}`,
           14,
-          doc.lastAutoTable.finalY + 10,
+          finalY + 7,
         );
+
+        doc.text(`Total Transaksi: ${formatRupiah(total)}`, 14, finalY + 14);
 
         // Save
         doc.save(`riwayat-zis-${Date.now()}.pdf`);
@@ -474,9 +494,10 @@ export default function ManajemenZis() {
                     Data transaksi ZIS berdasarkan NIK {searchQuery}
                   </p>
                 </div>
-                <button 
-                onClick={handleDownloadPDF}
-                className="flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg text-xs transition-all hover:bg-gray-50 shadow-sm">
+                <button
+                  onClick={handleDownloadPDF}
+                  className="flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg text-xs transition-all hover:bg-gray-50 shadow-sm"
+                >
                   <Download size={14} /> Unduh Data
                 </button>
               </div>

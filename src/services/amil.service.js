@@ -5,6 +5,11 @@ async function getAllAmil() {
   return res.data;
 }
 
+async function getAmilById(id) {
+  const res = await api.get(`/amil/get/getAmil/${id}`);
+  return res.data;
+}
+
 async function createAmil(payload) {
   const res = await api.post("/amil/post/createAmil", payload);
   return res.data;
@@ -27,6 +32,7 @@ async function updateAmilPassword(payload) {
 
 const amilService = {
   getAllAmil,
+  getAmilById,
   createAmil,
   updateAmil,
   deleteAmil,
