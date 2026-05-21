@@ -204,6 +204,33 @@ export default function KelolaKas() {
     }
   };
 
+  const handleCloseModal = async () => {
+    const result = await Swal.fire({
+      title: "Tutup form?",
+      text: "Data yang belum disimpan akan hilang",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#10B981",
+      cancelButtonColor: "#6B7280",
+      confirmButtonText: "Ya, tutup",
+      cancelButtonText: "Batal",
+    });
+
+    if (result.isConfirmed) {
+      setIsModalOpen(false);
+      setEditingId(null);
+
+      setFormData({
+        tanggal: "",
+        deskripsi: "",
+        jenis: "MASUK",
+        nominal: "",
+        tipePemasukan: "IURAN",
+        anggota_dasawisma_id: "",
+      });
+    }
+  };
+
   const handleDownloadPDF = () => {
     Swal.fire({
       title: "Unduh Riwayat Kas",
@@ -506,7 +533,7 @@ export default function KelolaKas() {
                   Catat Transaksi Kas
                 </h2>
                 <button
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={handleCloseModal}
                   className="text-emerald-200 hover:text-white transition-colors"
                 >
                   <X size={20} />
@@ -630,7 +657,7 @@ export default function KelolaKas() {
                 <div className="flex justify-end gap-3 pt-4 border-t mt-6">
                   <button
                     type="button"
-                    onClick={() => setIsModalOpen(false)}
+                    onClick={handleCloseModal}
                     className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200"
                   >
                     Batal

@@ -17,33 +17,29 @@ export default function AnggotaDasawisma() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
-
-  // State untuk Modal Pop-up
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // State BARU: Untuk melacak ID mana yang sedang diedit (null = mode Tambah)
   const [editingId, setEditingId] = useState(null);
 
   // State untuk form input
   const [formData, setFormData] = useState({
     nama: "",
-    role: "kader dasawisma",
+    role: "Kader Dasawisma",
     email: "",
     telp: "",
     password: "",
   });
 
   const roleUiToApi = (roleUi) => {
-    if (roleUi === "penanggung jawab dasawisma")
+    if (roleUi === "Penanggung Jawab Dasawisma")
       return "penanggung jawab dasawisma";
-    if (roleUi === "kader dasawisma") return "kader dasawisma";
+    if (roleUi === "Kader Dasawisma") return "kader dasawisma";
     return null;
   };
 
   const roleApiToUi = (roleApi) => {
     if (roleApi === "penanggung jawab dasawisma")
-      return "penanggung jawab dasawisma";
-    if (roleApi === "kader dasawisma") return "kader dasawisma";
+      return "Penanggung Jawab Dasawisma";
+    if (roleApi === "kader dasawisma") return "Kader Dasawisma";
     if (roleApi === "amil zakat") return "Amil Zakat";
     return roleApi || "-";
   };
@@ -58,17 +54,13 @@ export default function AnggotaDasawisma() {
 
   const validateForm = () => {
     let newErrors = {};
-
-    if (!(formData.nama || "").trim()) {
+    if (!(formData.nama || "").trim())
       newErrors.nama = "Nama lengkap wajib diisi!";
-    }
-
     if (!(formData.email || "").trim()) {
       newErrors.email = "Alamat email wajib diisi!";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Format email tidak valid!";
     }
-
     if (!editingId) {
       if (!(formData.password || "").trim()) {
         newErrors.password = "Password wajib diisi!";
@@ -76,7 +68,6 @@ export default function AnggotaDasawisma() {
         newErrors.password = "Password minimal 6 karakter!";
       }
     }
-
     if (!(formData.telp || "").trim()) {
       newErrors.telp = "Nomor telepon wajib diisi!";
     } else if (!/^[0-9]+$/.test(formData.telp)) {
@@ -84,13 +75,8 @@ export default function AnggotaDasawisma() {
     } else if (formData.telp.length < 10) {
       newErrors.telp = "Nomor telepon tidak valid!";
     }
-
-    if (!formData.role) {
-      newErrors.role = "Role wajib dipilih!";
-    }
-
+    if (!formData.role) newErrors.role = "Role wajib dipilih!";
     setErrors(newErrors);
-
     return Object.keys(newErrors).length === 0;
   };
 
@@ -120,7 +106,6 @@ export default function AnggotaDasawisma() {
     loadData();
   }, []);
 
-  // ─── Filter Pencarian ───
   const filteredAnggota = useMemo(() => {
     const q = searchQuery.toLowerCase();
     return anggotaList.filter(
@@ -131,41 +116,30 @@ export default function AnggotaDasawisma() {
   }, [anggotaList, searchQuery]);
 
   const totalPages = Math.ceil(filteredAnggota.length / itemsPerPage);
-
   const paginatedAnggota = filteredAnggota.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage,
   );
 
-  // ─── Handlers ───
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    setErrors((prev) => ({
-      ...prev,
-      [name]: "",
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  // Handler saat tombol "+ Dasawisma" diklik (Mode Tambah)
   const handleTambahClick = () => {
-    setEditingId(null); // Pastikan tidak ada ID yang diedit
+    setEditingId(null);
+    setErrors({});
     setFormData({
       nama: "",
-      role: "kader dasawisma",
+      role: "Kader Dasawisma",
       email: "",
       telp: "",
       password: "",
-    }); // Kosongkan form
+    });
     setIsModalOpen(true);
   };
 
-  // Handler saat tombol "Hapus" di tabel diklik
   const handleDeleteClick = async (id) => {
     const result = await Swal.fire({
       title: "Hapus Data?",
@@ -181,7 +155,6 @@ export default function AnggotaDasawisma() {
       try {
         await dasawismaService.deleteAnggotaDasawisma(id);
         await loadData();
-
         Swal.fire({
           title: "Berhasil!",
           text: "Data Anggota berhasil dihapus.",
@@ -201,24 +174,23 @@ export default function AnggotaDasawisma() {
     }
   };
 
-  // Handler saat tombol "Edit" di tabel diklik (Mode Edit)
   const handleEditClick = (anggota) => {
-    setEditingId(anggota.id); // Simpan ID yang mau diedit
+    setEditingId(anggota.id);
+    setErrors({});
     setFormData({
       nama: anggota.nama,
       role: anggota.role,
       email: anggota.email,
-      telp: anggota.nomor_telpon,
+      telp: anggota.telp,
       password: "",
-    }); // Isi form dengan data lama
+    });
     setIsModalOpen(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // if (!validateForm()) return;
     setErrorMsg("");
-
+    if (!validateForm()) return;
     try {
       const roleApi = roleUiToApi(formData.role);
       if (!roleApi) {
@@ -233,22 +205,28 @@ export default function AnggotaDasawisma() {
       }
 
       if (editingId) {
+        await Swal.fire({
+          icon: "success",
+          title: "Berhasil",
+          text: "Data anggota berhasil diperbarui",
+          confirmButtonColor: "#10B981",
+        });
         await dasawismaService.updateAnggotaDasawisma(editingId, {
           nama_lengkap: formData.nama,
           email: formData.email,
           nomor_telpon: formData.telp,
           roles: roleApi,
         });
+
       } else {
         await dasawismaService.createAnggotaDasawisma({
           nama_lengkap: formData.nama,
           email: formData.email,
+          nomor_telpon: formData.telp,
+
           password: formData.password,
           roles: roleApi,
         });
-
-        await loadData();
-
         Swal.fire({
           icon: "success",
           title: "Berhasil",
@@ -261,14 +239,13 @@ export default function AnggotaDasawisma() {
       setEditingId(null);
       setFormData({
         nama: "",
-        role: "kader dasawisma",
+        role: "Kader Dasawisma",
         email: "",
         telp: "",
         password: "",
       });
       await loadData();
     } catch (err) {
-      console.error(err);
       Swal.fire({
         icon: "error",
         title: "Gagal",
@@ -278,7 +255,6 @@ export default function AnggotaDasawisma() {
           "Gagal menyimpan data anggota",
         confirmButtonColor: "#EF4444",
       });
-
       setErrorMsg(
         err?.response?.data?.message ||
           err?.message ||
@@ -287,19 +263,37 @@ export default function AnggotaDasawisma() {
     }
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingId(null);
+  const handleCloseModal = async () => {
+    const result = await Swal.fire({
+      title: "Tutup form?",
+      text: "Data yang belum disimpan akan hilang",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#10B981",
+      cancelButtonColor: "#6B7280",
+      confirmButtonText: "Ya, tutup",
+      cancelButtonText: "Batal",
+    });
+
+    if (result.isConfirmed) {
+      setIsModalOpen(false);
+      setEditingId(null);
+
+      setFormData({
+        nama: "",
+        role: "Kader Dasawisma",
+        email: "",
+        telp: "",
+        password: "",
+      });
+    }
   };
 
   const handleInfoClick = async (id) => {
     try {
       setIsLoadingDetail(true);
-
       const res = await dasawismaService.getAnggotaDasawismaById(id);
-
       setSelectedUser(res.data);
-
       setIsInfoModalOpen(true);
     } catch (error) {
       Swal.fire({
@@ -314,6 +308,14 @@ export default function AnggotaDasawisma() {
     }
   };
 
+  // ─── Kelas reusable untuk input & label (ukuran lebih besar & jelas) ───
+  const labelClass =
+    "block text-sm font-bold text-gray-500 uppercase tracking-wide mb-2";
+  const inputClass =
+    "w-full bg-gray-50 border border-gray-200 text-gray-900 text-base rounded-xl focus:ring-2 focus:ring-[#10B981] focus:bg-white focus:border-[#0F766E] block px-4 py-3.5 font-semibold outline-none transition-all";
+  const sectionTitleClass =
+    "text-lg font-extrabold text-gray-900 tracking-tight";
+
   return (
     <PageTransition>
       <div
@@ -324,28 +326,22 @@ export default function AnggotaDasawisma() {
 
         {/* ─── Header ─── */}
         <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#0F766E]">
-            kader dasawisma
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#0F766E] tracking-tight capitalize">
+            Kader Dasawisma
           </h1>
-          <p className="text-sm text-gray-600 mt-1 font-medium">
-            Beberapa kader dasawisma yang sudah Terdaftar
+          <p className="text-sm text-gray-500 mt-1 font-medium">
+            Beberapa kader dasawisma yang sudah terdaftar dalam sistem.
           </p>
         </div>
 
-        {errorMsg && (
-          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl">
-            <p className="text-sm font-bold text-red-700">{errorMsg}</p>
-          </div>
-        )}
-
         {/* ─── Tombol Tambah ─── */}
-        <div className="mb-8">
+        <div className="mb-6">
           <button
             onClick={handleTambahClick}
-            className="flex items-center justify-center gap-2 bg-[#10B981] hover:bg-[#059669] text-white font-bold py-2.5 px-5 rounded-lg transition-colors shadow-sm text-sm"
+            className="flex items-center justify-center gap-2 bg-[#10B981] hover:bg-[#059669] text-white font-bold py-2.5 px-5 rounded-xl transition-all shadow-sm text-xs active:scale-95"
           >
-            <Plus size={18} strokeWidth={3} />
-            Dasawisma
+            <Plus size={16} strokeWidth={3} />
+            Tambah Kader
           </button>
         </div>
 
@@ -356,8 +352,8 @@ export default function AnggotaDasawisma() {
           </div>
           <input
             type="text"
-            placeholder="Cari data anggota dasawisma berdasarkan nama..."
-            className="bg-gray-200/60 border-none text-gray-700 text-sm rounded-lg focus:ring-2 focus:ring-[#10B981] block w-full pl-11 pr-5 py-3.5 font-medium outline-none transition-all placeholder-gray-400"
+            placeholder="Cari data warga berdasarkan nama atau ID..."
+            className="bg-gray-100 border border-gray-200/60 text-gray-700 text-xs rounded-xl focus:ring-2 focus:ring-[#10B981] focus:bg-white focus:border-[#0F766E] block w-full pl-11 pr-5 py-3 font-medium outline-none transition-all placeholder-gray-400"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -368,24 +364,24 @@ export default function AnggotaDasawisma() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/80">
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center w-20">
-                    No
+                <tr className="border-b border-gray-100 bg-gray-50/50">
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center w-20">
+                    Nomor
                   </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    NAMA
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                    Nama Lengkap
                   </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    ROLE
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center">
+                    Role
                   </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    EMAIL
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                    Email
                   </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    NO.TELP
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center">
+                    No. Telp
                   </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center w-28">
-                    AKSI
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center w-36">
+                    Aksi
                   </th>
                 </tr>
               </thead>
@@ -394,7 +390,7 @@ export default function AnggotaDasawisma() {
                   <tr>
                     <td
                       colSpan="6"
-                      className="px-6 py-8 text-center text-sm font-medium text-gray-500"
+                      className="px-6 py-8 text-center text-xs font-bold text-gray-400"
                     >
                       Memuat data...
                     </td>
@@ -403,57 +399,55 @@ export default function AnggotaDasawisma() {
                   paginatedAnggota.map((item, index) => (
                     <tr
                       key={index}
-                      className="hover:bg-emerald-50/30 transition-colors"
+                      className="hover:bg-emerald-50/20 transition-colors"
                     >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#0F766E] text-center">
+                      <td className="px-6 py-4 whitespace-nowrap text-xs font-bold text-[#10B981] text-center">
                         {(currentPage - 1) * itemsPerPage + index + 1}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-center">
+                      <td className="px-6 py-4 whitespace-nowrap text-xs font-bold text-gray-800">
                         {item.nama}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <span
-                          className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-extrabold tracking-wider ${
-                            item.role === "penanggung jawab dasawisma" ||
+                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide ${
+                            item.role.toLowerCase() ===
+                              "penanggung jawab dasawisma" ||
                             item.role === "Amil Zakat"
-                              ? "bg-emerald-100 text-emerald-800"
+                              ? "bg-emerald-50 text-emerald-700"
                               : "bg-gray-100 text-gray-600"
                           }`}
                         >
                           {item.role}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600 text-center">
+                      <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-gray-500">
                         {item.email}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600 text-center">
-                        {item.telp}
+                      <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-gray-500 text-center">
+                        {item.telp || "-"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <div className="flex items-center justify-center gap-3">
-                          {/* Tombol Edit: Hijau Solid Standby */}
+                        <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => handleInfoClick(item.id)}
-                            className="text-blue-500 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 p-2 rounded-lg transition-colors shadow-sm"
-                            title="Info"
+                            className="text-[#0F766E] bg-emerald-50 hover:bg-[#0F766E] hover:text-white p-2 rounded-xl transition-all shadow-sm"
+                            title="Detail"
                           >
-                            <Info size={18} />
+                            <Info size={15} />
                           </button>
                           <button
                             onClick={() => handleEditClick(item)}
-                            className="text-[#10B981] bg-emerald-50 hover:bg-emerald-100 hover:text-[#064E3B] p-2 rounded-lg transition-colors shadow-sm"
+                            className="text-amber-600 bg-amber-50 hover:bg-amber-500 hover:text-white p-2 rounded-xl transition-all shadow-sm"
                             title="Edit"
                           >
-                            <Edit size={18} />
+                            <Edit size={15} />
                           </button>
-
-                          {/* Tombol Hapus: Merah Solid Standby */}
                           <button
                             onClick={() => handleDeleteClick(item.id)}
-                            className="text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-700 p-2 rounded-lg transition-colors shadow-sm"
+                            className="text-red-500 bg-red-50 hover:bg-red-500 hover:text-white p-2 rounded-xl transition-all shadow-sm"
                             title="Hapus"
                           >
-                            <Trash2 size={18} />
+                            <Trash2 size={15} />
                           </button>
                         </div>
                       </td>
@@ -461,36 +455,27 @@ export default function AnggotaDasawisma() {
                   ))
                 ) : (
                   <tr>
-                    {searchQuery ? (
-                      <td
-                        colSpan="6"
-                        className="px-6 py-8 text-center text-sm font-medium text-gray-500"
-                      >
-                        Tidak ada data yang cocok dengan pencarian "
-                        {searchQuery}"
-                      </td>
-                    ) : (
-                      <td
-                        colSpan="6"
-                        className="px-6 py-8 text-center text-sm font-medium text-gray-500"
-                      >
-                        Belum ada data anggota dasawisma. Klik tombol "Tambah Anggota Dasawisma" untuk menambahkan data pertama Anda.
-                      </td>
-                    )}
+                    <td
+                      colSpan="6"
+                      className="px-6 py-8 text-center text-xs font-medium text-gray-400"
+                    >
+                      Tidak ada data yang cocok dengan pencarian "{searchQuery}"
+                    </td>
                   </tr>
                 )}
               </tbody>
             </table>
-            <div className="flex items-center justify-between m-10">
-              <p className="text-sm text-gray-500 font-medium">
+
+            {/* Pagination */}
+            <div className="flex items-center justify-between m-6">
+              <p className="text-xs text-gray-400 font-bold">
                 Halaman {currentPage} dari {totalPages}
               </p>
-
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <button
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage((prev) => prev - 1)}
-                  className={`px-4 py-2 rounded-lg text-sm font-bold transition ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
                     currentPage === 1
                       ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                       : "bg-gray-200 hover:bg-gray-300 text-gray-700"
@@ -498,11 +483,10 @@ export default function AnggotaDasawisma() {
                 >
                   Sebelumnya
                 </button>
-
                 <button
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage((prev) => prev + 1)}
-                  className={`px-4 py-2 rounded-lg text-sm font-bold transition ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
                     currentPage === totalPages
                       ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                       : "bg-[#10B981] hover:bg-[#059669] text-white"
@@ -515,122 +499,189 @@ export default function AnggotaDasawisma() {
           </div>
         </div>
 
-        {/* ─── MODAL POP-UP TAMBAH / EDIT DATA ─── */}
+        {/* ─── MODAL FORM: TAMBAH / EDIT DATA (Gaya jelas & lega) ─── */}
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-              {/* Header Modal berubah teksnya tergantung mode Tambah/Edit */}
-              <div className="bg-[#0F766E] px-6 py-4 flex items-center justify-between">
-                <h2 className="text-lg font-bold text-white">
-                  {editingId ? "Edit Data Anggota" : "Tambah kader dasawisma"}
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+              {/* Header */}
+              <div className="bg-[#0F766E] px-7 py-5 flex items-center justify-between flex-shrink-0">
+                <h2 className="text-xl font-extrabold text-white tracking-tight">
+                  {editingId ? "Edit Data Kader" : "Tambah Kader Dasawisma"}
                 </h2>
                 <button
                   onClick={handleCloseModal}
-                  className="text-emerald-200 hover:text-white transition-colors"
+                  className="text-emerald-100 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors"
                 >
                   <X size={20} />
                 </button>
               </div>
 
-              {/* Form Body */}
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                {/* Jika mode Edit, tampilkan ID-nya agar user tahu (opsional) */}
-
-                {!editingId && (
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                      Alamat Email
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      required
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] focus:border-transparent block px-4 py-3 font-semibold outline-none transition-all"
-                      placeholder="email@contoh.com"
-                    />
-                    {errors.email && (
-                      <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
-                        {errors.email}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {!editingId && (
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                      Password
-                    </label>
-                    <input
-                      type="password"
-                      name="password"
-                      required
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] focus:border-transparent block px-4 py-3 font-semibold outline-none transition-all"
-                      placeholder="Masukkan password..."
-                    />
-                    {errors.password && (
-                      <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
-                        {errors.password}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    Nama Lengkap
-                  </label>
-                  <input
-                    type="text"
-                    name="nama"
-                    required
-                    value={formData.nama}
-                    onChange={handleInputChange}
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] focus:border-transparent block px-4 py-3 font-semibold outline-none transition-all"
-                    placeholder="Masukkan nama..."
-                  />
-                  {errors.nama && (
-                    <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
-                      {errors.nama}
-                    </p>
+              {/* Body (scrollable) */}
+              <form
+                onSubmit={handleSubmit}
+                className="flex flex-col flex-1 overflow-hidden"
+              >
+                <div className="p-7 space-y-7 overflow-y-auto flex-1">
+                  {/* Section: Akun (hanya saat tambah) */}
+                  {!editingId && (
+                    <div className="space-y-5">
+                      <h3 className={sectionTitleClass}>Informasi Akun</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                          <label className={labelClass}>Alamat Email</label>
+                          <input
+                            type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            className={inputClass}
+                            placeholder="email@contoh.com"
+                          />
+                          {errors.email && (
+                            <p className="text-sm font-semibold text-red-500 mt-1.5">
+                              {errors.email}
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <label className={labelClass}>Password</label>
+                          <input
+                            type="password"
+                            name="password"
+                            value={formData.password}
+                            onChange={handleInputChange}
+                            className={inputClass}
+                            placeholder="Minimal 6 karakter"
+                          />
+                          {errors.password && (
+                            <p className="text-sm font-semibold text-red-500 mt-1.5">
+                              {errors.password}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   )}
+
+                  {/* Section: Informasi Dasar */}
+                  <div className="space-y-5">
+                    <h3 className={sectionTitleClass}>Informasi Dasar</h3>
+                    <div>
+                      <label className={labelClass}>Nama Lengkap</label>
+                      <input
+                        type="text"
+                        name="nama"
+                        value={formData.nama}
+                        onChange={handleInputChange}
+                        className={inputClass}
+                        placeholder="Masukkan nama lengkap..."
+                      />
+                      {errors.nama && (
+                        <p className="text-sm font-semibold text-red-500 mt-1.5">
+                          {errors.nama}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <div>
+                        <label className={labelClass}>Role (Peran)</label>
+                        <select
+                          name="role"
+                          value={formData.role}
+                          onChange={handleInputChange}
+                          className={inputClass}
+                        >
+                          <option value="Kader Dasawisma">
+                            Kader Dasawisma
+                          </option>
+                          <option value="Penanggung Jawab Dasawisma">
+                            Penanggung Jawab Dasawisma
+                          </option>
+                        </select>
+                        {errors.role && (
+                          <p className="text-sm font-semibold text-red-500 mt-1.5">
+                            {errors.role}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Saat edit, email & telp ada di sini */}
+                      {editingId && (
+                        <div>
+                          <label className={labelClass}>Nomor Telepon</label>
+                          <input
+                            type="text"
+                            name="telp"
+                            value={formData.telp}
+                            onChange={handleInputChange}
+                            className={inputClass}
+                            placeholder="08xxxxxxxxxx"
+                          />
+                          {errors.telp && (
+                            <p className="text-sm font-semibold text-red-500 mt-1.5">
+                              {errors.telp}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {editingId && (
+                      <div>
+                        <label className={labelClass}>Alamat Email</label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          className={inputClass}
+                          placeholder="email@contoh.com"
+                        />
+                        {errors.email && (
+                          <p className="text-sm font-semibold text-red-500 mt-1.5">
+                            {errors.email}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Saat tambah, nomor telepon di section dasar */}
+                    {!editingId && (
+                      <div>
+                        <label className={labelClass}>Nomor Telepon</label>
+                        <input
+                          type="text"
+                          name="telp"
+                          value={formData.telp}
+                          onChange={handleInputChange}
+                          className={inputClass}
+                          placeholder="08xxxxxxxxxx"
+                        />
+                        {errors.telp && (
+                          <p className="text-sm font-semibold text-red-500 mt-1.5">
+                            {errors.telp}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    Role (Peran)
-                  </label>
-                  <select
-                    name="role"
-                    value={formData.role}
-                    onChange={handleInputChange}
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] focus:border-transparent block px-4 py-3 font-semibold outline-none transition-all"
-                  >
-                    <option value="kader dasawisma">kader dasawisma</option>
-                    <option value="penanggung jawab dasawisma">
-                      penanggung jawab dasawisma
-                    </option>
-                  </select>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 mt-6">
+                {/* Footer */}
+                <div className="px-7 py-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50 flex-shrink-0">
                   <button
                     type="button"
                     onClick={handleCloseModal}
-                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+                    className="px-6 py-3 rounded-xl text-base font-bold text-gray-600 bg-white border border-gray-200 hover:bg-gray-100 transition-colors active:scale-95"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#10B981] hover:bg-[#059669] shadow-sm transition-colors"
+                    className="px-7 py-3 rounded-xl text-base font-bold text-white bg-[#10B981] hover:bg-[#059669] shadow-sm transition-colors active:scale-95"
                   >
-                    {editingId ? "Simpan Perubahan" : "Simpan Data"}
+                    {editingId ? "Simpan Perubahan" : "Simpan"}
                   </button>
                 </div>
               </form>
@@ -638,136 +689,125 @@ export default function AnggotaDasawisma() {
           </div>
         )}
 
-        {/* ─── MODAL DETAIL USER ─── */}
+        {/* ─── MODAL DETAIL USER KADER (Gaya jelas & lega) ─── */}
         {isInfoModalOpen && selectedUser && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
-              {/* Header */}
-              <div className="bg-blue-600 px-6 py-4 flex items-center justify-between">
-                <h2 className="text-lg font-bold text-white">
-                  Detail kader dasawisma
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+              {/* Header Modal */}
+              <div className="bg-[#0F766E] px-7 py-5 flex items-center justify-between flex-shrink-0">
+                <h2 className="text-xl font-extrabold text-white tracking-tight">
+                  Detail Kader Dasawisma
                 </h2>
-
                 <button
                   onClick={() => setIsInfoModalOpen(false)}
-                  className="text-blue-100 hover:text-white transition"
+                  className="text-emerald-100 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors"
                 >
                   <X size={20} />
                 </button>
               </div>
 
-              {/* Body */}
-              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="md:col-span-2">
-                  <p className="text-xs font-bold text-gray-400 uppercase">
-                    Nama Lengkap
-                  </p>
-
-                  <p className="text-sm font-semibold text-gray-800 mt-1">
-                    {selectedUser.nama_lengkap}
-                  </p>
+              {/* Body Konten Detail */}
+              <div className="p-7 space-y-7 overflow-y-auto flex-1">
+                {/* Section: Informasi Dasar */}
+                <div className="space-y-5">
+                  <h3 className={sectionTitleClass}>Informasi Dasar</h3>
+                  <div>
+                    <span className={labelClass}>Nama Lengkap</span>
+                    <span className="text-lg font-extrabold text-gray-800 block">
+                      {selectedUser.nama_lengkap || "-"}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div>
+                      <span className={labelClass}>Role / Peran</span>
+                      <span className="inline-block px-3 py-1.5 rounded-lg text-sm font-bold bg-[#D1FAE5] text-[#0F766E] capitalize">
+                        {selectedUser.roles || "-"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className={labelClass}>NIK</span>
+                      <span className="text-base font-bold text-gray-700 block tracking-wide">
+                        {selectedUser.nik || "-"}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div>
+                      <span className={labelClass}>Alamat Email</span>
+                      <span className="text-base font-semibold text-gray-700 block break-all">
+                        {selectedUser.email || "-"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className={labelClass}>Nomor Telepon</span>
+                      <span className="text-base font-bold text-gray-700 block">
+                        {selectedUser.nomor_telpon || "-"}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <p className="text-xs font-bold text-gray-400 uppercase">
-                    Role
-                  </p>
-
-                  <p className="text-sm font-semibold text-gray-800 mt-1 capitalize">
-                    {selectedUser.roles}
-                  </p>
+                {/* Section: Kelahiran */}
+                <div className="space-y-5 border-t border-gray-100 pt-6">
+                  <h3 className={sectionTitleClass}>Kelahiran</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div>
+                      <span className={labelClass}>Tempat Lahir</span>
+                      <span className="text-base font-semibold text-gray-700 block">
+                        {selectedUser.tempat_lahir || "-"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className={labelClass}>Tanggal Lahir</span>
+                      <span className="text-base font-bold text-gray-700 block">
+                        {selectedUser.tanggal_lahir
+                          ? new Date(
+                              selectedUser.tanggal_lahir,
+                            ).toLocaleDateString("id-ID", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            })
+                          : "-"}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="md:col-span-2">
-                  <p className="text-xs font-bold text-gray-400 uppercase">
-                    Email
-                  </p>
-
-                  <p className="text-sm font-semibold text-gray-800 mt-1">
-                    {selectedUser.email}
-                  </p>
+                {/* Section: Alamat */}
+                <div className="space-y-5 border-t border-gray-100 pt-6">
+                  <h3 className={sectionTitleClass}>Alamat Domisili</h3>
+                  <div>
+                    <span className="text-base font-medium text-gray-700 block leading-relaxed">
+                      {selectedUser.alamat || "-"}
+                    </span>
+                  </div>
                 </div>
 
-                <div>
-                  <p className="text-xs font-bold text-gray-400 uppercase">
-                    Nomor Telepon
-                  </p>
-
-                  <p className="text-sm font-semibold text-gray-800 mt-1">
-                    {selectedUser.nomor_telpon || "-"}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-xs font-bold text-gray-400 uppercase">
-                    NIK
-                  </p>
-
-                  <p className="text-sm font-semibold text-gray-800 mt-1">
-                    {selectedUser.nik || "-"}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-xs font-bold text-gray-400 uppercase">
-                    Tempat Lahir
-                  </p>
-
-                  <p className="text-sm font-semibold text-gray-800 mt-1">
-                    {selectedUser.tempat_lahir || "-"}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-xs font-bold text-gray-400 uppercase">
-                    Tanggal Lahir
-                  </p>
-
-                  <p className="text-sm font-semibold text-gray-800 mt-1">
-                    {selectedUser.tanggal_lahir
-                      ? new Date(selectedUser.tanggal_lahir).toLocaleDateString(
-                          "id-ID",
-                        )
-                      : "-"}
-                  </p>
-                </div>
-
-                <div className="md:col-span-2">
-                  <p className="text-xs font-bold text-gray-400 uppercase">
-                    Alamat
-                  </p>
-
-                  <p className="text-sm font-semibold text-gray-800 mt-1">
-                    {selectedUser.alamat || "-"}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-xs font-bold text-gray-400 uppercase">
-                    Created At
-                  </p>
-
-                  <p className="text-sm font-semibold text-gray-800 mt-1">
-                    {formattedDate(selectedUser.created_at)}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-xs font-bold text-gray-400 uppercase">
-                    Updated At
-                  </p>
-
-                  <p className="text-sm font-semibold text-gray-800 mt-1">
-                    {formattedDate(selectedUser.updated_at)}
-                  </p>
+                {/* Section: Lainnya */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 border-t border-gray-100 pt-6">
+                  <div>
+                    <span className={labelClass}>Terdaftar Pada</span>
+                    <span className="text-base font-bold text-gray-700 block">
+                      {formattedDate(selectedUser.created_at) || "-"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className={labelClass}>Pembaruan Terakhir</span>
+                    <span className="text-base font-bold text-gray-700 block">
+                      {selectedUser.updated_at
+                        ? formattedDate(selectedUser.updated_at)
+                        : "-"}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              {/* Footer */}
-              <div className="px-6 py-4 border-t border-gray-100 flex justify-end">
+              {/* Footer Modal */}
+              <div className="px-7 py-5 border-t border-gray-100 flex justify-end bg-gray-50/50 flex-shrink-0">
                 <button
                   onClick={() => setIsInfoModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 transition"
+                  className="px-7 py-3 bg-white border border-gray-200 hover:bg-gray-100 text-gray-600 font-bold rounded-xl text-base transition shadow-sm active:scale-95"
                 >
                   Tutup
                 </button>
