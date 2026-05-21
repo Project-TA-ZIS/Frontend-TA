@@ -104,13 +104,13 @@ const buildZisSeries = ({
     result[idx][key] += amount;
   };
 
-  // For Bulanan: if current year has no data, show the latest year that exists in data.
   const relevantMasuk = (pemasukanItems || []).filter(
     (item) => toUiZisKategori(item?.kategori) === uiKategori,
   );
   const relevantKeluar = (pengeluaranItems || []).filter(
     (item) => toUiZisKategori(item?.kategori) === uiKategori,
   );
+
   const latestYearInData = Math.max(
     getMaxYearFromItems(relevantMasuk, "tanggal_penghimpunan") ?? -Infinity,
     getMaxYearFromItems(relevantKeluar, "tanggal_penyaluran") ?? -Infinity,
@@ -150,7 +150,6 @@ const buildZisSeries = ({
     }
   });
 
-  // Ensure integers for nicer tooltip formatting
   return result.map((row) => ({
     ...row,
     pemasukan: Math.round(row.pemasukan),
@@ -497,10 +496,9 @@ export default function DashboardUtama() {
         const amilArr = pick(2, (v) => v?.data);
         const anggotaArr = pick(3, (v) => v?.data);
         const pemasukanArr = pick(4, (v) => v?.data);
-        const pengeluaranArr = pick(5, (v) => v?.data);
+        const pengeluaranArr = pick(5, (v) => v);
         const kasMasukArr = pick(6, (v) => v?.data);
         const kasKeluarArr = pick(7, (v) => v?.data);
-
         if (!cancelled) {
           setKpiCounts({
             muzakki: Array.isArray(muzakkiArr) ? muzakkiArr.length : 0,

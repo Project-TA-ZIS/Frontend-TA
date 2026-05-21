@@ -3,15 +3,17 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Wallet,
-  HandHeart,
+  FileText,
   Users,
   Settings,
+  LogOut,
+  HandHeart,
 } from "lucide-react";
 import LogoDasawisma from "../../assets/Logo.svg";
 
-export default function AmilSidebar() {
-  const navigate = useNavigate();
+export default function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const menuItems = [
     { name: "DASHBOARD", icon: LayoutDashboard, path: "/amil/dashboard" },
@@ -31,7 +33,6 @@ export default function AmilSidebar() {
             src={LogoDasawisma}
             alt="Logo Dasawisma"
             onClick={() => navigate("/amil/dashboard")}
-            style={{ cursor: "pointer" }}
             className="h-[75px] w-auto object-contain object-left drop-shadow-sm cursor-pointer hover:scale-[1.02] transition-transform duration-300"
           />
         </div>
@@ -40,7 +41,7 @@ export default function AmilSidebar() {
         <nav className="flex-1 px-4 py-3 space-y-1 overflow-y-auto">
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const isActive = location.pathname.includes(item.path);
+            const isActive = location.pathname === item.path;
 
             return (
               <Link

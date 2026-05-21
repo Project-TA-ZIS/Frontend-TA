@@ -204,108 +204,133 @@ export default function KelolaKas() {
     }
   };
 
-  const handleDownloadPDF = () => {
-    Swal
-      .fire({
-        title: "Unduh Riwayat Kas",
-        text: "Apakah Anda ingin mengunduh riwayat kas dalam format PDF?",
-        icon: "question",
-        showCancelButton: true,
-        confirmButtonText: "Ya, Unduh PDF",
-        cancelButtonText: "Batal",
-        confirmButtonColor: "#10B981",
-      })
-      .then((result) => {
-        if (result.isConfirmed) {
-          const doc = new jsPDF();
-          const pageWidth = doc.internal.pageSize.getWidth();
+  const handleCloseModal = async () => {
+    const result = await Swal.fire({
+      title: "Tutup form?",
+      text: "Data yang belum disimpan akan hilang",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#10B981",
+      cancelButtonColor: "#6B7280",
+      confirmButtonText: "Ya, tutup",
+      cancelButtonText: "Batal",
+    });
 
-          // ================= HEADER =================
+    if (result.isConfirmed) {
+      setIsModalOpen(false);
+      setEditingId(null);
 
-          // Tulisan kiri
-          doc.setFont("helvetica", "bold");
-          doc.setFontSize(20);
-          doc.setTextColor(15, 118, 110);
-          doc.text("DASAWISMA", 14, 20);
-
-          doc.setFont("helvetica", "normal");
-          doc.setFontSize(11);
-          doc.setTextColor(100);
-          doc.text("LENTENG AGUNG", 14, 27);
-
-          // Logo kanan
-          const logoWidth = 80;
-          const logoHeight = 25;
-
-          doc.addImage(
-            logoDasawisma,
-            "PNG",
-            pageWidth - logoWidth, // posisi kanan
-            10,
-            logoWidth,
-            logoHeight,
-          );
-
-          // Garis bawah
-          doc.setDrawColor(220);
-          doc.line(20, 36, pageWidth - 14, 36);
-
-          // tanggal cetak
-          doc.setFont("helvetica", "normal");
-          doc.setFontSize(10);
-          doc.setTextColor(120);
-
-          doc.text(
-            `Tanggal Cetak: ${new Date().toLocaleDateString("id-ID")}`,
-            20,
-            43,
-          );
-
-          autoTable(doc, {
-            startY: 50,
-            head: [
-              [
-                "No",
-                "Tanggal",
-                "Anggota",
-                "Sumber",
-                "Deskripsi",
-                "Tipe",
-                "Nominal",
-              ],
-            ],
-            body: transactions.map((tx, index) => [
-              index + 1,
-              formattedDate(tx.tanggal),
-              tx.namaAnggota || "-",
-              tx.sumber || "-",
-              tx.deskripsi || "-",
-              tx.jenis || "-",
-              formatRupiah(tx.nominal),
-            ]),
-            styles: {
-              fontSize: 9,
-            },
-            headStyles: {
-              fillColor: [16, 185, 129], // emerald
-            },
-          });
-
-          const total = transactions.reduce(
-            (sum, item) => sum + Number(item.nominal || 0),
-            0,
-          );
-
-          doc.text(
-            `Total Transaksi: ${formatRupiah(total)}`,
-            14,
-            doc.lastAutoTable.finalY + 10,
-          );
-
-          // Save
-          doc.save(`riwayat-kas-dasawisma-${Date.now()}.pdf`);
-        }
+      setFormData({
+        tanggal: "",
+        deskripsi: "",
+        jenis: "MASUK",
+        nominal: "",
+        tipePemasukan: "IURAN",
+        anggota_dasawisma_id: "",
       });
+    }
+  };
+
+  const handleDownloadPDF = () => {
+    Swal.fire({
+      title: "Unduh Riwayat Kas",
+      text: "Apakah Anda ingin mengunduh riwayat kas dalam format PDF?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Unduh PDF",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#10B981",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+
+        // ================= HEADER =================
+
+        // Tulisan kiri
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(20);
+        doc.setTextColor(15, 118, 110);
+        doc.text("DASAWISMA", 14, 20);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text("LENTENG AGUNG", 14, 27);
+
+        // Logo kanan
+        const logoWidth = 80;
+        const logoHeight = 25;
+
+        doc.addImage(
+          logoDasawisma,
+          "PNG",
+          pageWidth - logoWidth, // posisi kanan
+          10,
+          logoWidth,
+          logoHeight,
+        );
+
+        // Garis bawah
+        doc.setDrawColor(220);
+        doc.line(20, 36, pageWidth - 14, 36);
+
+        // tanggal cetak
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.setTextColor(120);
+
+        doc.text(
+          `Tanggal Cetak: ${new Date().toLocaleDateString("id-ID")}`,
+          20,
+          43,
+        );
+
+        autoTable(doc, {
+          startY: 50,
+          head: [
+            [
+              "No",
+              "Tanggal",
+              "Anggota",
+              "Sumber",
+              "Deskripsi",
+              "Tipe",
+              "Nominal",
+            ],
+          ],
+          body: transactions.map((tx, index) => [
+            index + 1,
+            formattedDate(tx.tanggal),
+            tx.namaAnggota || "-",
+            tx.sumber || "-",
+            tx.deskripsi || "-",
+            tx.jenis || "-",
+            formatRupiah(tx.nominal),
+          ]),
+          styles: {
+            fontSize: 9,
+          },
+          headStyles: {
+            fillColor: [16, 185, 129], // emerald
+          },
+        });
+
+        const total = transactions.reduce(
+          (sum, item) => sum + Number(item.nominal || 0),
+          0,
+        );
+
+        doc.text(
+          `Total Transaksi: ${formatRupiah(total)}`,
+          14,
+          doc.lastAutoTable.finalY + 10,
+        );
+
+        // Save
+        doc.save(`riwayat-kas-dasawisma-${Date.now()}.pdf`);
+      }
+    });
   };
 
   // ─── useEffect ───
@@ -448,6 +473,17 @@ export default function KelolaKas() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
+                {transactions.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={8}
+                      className="px-6 py-4 text-center text-sm text-gray-500"
+                    >
+                      Belum ada transaksi kas yang tercatat.
+                    </td>
+                  </tr>
+                )}
+
                 {transactions.map((trx, index) => (
                   <tr
                     key={`${trx.jenis}-${trx.id}`}
@@ -497,7 +533,7 @@ export default function KelolaKas() {
                   Catat Transaksi Kas
                 </h2>
                 <button
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={handleCloseModal}
                   className="text-emerald-200 hover:text-white transition-colors"
                 >
                   <X size={20} />
@@ -621,7 +657,7 @@ export default function KelolaKas() {
                 <div className="flex justify-end gap-3 pt-4 border-t mt-6">
                   <button
                     type="button"
-                    onClick={() => setIsModalOpen(false)}
+                    onClick={handleCloseModal}
                     className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200"
                   >
                     Batal

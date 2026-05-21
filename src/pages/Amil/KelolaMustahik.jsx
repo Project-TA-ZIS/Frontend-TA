@@ -291,10 +291,32 @@ export default function KelolaMustahik() {
       });
     }
   };
-
   const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingId(null);
+    Swal.fire({
+      title: "Tutup Form?",
+      text: "Perubahan yang belum disimpan akan hilang.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#10B981",
+      cancelButtonColor: "#EF4444",
+      confirmButtonText: "Ya, Tutup",
+      cancelButtonText: "Batal",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setIsModalOpen(false);
+        setEditingId(null);
+        setFormData({
+          nama: "",
+          telp: "",
+          alamat: "",
+          nik: "",
+          tempatLahir: "",
+          tanggalLahir: "",
+          kategori: "fakir",
+          jenisKelamin: "laki-laki",
+        });
+      }
+    });
   };
 
   return (
@@ -436,12 +458,22 @@ export default function KelolaMustahik() {
                   ))
                 ) : (
                   <tr>
-                    <td
-                      colSpan="6"
-                      className="px-6 py-8 text-center text-sm font-medium text-gray-500"
-                    >
-                      Tidak ada data yang cocok dengan pencarian "{searchQuery}"
-                    </td>
+                    {searchQuery ? (
+                      <td
+                        colSpan="6"
+                        className="px-6 py-8 text-center text-sm font-medium text-gray-500"
+                      >
+                        Tidak ada data yang cocok dengan pencarian "
+                        {searchQuery}"
+                      </td>
+                    ) : (
+                      <td
+                        colSpan="6"
+                        className="px-6 py-8 text-center text-sm font-medium text-gray-500"
+                      >
+                        Belum ada data mustahik. Klik tombol "Tambah Mustahik"
+                      </td>
+                    )}
                   </tr>
                 )}
               </tbody>

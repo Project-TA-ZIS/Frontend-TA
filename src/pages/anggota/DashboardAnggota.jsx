@@ -568,11 +568,11 @@ export default function DashboardAnggota() {
   }, [kpiCounts]);
 
   const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user) || {};
   const checkProfileCompletion = async () => {
     try {
       // contoh ambil data user dari localStorage / API
       // const user = JSON.parse(localStorage.getItem("user"));
-      const user = useAuthStore((s) => s.user) || {};
 
       // cek apakah profile belum lengkap
       const isIncomplete =
