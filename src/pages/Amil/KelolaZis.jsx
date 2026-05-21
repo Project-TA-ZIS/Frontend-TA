@@ -433,28 +433,28 @@ export default function KelolaZis() {
         )}
 
         {/* ─── Top Summary Cards ─── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3 shrink-0">
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
               TOTAL PENERIMAAN ZIS
             </p>
-            <h3 className="text-3xl font-extrabold text-[#10B981]">
+            <h3 className="text-xl font-extrabold text-gray-900">
               {formatRupiah(totalPenerimaan)}
             </h3>
           </div>
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">
-              TOTAL PENGELUARAN
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
+              TOTAL PENYALURAN
             </p>
             <h3 className="text-3xl font-extrabold text-[#EF4444]">
               {formatRupiah(totalPenyaluran)}
             </h3>
           </div>
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
               SALDO ZIS
             </p>
-            <h3 className="text-3xl font-extrabold text-gray-900">
+            <h3 className="text-xl font-extrabold text-[#0F766E]">
               {formatRupiah(saldoZIS)}
             </h3>
             <p className="text-xs text-gray-500 mt-1">
@@ -462,7 +462,6 @@ export default function KelolaZis() {
             </p>
           </div>
         </div>
-
         {/* ─── Bottom Summary Cards (Kategori Breakdown) ─── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3 shrink-0">
           <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">

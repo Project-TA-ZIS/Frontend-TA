@@ -158,12 +158,12 @@ export default function ManajemenZis() {
         // ================= HEADER =================
 
         // Tulisan kiri
-        doc.setFont("helvetica", "bold");
+        doc.setFont("manrope", "bold");
         doc.setFontSize(20);
         doc.setTextColor(15, 118, 110);
         doc.text("DASAWISMA", 14, 20);
 
-        doc.setFont("helvetica", "normal");
+        doc.setFont("manrope", "normal");
         doc.setFontSize(11);
         doc.setTextColor(100);
         doc.text("LENTENG AGUNG", 14, 27);
@@ -186,7 +186,7 @@ export default function ManajemenZis() {
         doc.line(20, 36, pageWidth - 14, 36);
 
         // tanggal cetak
-        doc.setFont("helvetica", "normal");
+        doc.setFont("manrope", "normal");
         doc.setFontSize(10);
         doc.setTextColor(120);
 
