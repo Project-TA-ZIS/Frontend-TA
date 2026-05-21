@@ -9,6 +9,8 @@ import pengeluaranService from "../../services/pengeluaranDasawisma.service";
 import pemasukanDasawismaService from "../../services/pemasukanDasawisma.service";
 import dasawismaService from "../../services/dasawisma.service";
 import totalKasDasawismaService from "../../services/totalKasDasawisma.service";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export default function KelolaKas() {
   const [anggotaList, setAnggotaList] = useState([]);
@@ -200,6 +202,56 @@ export default function KelolaKas() {
     }
   };
 
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF();
+
+    doc.setFontSize(16);
+    doc.text("Riwayat Transaksi ZIS", 14, 20);
+
+    doc.setFontSize(10);
+    doc.text(
+      `Tanggal Cetak: ${new Date().toLocaleDateString("id-ID")}`,
+      14,
+      28,
+    );
+
+    autoTable(doc, {
+      startY: 35,
+      head: [
+        ["No", "Tanggal", "Anggota", "Sumber", "Deskripsi", "Tipe", "Nominal"],
+      ],
+      body: transactions.map((tx, index) => [
+        index + 1,
+        formattedDate(tx.tanggal),
+        tx.namaAnggota || "-",
+        tx.sumber || "-",
+        tx.deskripsi || "-",
+        tx.jenis || "-",
+        formatRupiah(tx.nominal),
+      ]),
+      styles: {
+        fontSize: 9,
+      },
+      headStyles: {
+        fillColor: [16, 185, 129], // emerald
+      },
+    });
+
+    const total = transactions.reduce(
+      (sum, item) => sum + Number(item.nominal || 0),
+      0,
+    );
+
+    doc.text(
+      `Total Transaksi: ${formatRupiah(total)}`,
+      14,
+      doc.lastAutoTable.finalY + 10,
+    );
+
+    // Save
+    doc.save(`riwayat-zis-${Date.now()}.pdf`);
+  };
+
   // ─── useEffect ───
   useEffect(() => {
     loadKasData();
@@ -295,7 +347,10 @@ export default function KelolaKas() {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-3 w-full xl:w-auto">
-            <button className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2.5 px-4 rounded-lg text-sm transition-all hover:bg-gray-50 shadow-sm">
+            <button
+              onClick={handleDownloadPDF}
+              className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2.5 px-4 rounded-lg text-sm transition-all hover:bg-gray-50 shadow-sm"
+            >
               <Download size={18} /> Unduh Data
             </button>
             <button
