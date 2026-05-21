@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { HandHeart, Users, Wallet, UsersRound } from "lucide-react";
+import useAuthStore from "../../store/useAuthStore";
 import PageTransition from "../../components/PageTransition";
 import muzakkiService from "../../services/muzakki.service";
 import mustahikService from "../../services/mustahik.service";
@@ -570,7 +571,8 @@ export default function DashboardAnggota() {
   const checkProfileCompletion = async () => {
     try {
       // contoh ambil data user dari localStorage / API
-      const user = JSON.parse(localStorage.getItem("user"));
+      // const user = JSON.parse(localStorage.getItem("user"));
+      const user = useAuthStore((s) => s.user) || {};
 
       // cek apakah profile belum lengkap
       const isIncomplete =

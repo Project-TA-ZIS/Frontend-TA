@@ -3,11 +3,15 @@ import { Link, useNavigate } from "react-router-dom";
 import { Download, Search, AlertCircle, CheckCircle2, X } from "lucide-react";
 import PageTransition from "../../components/PageTransition";
 import LogoDasawisma from "../../assets/Logo.svg";
+import LogoDasawismaPNG from "../../assets/Logo.png";
 import Footer from "../../components/layout/Footer";
 import { formatRupiah } from "../../utils/formatRupiah";
 import { formattedDate } from "../../utils/formattedDate";
 import pemasukanZISService from "../../services/pemasukanZIS.service";
 import totalZISService from "../../services/totalZIS.service";
+import Swal from "sweetalert2";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export default function ManajemenZis() {
   const navigate = useNavigate();
@@ -107,6 +111,7 @@ export default function ManajemenZis() {
         tanggal:
           item.tanggal_penghimpunan || item.created_at || item.updated_at,
         nama: item.nama_muzakki || "-",
+        deskripsi: item.deskripsi || "-",
         kategori: item.kategori || "-",
         nominal: Number(item.jumlah || 0),
         tipe: "Pemasukan",
@@ -136,6 +141,108 @@ export default function ManajemenZis() {
     }
   };
 
+  const handleDownloadPDF = () => {
+    Swal.fire({
+      title: "Unduh Riwayat ZIS",
+      text: "Apakah Anda ingin mengunduh riwayat ZIS dalam format PDF?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Unduh PDF",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#10B981",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+
+        // ================= HEADER =================
+
+        // Tulisan kiri
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(20);
+        doc.setTextColor(15, 118, 110);
+        doc.text("DASAWISMA", 14, 20);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text("LENTENG AGUNG", 14, 27);
+
+        // Logo kanan
+        const logoWidth = 80;
+        const logoHeight = 25;
+
+        doc.addImage(
+          LogoDasawismaPNG,
+          "PNG",
+          pageWidth - logoWidth, // posisi kanan
+          10,
+          logoWidth,
+          logoHeight,
+        );
+
+        // Garis bawah
+        doc.setDrawColor(220);
+        doc.line(20, 36, pageWidth - 14, 36);
+
+        // tanggal cetak
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.setTextColor(120);
+
+        doc.text(
+          `Tanggal Cetak: ${new Date().toLocaleDateString("id-ID")}`,
+          20,
+          43,
+        );
+
+        autoTable(doc, {
+          startY: 50,
+          head: [
+            [
+              "No",
+              "tanggal",
+              "nama",
+              "kategori",
+              "Deskripsi",
+              "Tipe",
+              "jumlah",
+            ],
+          ],
+          body: historyData.map((tx, index) => [
+            index + 1,
+            formattedDate(tx.tanggal),
+            tx.nama || "-",
+            tx.kategori || "-",
+            tx.deskripsi || "-",
+            tx.tipe || "-",
+            formatRupiah(tx.nominal || 0),
+          ]),
+          styles: {
+            fontSize: 9,
+          },
+          headStyles: {
+            fillColor: [16, 185, 129], // emerald
+          },
+        });
+
+        const total = historyData.reduce(
+          (sum, item) => sum + Number(item.nominal || 0),
+          0,
+        );
+
+        doc.text(
+          `Total Transaksi: ${formatRupiah(total)}`,
+          14,
+          doc.lastAutoTable.finalY + 10,
+        );
+
+        // Save
+        doc.save(`riwayat-zis-${Date.now()}.pdf`);
+      }
+    });
+  };
+
   return (
     <PageTransition>
       <div className="min-h-screen bg-gray-50 font-['Manrope'] flex flex-col relative">
@@ -148,6 +255,8 @@ export default function ManajemenZis() {
             <img
               src={LogoDasawisma}
               alt="Logo Dasawisma"
+              onClick={() => navigate("/")}
+              style={{ cursor: "pointer" }}
               // Memperbesar logo secara signifikan: h-12 (tinggi 48px) untuk layar kecil, h-16 (tinggi 64px) untuk layar medium ke atas.
               // w-auto memastikan aspek rasio logo tetap terjaga. object-contain untuk mencegah distorsi.
               className="h-15 md:h-17 w-auto object-contain drop-shadow-sm group-hover:scale-[1.02] transition-transform duration-300"
@@ -365,7 +474,9 @@ export default function ManajemenZis() {
                     Data transaksi ZIS berdasarkan NIK {searchQuery}
                   </p>
                 </div>
-                <button className="flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg text-xs transition-all hover:bg-gray-50 shadow-sm">
+                <button 
+                onClick={handleDownloadPDF}
+                className="flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg text-xs transition-all hover:bg-gray-50 shadow-sm">
                   <Download size={14} /> Unduh Data
                 </button>
               </div>

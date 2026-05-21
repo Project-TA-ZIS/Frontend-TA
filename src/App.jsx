@@ -31,8 +31,8 @@ import ManajemenZis from "./pages/publik/ManajemenZis";
 import Footer from "./components/layout/Footer";
 
 const ROLE = {
-  KOORDINATOR: "koordinator dasawisma",
-  ANGGOTA: "anggota dasawisma",
+  KOORDINATOR: "penanggung jawab dasawisma",
+  ANGGOTA: "kader dasawisma",
   AMIL: "amil zakat",
 };
 

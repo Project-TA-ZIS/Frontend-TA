@@ -134,35 +134,31 @@ export default function AnggotaAmil() {
   const validateForm = () => {
     let newErrors = {};
 
-    if (!formData.nama.trim()) {
+    if (!(formData.nama).trim()) {
       newErrors.nama = "Nama lengkap wajib diisi!";
     }
 
-    if (!formData.email.trim()) {
+    if (!(formData.email).trim()) {
       newErrors.email = "Alamat email wajib diisi!";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Format email tidak valid!";
     }
 
     if (!editingId) {
-      if (!formData.password.trim()) {
+      if (!(formData.password).trim()) {
         newErrors.password = "Password wajib diisi!";
       } else if (formData.password.length < 6) {
         newErrors.password = "Password minimal 6 karakter!";
       }
     }
 
-    if (!formData.telp.trim()) {
+    if (!(formData.telp).trim()) {
       newErrors.telp = "Nomor telepon wajib diisi!";
     } else if (!/^[0-9]+$/.test(formData.telp)) {
       newErrors.telp = "Nomor telepon hanya boleh angka!";
     } else if (formData.telp.length < 10) {
       newErrors.telp = "Nomor telepon tidak valid!";
     }
-
-    // if (!formData.role) {
-    //   newErrors.role = "Role wajib dipilih!";
-    // }
 
     setErrors(newErrors);
 

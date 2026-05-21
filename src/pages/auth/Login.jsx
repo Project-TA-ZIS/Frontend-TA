@@ -39,7 +39,7 @@ export default function Login() {
         // Kalau /me gagal, jangan lanjut navigate karena role belum diketahui dan route guard akan me-redirect.
         setLogout();
         setErrorMsg(
-          "Gagal mengambil profil pengguna. Silakan coba login ulang.",
+          "Maaf terjadi kesalahan. Silakan coba login ulang.",
         );
         return;
       }
@@ -47,7 +47,7 @@ export default function Login() {
       setLogin(userData, token);
 
       const role = userData?.roles;
-      if (role === "anggota dasawisma") {
+      if (role === "kader dasawisma") {
         navigate("/anggota/dashboard");
       } else if (role === "amil zakat") {
         navigate("/amil/dashboard");

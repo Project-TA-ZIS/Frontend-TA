@@ -7,6 +7,10 @@ import pemasukanZISService from "../../services/pemasukanZIS.service";
 import penyaluranZISService from "../../services/pengeluaranZIS.service";
 import totalZISService from "../../services/totalZIS.service";
 import mustahikService from "../../services/mustahik.service";
+import Swal from "sweetalert2";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import logoDasawisma from "../../assets/logo.png";
 
 const ITEMS_PER_PAGE = 5;
 
@@ -217,6 +221,108 @@ export default function LaporanZIS() {
     return filteredData.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredData, safePage]);
 
+  const handleDownloadPDF = () => {
+    Swal.fire({
+      title: "Unduh Riwayat ZIS",
+      text: "Apakah Anda ingin mengunduh riwayat ZIS dalam format PDF?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Unduh PDF",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#10B981",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+
+        // ================= HEADER =================
+
+        // Tulisan kiri
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(20);
+        doc.setTextColor(15, 118, 110);
+        doc.text("DASAWISMA", 14, 20);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text("LENTENG AGUNG", 14, 27);
+
+        // Logo kanan
+        const logoWidth = 80;
+        const logoHeight = 25;
+
+        doc.addImage(
+          logoDasawisma,
+          "PNG",
+          pageWidth - logoWidth, // posisi kanan
+          10,
+          logoWidth,
+          logoHeight,
+        );
+
+        // Garis bawah
+        doc.setDrawColor(220);
+        doc.line(20, 36, pageWidth - 14, 36);
+
+        // tanggal cetak
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.setTextColor(120);
+
+        doc.text(
+          `Tanggal Cetak: ${new Date().toLocaleDateString("id-ID")}`,
+          20,
+          43,
+        );
+
+        autoTable(doc, {
+          startY: 50,
+          head: [
+            [
+              "No",
+              "tanggal",
+              "nama",
+              "kategori",
+              "Deskripsi",
+              "Tipe",
+              "jumlah",
+            ],
+          ],
+          body: filteredData.map((tx, index) => [
+            index + 1,
+            formattedDate(tx.tanggal),
+            tx.nama || "-",
+            tx.kategori || "-",
+            tx.deskripsi || "-",
+            tx.tipe || "-",
+            formatRupiah(tx.jumlah),
+          ]),
+          styles: {
+            fontSize: 9,
+          },
+          headStyles: {
+            fillColor: [16, 185, 129], // emerald
+          },
+        });
+
+        const total = filteredData.reduce(
+          (sum, item) => sum + Number(item.jumlah || 0),
+          0,
+        );
+
+        doc.text(
+          `Total Transaksi: ${formatRupiah(total)}`,
+          14,
+          doc.lastAutoTable.finalY + 10,
+        );
+
+        // Save
+        doc.save(`riwayat-zis-${Date.now()}.pdf`);
+      }
+    });
+  };
+
   return (
     <PageTransition>
       <div
@@ -372,7 +478,10 @@ export default function LaporanZIS() {
           </div>
 
           {/* Action Button */}
-          <button className="flex items-center justify-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-2 px-4 rounded-lg transition-colors shadow-sm text-sm w-full md:w-auto">
+          <button
+          onClick={handleDownloadPDF}
+            className="flex items-center justify-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-2 px-4 rounded-lg transition-colors shadow-sm text-sm w-full md:w-auto"
+          >
             <Download size={16} />
             Unduh Data
           </button>

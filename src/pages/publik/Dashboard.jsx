@@ -127,6 +127,8 @@ export default function Dashboard() {
             <img
               src={LogoDasawisma}
               alt="Logo Dasawisma"
+              onClick={() => navigate("/")} 
+              style={{ cursor: "pointer" }}
               // Memperbesar logo secara signifikan: h-12 (tinggi 48px) untuk layar kecil, h-16 (tinggi 64px) untuk layar medium ke atas.
               // w-auto memastikan aspek rasio logo tetap terjaga. object-contain untuk mencegah distorsi.
               className="h-15 md:h-17 w-auto object-contain drop-shadow-sm group-hover:scale-[1.02] transition-transform duration-300"
