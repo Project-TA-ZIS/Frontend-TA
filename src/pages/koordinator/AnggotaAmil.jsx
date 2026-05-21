@@ -160,10 +160,6 @@ export default function AnggotaAmil() {
       newErrors.telp = "Nomor telepon tidak valid!";
     }
 
-    if (!formData.role) {
-      newErrors.role = "Role wajib dipilih!";
-    }
-
     setErrors(newErrors);
 
     return Object.keys(newErrors).length === 0;

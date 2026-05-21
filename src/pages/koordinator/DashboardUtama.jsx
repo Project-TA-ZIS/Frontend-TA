@@ -19,6 +19,10 @@ import pemasukanZISService from "../../services/pemasukanZIS.service";
 import pengeluaranZISService from "../../services/pengeluaranZIS.service";
 import pemasukanDasawismaService from "../../services/pemasukanDasawisma.service";
 import pengeluaranDasawismaService from "../../services/pengeluaranDasawisma.service";
+import useAuthStore from "../../store/useAuthStore";
+import Swal from "sweetalert2";
+
+import { useNavigate } from "react-router-dom";
 
 const MONTH_LABELS = [
   "JAN",
@@ -77,7 +81,9 @@ const toUiZisKategori = (kategori) => {
 const buildEmptySeries = (mode, now = new Date()) => {
   const currentYear = now.getFullYear();
   if (mode === "Tahunan") {
-    const years = Array.from({ length: 7 }, (_, i) => String(currentYear - 6 + i));
+    const years = Array.from({ length: 7 }, (_, i) =>
+      String(currentYear - 6 + i),
+    );
     return years.map((y) => ({ label: y, pemasukan: 0, pengeluaran: 0 }));
   }
   return MONTH_LABELS.map((m) => ({ label: m, pemasukan: 0, pengeluaran: 0 }));
@@ -110,7 +116,9 @@ const buildZisSeries = ({
     getMaxYearFromItems(relevantKeluar, "tanggal_penyaluran") ?? -Infinity,
   );
   const activeYear =
-    mode === "Tahunan" || latestYearInData === -Infinity ? nowYear : latestYearInData;
+    mode === "Tahunan" || latestYearInData === -Infinity
+      ? nowYear
+      : latestYearInData;
 
   (relevantMasuk || []).forEach((item) => {
     const d = parseDateSafe(item?.tanggal_penghimpunan);
@@ -150,8 +158,12 @@ const buildZisSeries = ({
   }));
 };
 
-
-const buildKasSeries = ({ pemasukanItems, pengeluaranItems, mode, now = new Date() }) => {
+const buildKasSeries = ({
+  pemasukanItems,
+  pengeluaranItems,
+  mode,
+  now = new Date(),
+}) => {
   const nowYear = now.getFullYear();
   const result = buildEmptySeries(mode, now);
 
@@ -160,7 +172,9 @@ const buildKasSeries = ({ pemasukanItems, pengeluaranItems, mode, now = new Date
     getMaxYearFromItems(pengeluaranItems, "tanggal_penyaluran") ?? -Infinity,
   );
   const activeYear =
-    mode === "Tahunan" || latestYearInData === -Infinity ? nowYear : latestYearInData;
+    mode === "Tahunan" || latestYearInData === -Infinity
+      ? nowYear
+      : latestYearInData;
 
   const addValue = (idx, key, amount) => {
     if (idx < 0 || idx >= result.length) return;
@@ -208,32 +222,48 @@ const KPI_TEMPLATE = [
   { id: 1, icon: HandHeart, label: "JUMLAH MUZZAKI", key: "muzakki" },
   { id: 2, icon: Users, label: "JUMLAH MUSTAHIQ", key: "mustahik" },
   { id: 3, icon: Wallet, label: "JUMLAH AMIL", key: "amil" },
-  { id: 4, icon: UsersRound, label: "JUMLAH ANGGOTA DASAWISMA", key: "anggota" },
+  {
+    id: 4,
+    icon: UsersRound,
+    label: "JUMLAH ANGGOTA DASAWISMA",
+    key: "anggota",
+  },
 ];
-
 
 // ─── Theme Constants ──────────────────────────────────────────────────────────
 const CLR = {
-  primary:    "#0F766E",
-  primaryBg:  "#ECFDF5",
-  accent:     "#10B981",
-  danger:     "#EF4444",
+  primary: "#0F766E",
+  primaryBg: "#ECFDF5",
+  accent: "#10B981",
+  danger: "#EF4444",
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const fmt = (n) =>
-  new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
+  new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(n);
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ fontFamily: "Manrope, sans-serif" }} className="bg-white border border-gray-100 rounded-xl shadow-lg p-3 text-sm">
+    <div
+      style={{ fontFamily: "Manrope, sans-serif" }}
+      className="bg-white border border-gray-100 rounded-xl shadow-lg p-3 text-sm"
+    >
       <p className="font-bold text-gray-700 mb-2">{label}</p>
       {payload.map((p) => (
         <div key={p.name} className="flex items-center gap-2 mb-1">
-          <span className="w-2 h-2 rounded-full inline-block" style={{ background: p.color }} />
+          <span
+            className="w-2 h-2 rounded-full inline-block"
+            style={{ background: p.color }}
+          />
           <span className="text-gray-500 capitalize">{p.name}:</span>
-          <span className="font-semibold" style={{ color: p.color }}>{fmt(p.value)}</span>
+          <span className="font-semibold" style={{ color: p.color }}>
+            {fmt(p.value)}
+          </span>
         </div>
       ))}
     </div>
@@ -249,7 +279,11 @@ const ToggleGroup = ({ options, active, onSelect }) => (
         onClick={() => onSelect(opt)}
         style={
           active === opt
-            ? { background: CLR.accent, color: "#fff", fontFamily: "Manrope, sans-serif" }
+            ? {
+                background: CLR.accent,
+                color: "#fff",
+                fontFamily: "Manrope, sans-serif",
+              }
             : { fontFamily: "Manrope, sans-serif" }
         }
         className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all duration-200 ${
@@ -266,13 +300,19 @@ const ToggleGroup = ({ options, active, onSelect }) => (
 const KpiCard = ({ icon, label, value }) => {
   const IconComponent = icon;
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col justify-between"
-         style={{ minHeight: 140 }}>
+    <div
+      className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col justify-between"
+      style={{ minHeight: 140 }}
+    >
       <div
         className="w-10 h-10 rounded-lg flex items-center justify-center"
         style={{ background: CLR.primaryBg }}
       >
-        <IconComponent size={20} style={{ color: CLR.accent }} strokeWidth={2} />
+        <IconComponent
+          size={20}
+          style={{ color: CLR.accent }}
+          strokeWidth={2}
+        />
       </div>
       <div>
         <p
@@ -324,73 +364,89 @@ const TrenChart = ({
     },
   ];
 
-  const effectiveSeries = Array.isArray(series) && series.length ? series : defaultSeries;
+  const effectiveSeries =
+    Array.isArray(series) && series.length ? series : defaultSeries;
 
   return (
-  <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-    <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
-      <div>
-        <h2
-          className="text-base font-bold text-gray-900"
-          style={{ fontFamily: "Manrope, sans-serif" }}
-        >
-          {title}
-        </h2>
-        <p
-          className="text-xs text-gray-500 mt-0.5"
-          style={{ fontFamily: "Manrope, sans-serif" }}
-        >
-          {subtitle}
-        </p>
+    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+      <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
+        <div>
+          <h2
+            className="text-base font-bold text-gray-900"
+            style={{ fontFamily: "Manrope, sans-serif" }}
+          >
+            {title}
+          </h2>
+          <p
+            className="text-xs text-gray-500 mt-0.5"
+            style={{ fontFamily: "Manrope, sans-serif" }}
+          >
+            {subtitle}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">{rightControls}</div>
       </div>
-      <div className="flex items-center gap-2 flex-wrap">{rightControls}</div>
-    </div>
 
-    <ResponsiveContainer width="100%" height={260}>
-      <AreaChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-        <defs>
-          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%"  stopColor={gradientColor} stopOpacity={0.25} />
-            <stop offset="95%" stopColor={gradientColor} stopOpacity={0}    />
-          </linearGradient>
-        </defs>
-        <CartesianGrid vertical={false} stroke="#F3F4F6" strokeDasharray="4 4" />
-        <XAxis
-          dataKey="label"
-          tick={{ fontFamily: "Manrope, sans-serif", fontSize: 11, fill: "#9CA3AF" }}
-          axisLine={false}
-          tickLine={false}
-        />
-        <YAxis hide />
-        <Tooltip content={<CustomTooltip />} />
-        <Legend
-          wrapperStyle={{ fontFamily: "Manrope, sans-serif", fontSize: 12, paddingTop: 16 }}
-        />
-        {effectiveSeries.map((s) => (
-          <Area
-            key={s.dataKey}
-            type="monotone"
-            dataKey={s.dataKey}
-            name={s.name}
-            stroke={s.stroke}
-            strokeWidth={s.strokeWidth}
-            strokeDasharray={s.strokeDasharray}
-            fill={s.fill}
-            dot={s.dot}
-            activeDot={s.activeDot}
+      <ResponsiveContainer width="100%" height={260}>
+        <AreaChart
+          data={data}
+          margin={{ top: 4, right: 4, left: 0, bottom: 0 }}
+        >
+          <defs>
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={gradientColor} stopOpacity={0.25} />
+              <stop offset="95%" stopColor={gradientColor} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid
+            vertical={false}
+            stroke="#F3F4F6"
+            strokeDasharray="4 4"
           />
-        ))}
-      </AreaChart>
-    </ResponsiveContainer>
-  </div>
+          <XAxis
+            dataKey="label"
+            tick={{
+              fontFamily: "Manrope, sans-serif",
+              fontSize: 11,
+              fill: "#9CA3AF",
+            }}
+            axisLine={false}
+            tickLine={false}
+          />
+          <YAxis hide />
+          <Tooltip content={<CustomTooltip />} />
+          <Legend
+            wrapperStyle={{
+              fontFamily: "Manrope, sans-serif",
+              fontSize: 12,
+              paddingTop: 16,
+            }}
+          />
+          {effectiveSeries.map((s) => (
+            <Area
+              key={s.dataKey}
+              type="monotone"
+              dataKey={s.dataKey}
+              name={s.name}
+              stroke={s.stroke}
+              strokeWidth={s.strokeWidth}
+              strokeDasharray={s.strokeDasharray}
+              fill={s.fill}
+              dot={s.dot}
+              activeDot={s.activeDot}
+            />
+          ))}
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
   );
 };
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function DashboardUtama() {
   const [zisKategori, setZisKategori] = useState("Zakat Maal");
-  const [zisWaktu,    setZisWaktu]    = useState("Bulanan");
-  const [kasWaktu,    setKasWaktu]    = useState("Bulanan");
+  const [zisWaktu, setZisWaktu] = useState("Bulanan");
+  const [kasWaktu, setKasWaktu] = useState("Bulanan");
 
   const [kpiCounts, setKpiCounts] = useState({
     muzakki: 0,
@@ -453,9 +509,13 @@ export default function DashboardUtama() {
             anggota: Array.isArray(anggotaArr) ? anggotaArr.length : 0,
           });
           setZisPemasukanItems(Array.isArray(pemasukanArr) ? pemasukanArr : []);
-          setZisPengeluaranItems(Array.isArray(pengeluaranArr) ? pengeluaranArr : []);
+          setZisPengeluaranItems(
+            Array.isArray(pengeluaranArr) ? pengeluaranArr : [],
+          );
           setKasPemasukanItems(Array.isArray(kasMasukArr) ? kasMasukArr : []);
-          setKasPengeluaranItems(Array.isArray(kasKeluarArr) ? kasKeluarArr : []);
+          setKasPengeluaranItems(
+            Array.isArray(kasKeluarArr) ? kasKeluarArr : [],
+          );
 
           const firstError = settled.find(
             (x) => x.status === "rejected" && !is404(x.reason),
@@ -508,86 +568,120 @@ export default function DashboardUtama() {
     }));
   }, [kpiCounts]);
 
+  const user = useAuthStore((s) => s.user) || {};
+  const navigate = useNavigate();
+  const checkProfileCompletion = async () => {
+    try {
+      // cek apakah profile belum lengkap
+      const isIncomplete =
+        !user?.nama_lengkap ||
+        !user?.nomor_telpon ||
+        !user?.alamat ||
+        !user?.tanggal_lahir;
+
+      if (isIncomplete) {
+        const result = await Swal.fire({
+          icon: "warning",
+          title: "Lengkapi Data Anda",
+          text: "Silakan lengkapi profil terlebih dahulu sebelum menggunakan aplikasi.",
+          confirmButtonText: "Lengkapi Sekarang",
+          confirmButtonColor: "#10B981",
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+        });
+
+        if (result.isConfirmed) {
+          navigate("/pengaturan");
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    checkProfileCompletion();
+  }, []);
+
   return (
     <PageTransition>
-    <div
-      className="min-h-screen bg-gray-50 p-6 md:p-10"
-      style={{ fontFamily: "Manrope, sans-serif" }}
-    >
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
+      <div
+        className="min-h-screen bg-gray-50 p-6 md:p-10"
+        style={{ fontFamily: "Manrope, sans-serif" }}
+      >
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
 
-      {/* Header */}
-      <div className="mb-8">
-        <h1
-          className="text-2xl md:text-3xl font-bold"
-          style={{ color: CLR.primary }}
-        >
-          Dashboard Utama Dasawisma
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Selamat datang kembali, pantau aktivitas Dasawisma hari ini.
-        </p>
-      </div>
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-        {kpiCards.map((card) => (
-          <KpiCard
-            key={card.id}
-            icon={card.icon}
-            label={card.label}
-            value={card.value}
-          />
-        ))}
-      </div>
-
-      {errorMsg && (
-        <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl">
-          <p className="text-sm font-bold text-red-700">{errorMsg}</p>
+        {/* Header */}
+        <div className="mb-8">
+          <h1
+            className="text-2xl md:text-3xl font-bold"
+            style={{ color: CLR.primary }}
+          >
+            Dashboard Utama Dasawisma
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Selamat datang kembali, pantau aktivitas Dasawisma hari ini.
+          </p>
         </div>
-      )}
 
-      {/* Charts */}
-      <div className="flex flex-col gap-6">
-        
-        {/* Chart 1 – ZIS */}
-        <TrenChart
-          title="Tren Transaksi ZIS"
-          subtitle={`Laporan akumulasi dana ${zisWaktu.toLowerCase()} ${new Date().getFullYear()}`}
-          data={zisChartData}
-          gradientId="gradZIS"
-          rightControls={
-            <>
-              <ToggleGroup
-                options={["Zakat Maal", "Zakat Fitrah", "Infaq", "Sedekah"]}
-                active={zisKategori}
-                onSelect={setZisKategori} 
-              />
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+          {kpiCards.map((card) => (
+            <KpiCard
+              key={card.id}
+              icon={card.icon}
+              label={card.label}
+              value={card.value}
+            />
+          ))}
+        </div>
+
+        {errorMsg && (
+          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl">
+            <p className="text-sm font-bold text-red-700">{errorMsg}</p>
+          </div>
+        )}
+
+        {/* Charts */}
+        <div className="flex flex-col gap-6">
+          {/* Chart 1 – ZIS */}
+          <TrenChart
+            title="Tren Transaksi ZIS"
+            subtitle={`Laporan akumulasi dana ${zisWaktu.toLowerCase()} ${new Date().getFullYear()}`}
+            data={zisChartData}
+            gradientId="gradZIS"
+            rightControls={
+              <>
+                <ToggleGroup
+                  options={["Zakat Maal", "Zakat Fitrah", "Infaq", "Sedekah"]}
+                  active={zisKategori}
+                  onSelect={setZisKategori}
+                />
+                <ToggleGroup
+                  options={["Bulanan", "Tahunan"]}
+                  active={zisWaktu}
+                  onSelect={setZisWaktu}
+                />
+              </>
+            }
+          />
+
+          {/* Chart 2 – Kas */}
+          <TrenChart
+            title="Tren Transaksi Kas Dasawisma"
+            subtitle={`Laporan akumulasi dana ${kasWaktu.toLowerCase()} ${new Date().getFullYear()}`}
+            data={kasChartData}
+            gradientId="gradKas"
+            rightControls={
               <ToggleGroup
                 options={["Bulanan", "Tahunan"]}
-                active={zisWaktu}
-                onSelect={setZisWaktu} 
+                active={kasWaktu}
+                onSelect={setKasWaktu}
               />
-            </>
-          }
-        />
-
-        {/* Chart 2 – Kas */}
-        <TrenChart
-          title="Tren Transaksi Kas Dasawisma"
-          subtitle={`Laporan akumulasi dana ${kasWaktu.toLowerCase()} ${new Date().getFullYear()}`}
-          data={kasChartData}
-          gradientId="gradKas"
-          rightControls={
-            <ToggleGroup
-              options={["Bulanan", "Tahunan"]}
-              active={kasWaktu}
-              onSelect={setKasWaktu}
-            />
-          }
-        />
+            }
+          />
+        </div>
       </div>
-    </div>
     </PageTransition>
   );
 }

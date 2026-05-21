@@ -21,8 +21,8 @@ const getInitials = (name) => {
 
 const roleToLabel = (role) => {
   if (!role) return "";
-  if (role === "koordinator dasawisma") return "Koordinator Dasawisma";
-  if (role === "anggota dasawisma") return "Anggota Dasawisma";
+  if (role === "penanggung jawab dasawisma") return "penanggung jawab dasawisma";
+  if (role === "kader dasawisma") return "kader dasawisma";
   if (role === "amil zakat") return "Amil Zakat";
   return role
     .split(/\s+/)

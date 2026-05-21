@@ -5,6 +5,11 @@ async function getAllAnggotaDasawisma() {
   return res.data;
 }
 
+async function getAnggotaDasawismaById(id) {
+  const res = await api.get(`/dasawisma/get/getAnggota/${id}`);
+  return res.data;
+}
+
 async function createAnggotaDasawisma(payload) {
   const res = await api.post("/dasawisma/post/createAnggota", payload);
   return res.data;
@@ -31,6 +36,7 @@ async function updatePassword(arg1, arg2) {
 
 const dasawismaService = {
   getAllAnggotaDasawisma,
+  getAnggotaDasawismaById,
   createAnggotaDasawisma,
   updateAnggotaDasawisma,
   deleteAnggotaDasawisma,
