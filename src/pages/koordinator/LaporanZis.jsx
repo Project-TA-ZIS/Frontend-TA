@@ -401,6 +401,19 @@ export default function KelolaZis() {
           },
         });
 
+<<<<<<< HEAD
+        const totalPemasukan = filteredData
+          .filter((item) => item.tipe?.toLowerCase() === "pemasukan")
+          .reduce((sum, item) => sum + Number(item.jumlah || 0), 0);
+
+        const totalPengeluaran = filteredData
+          .filter((item) => item.tipe?.toLowerCase() === "pengeluaran")
+          .reduce((sum, item) => sum + Number(item.jumlah || 0), 0);
+
+        const total = filteredData.reduce(
+          (sum, item) => sum + Number(item.jumlah || 0),
+          0,
+=======
         const totalPemasukan = filteredTransactions
           .filter(
             (item) =>
@@ -439,9 +452,28 @@ export default function KelolaZis() {
           `Total Pemasukan: ${formatRupiah(totalPemasukan)}`,
           14,
           finalY,
+>>>>>>> main
+        );
+        const finalY = doc.lastAutoTable.finalY + 10;
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+
+        doc.text(
+<<<<<<< HEAD
+          `Total Pemasukan: ${formatRupiah(totalPemasukan)}`,
+          14,
+          finalY,
         );
 
         doc.text(
+          `Total Pengeluaran: ${formatRupiah(totalPengeluaran)}`,
+          14,
+          finalY + 7,
+        );
+
+        doc.text(`Total Transaksi: ${formatRupiah(total)}`, 14, finalY + 14);
+=======
           `Total Pengeluaran: ${formatRupiah(totalPengeluaran)}`,
           14,
           finalY + 7,
@@ -453,6 +485,7 @@ export default function KelolaZis() {
           finalY + 14,
         );
         doc.text(`Total Zakat Fitrah Beras: ${totalBeras} KG`, 14, finalY + 21);
+>>>>>>> main
 
         // Save
         doc.save(`riwayat-zis-${Date.now()}.pdf`);
@@ -618,6 +651,18 @@ export default function KelolaZis() {
               Unduh Data
             </button>
           </div>
+<<<<<<< HEAD
+
+          {/* Action Button */}
+          <button
+            onClick={handleDownloadPDF}
+            className="flex items-center justify-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-2 px-4 rounded-lg transition-colors shadow-sm text-sm w-full md:w-auto"
+          >
+            <Download size={16} />
+            Unduh Data
+          </button>
+=======
+>>>>>>> main
         </div>
 
         {/* ─── Search Bar ─── */}
@@ -640,8 +685,13 @@ export default function KelolaZis() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/50">
+<<<<<<< HEAD
+                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    no
+=======
                   <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
                     ID TRANSAKSI
+>>>>>>> main
                   </th>
                   <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
                     TANGGAL
@@ -665,13 +715,22 @@ export default function KelolaZis() {
                   <tr>
                     <td
                       colSpan="6"
+<<<<<<< HEAD
+                      className="text-center py-8 text-sm font-semibold text-gray-500"
+=======
                       className="px-6 py-8 text-center text-sm font-medium text-gray-500"
+>>>>>>> main
                     >
                       Memuat data...
                     </td>
                   </tr>
+<<<<<<< HEAD
+                ) : paginatedData.length > 0 ? (
+                  paginatedData.map((item, index) => (
+=======
                 ) : paginatedTransactions.length > 0 ? (
                   paginatedTransactions.map((trx, index) => (
+>>>>>>> main
                     <tr
                       key={trx.id}
                       className="hover:bg-emerald-50/30 transition-colors"
@@ -730,8 +789,14 @@ export default function KelolaZis() {
                         colSpan="6"
                         className="px-6 py-8 text-center text-sm font-medium text-gray-500"
                       >
+<<<<<<< HEAD
+                        Belum ada data transaksi ZIS. Klik tombol "Catat
+                        Pemasukan ZIS" atau "Catat Pengeluaran ZIS" untuk
+                        menambahkan data pertama Anda.
+=======
                         Data ZIS belum tersedia. Klik tombol "Pemasukan" atau
                         "Pengeluaran" untuk menambahkan data pertama Anda.
+>>>>>>> main
                       </td>
                     )}
                   </tr>

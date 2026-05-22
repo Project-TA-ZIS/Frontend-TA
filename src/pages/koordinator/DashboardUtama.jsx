@@ -548,7 +548,6 @@ export default function DashboardUtama() {
         const pengeluaranArr = pick(5);
         const kasMasukArr = pick(6, (v) => v?.data);
         const kasKeluarArr = pick(7, (v) => v?.data);
-
         if (!cancelled) {
           setKpiCounts({
             muzakki: Array.isArray(muzakkiArr) ? muzakkiArr.length : 0,
