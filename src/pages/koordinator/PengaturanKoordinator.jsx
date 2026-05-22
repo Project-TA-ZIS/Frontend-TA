@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   User,
   Mail,
@@ -9,28 +9,59 @@ import {
   Calendar,
   Home,
 } from "lucide-react";
-import PageTransition from "../../components/PageTransition";
+import PageTransition from "../../components/shared/PageTransition";
 import useAuthStore from "../../store/useAuthStore";
 import { formattedDate, formatDateInput } from "../../utils/formattedDate";
 import dasawismaService from "../../services/dasawisma.service";
 import Swal from "sweetalert2";
+import authService from "../../services/auth.service";
 
 export default function PengaturanKoordinator() {
   const user = useAuthStore((s) => s.user) || {};
   const role = useAuthStore((s) => s.role);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUserLoaded, setIsUserLoaded] = useState(false);
 
   const [formData, setFormData] = useState({
-    nama:
-      user?.nama_lengkap || user?.name || user?.nama || user?.username || "",
-    email: user?.email || "",
-    role: user?.roles || "",
-    nik: user?.nik || "",
-    tempat_lahir: user?.tempat_lahir || "",
-    tanggal_lahir: user?.tanggal_lahir || "",
-    telp: user?.nomor_telpon || "",
-    alamat: user?.alamat || "",
+    nama: "",
+    email: "",
+    role: "",
+    nik: "",
+    tempat_lahir: "",
+    tanggal_lahir: "",
+    telp: "",
+    alamat: "",
   });
+
+  const loadUser = async () => {
+    try {
+      const updatedUser = await authService.getMe();
+
+      const userData = updatedUser?.user || updatedUser;
+
+      useAuthStore.setState({ user: userData });
+
+      setFormData({
+        nama:
+          userData?.nama_lengkap ||
+          userData?.name ||
+          userData?.nama ||
+          userData?.username ||
+          "",
+        email: userData?.email || "",
+        role: userData?.roles || "",
+        nik: userData?.nik || "",
+        tempat_lahir: userData?.tempat_lahir || "",
+        tanggal_lahir: userData?.tanggal_lahir || "",
+        telp: userData?.nomor_telpon || "",
+        alamat: userData?.alamat || "",
+      });
+
+      setIsUserLoaded(true);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const [errors, setErrors] = useState({});
   const [isSuccess, setIsSuccess] = useState(false);
@@ -185,7 +216,6 @@ export default function PengaturanKoordinator() {
     if (Object.keys(errors).length > 0) return;
 
     try {
-
       const data = {
         oldPassword: passwordData.passwordLama,
         newPassword: passwordData.passwordBaru,
@@ -220,6 +250,10 @@ export default function PengaturanKoordinator() {
       passwordBaru: "",
     });
   };
+
+  useEffect(() => {
+    loadUser();
+  }, []);
 
   return (
     <PageTransition>

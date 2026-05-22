@@ -11,7 +11,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import PageTransition from "../../components/PageTransition";
+import PageTransition from "../../components/shared/PageTransition";
 import LogoDasawisma from "../../assets/Logo.svg";
 import Footer from "../../components/layout/Footer";
 

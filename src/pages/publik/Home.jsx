@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import PageTransition from "../../components/PageTransition";
+import PageTransition from "../../components/shared/PageTransition";
 import LogoDasawisma from "../../assets/Logo.svg";
 import Footer from "../../components/layout/Footer";
 

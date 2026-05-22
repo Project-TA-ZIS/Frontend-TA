@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Plus, Search, Edit, Trash2, X, Info } from "lucide-react";
-import PageTransition from "../../components/PageTransition";
+import PageTransition from "../../components/shared/PageTransition";
 import dasawismaService from "../../services/dasawisma.service";
 import Swal from "sweetalert2";
 import { formattedDate } from "../../utils/formattedDate";

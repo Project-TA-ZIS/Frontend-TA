@@ -10,3 +10,9 @@ export async function getMe() {
 	return res.data;
 }
 
+const authService = {
+	login,
+	getMe
+};
+
+export default authService;

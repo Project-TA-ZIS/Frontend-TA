@@ -44,7 +44,7 @@ api.interceptors.response.use(
 					isAuthAlertShowing = true;
 					Swal.fire({
 						title: 'Sesi Berakhir',
-						text: 'Token login sudah expired / tidak valid. Silakan login ulang.',
+						text: 'Silakan login ulang.',
 						icon: 'warning',
 						confirmButtonText: 'Login',
 						confirmButtonColor: '#10B981',

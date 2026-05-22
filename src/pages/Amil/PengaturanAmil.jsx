@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { User, Mail, Phone, Lock, Camera, Check } from "lucide-react";
-import PageTransition from "../../components/PageTransition";
+import PageTransition from "../../components/shared/PageTransition";
 import amilService from "../../services/amil.service";
 import useAuthStore from "../../store/useAuthStore";
 import { formattedDate, formatDateInput } from "../../utils/formattedDate";
 import Swal from "sweetalert2";
+import authService from "../../services/auth.service";
 
 export default function PengaturanAmil() {
   const user = useAuthStore((s) => s.user) || {};
@@ -12,13 +13,41 @@ export default function PengaturanAmil() {
   const [errors, setErrors] = useState({});
   const [isSuccess, setIsSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUserLoaded, setIsUserLoaded] = useState(false);
   const [formData, setFormData] = useState({
-    nama: user?.nama_lengkap || "",
-    email: user?.email || "",
-    telp: user?.nomor_telpon || "",
-    alamat: user?.alamat || "",
-    role: role || "",
+    nama: "",
+    email: "",
+    telp: "",
+    alamat: "",
+    role: "",
   });
+
+  const loadUser = async () => {
+    try {
+      const updatedUser = await authService.getMe();
+
+      const userData = updatedUser?.user || updatedUser;
+
+      useAuthStore.setState({ user: userData });
+
+      setFormData({
+        nama:
+          userData?.nama_lengkap ||
+          userData?.name ||
+          userData?.nama ||
+          userData?.username ||
+          "",
+        email: userData?.email || "",
+        alamat: userData?.alamat || "",
+        telp: userData?.nomor_telpon || "",
+        role: userData?.roles || "",
+      });
+
+      setIsUserLoaded(true);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -193,6 +222,10 @@ export default function PengaturanAmil() {
       passwordBaru: "",
     });
   };
+
+  useEffect(() => {
+    loadUser();
+  }, []);
 
   return (
     <PageTransition>

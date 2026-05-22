@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
+<<<<<<< HEAD
 import { Plus, Search, Edit, Trash2, X, Info } from "lucide-react";
 import PageTransition from "../../components/PageTransition";
+=======
+import { Plus, Search, Edit, Trash2, X } from "lucide-react";
+import PageTransition from "../../components/shared/PageTransition";
+>>>>>>> main
 import amilService from "../../services/amil.service";
 import Swal from "sweetalert2";
 import { formattedDate } from "../../utils/formattedDate";
