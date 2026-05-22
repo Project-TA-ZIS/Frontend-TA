@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Download, Search, AlertCircle, CheckCircle2, X } from "lucide-react";
-import PageTransition from "../../components/PageTransition";
+import PageTransition from "../../components/shared/PageTransition";
 import LogoDasawisma from "../../assets/Logo.svg";
 import LogoDasawismaPNG from "../../assets/Logo.png";
 import Footer from "../../components/layout/Footer";

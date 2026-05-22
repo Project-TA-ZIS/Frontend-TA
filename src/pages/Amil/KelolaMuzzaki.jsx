@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
+import PageTransition from "../../components/shared/PageTransition";
 import { Plus, Search, Edit, Trash2, X } from "lucide-react";
-import PageTransition from "../../components/PageTransition";
 import {
   createMuzakki,
   deleteMuzakki,
@@ -193,43 +193,23 @@ export default function KelolaMuzzaki() {
 
     if (!(formData.email || "").trim()) {
       newErrors.email = "Alamat email wajib diisi!";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email || "")) {
       newErrors.email = "Format email tidak valid!";
-    }
-
-    if (!editingId) {
-      if (!(formData.password || "").trim()) {
-        newErrors.password = "Password wajib diisi!";
-      } else if (formData.password.length < 6) {
-        newErrors.password = "Password minimal 6 karakter!";
-      }
     }
 
     if (!(formData.telp || "").trim()) {
       newErrors.telp = "Nomor telepon wajib diisi!";
-    } else if (!/^[0-9]+$/.test(formData.telp)) {
+    } else if (!/^[0-9]+$/.test(formData.telp || "")) {
       newErrors.telp = "Nomor telepon hanya boleh angka!";
-    } else if (formData.telp.length < 10) {
+    } else if ((formData.telp || "").length < 10) {
       newErrors.telp = "Nomor telepon tidak valid!";
-    }
-
-    if (!formData.jenisKelamin) {
-      newErrors.jenisKelamin = "Jenis kelamin wajib dipilih!";
-    }
-
-    if (!(formData.alamat || "").trim()) {
-      newErrors.alamat = "Alamat wajib diisi!";
-    }
-
-    if (!(formData.npwp || "").trim()) {
-      newErrors.npwp = "NPWP wajib diisi!";
     }
 
     if (!(formData.nik || "").trim()) {
       newErrors.nik = "NIK wajib diisi!";
-    } else if (!/^[0-9]+$/.test(formData.nik)) {
+    } else if (!/^[0-9]+$/.test(formData.nik || "")) {
       newErrors.nik = "NIK hanya boleh angka!";
-    } else if (formData.nik.length !== 16) {
+    } else if ((formData.nik || "").length !== 16) {
       newErrors.nik = "NIK harus 16 digit!";
     }
 
@@ -239,8 +219,6 @@ export default function KelolaMuzzaki() {
 
     if (!formData.tanggalLahir) {
       newErrors.tanggalLahir = "Tanggal lahir wajib diisi!";
-    } else if (isNaN(Date.parse(formData.tanggalLahir))) {
-      newErrors.tanggalLahir = "Tanggal lahir tidak valid!";
     }
 
     if (!(formData.pekerjaan || "").trim()) {
@@ -302,7 +280,7 @@ export default function KelolaMuzzaki() {
           Swal.fire({
             icon: "error",
             title: "Oops...",
-            text: msg || "Terjadi kesalahan pada server",
+            text: "Terjadi kesalahan pada server",
             confirmButtonColor: "#EF4444",
           });
           return;
@@ -341,8 +319,33 @@ export default function KelolaMuzzaki() {
   };
 
   const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingId(null);
+    Swal.fire({
+      title: "Tutup Form?",
+      text: "Perubahan yang belum disimpan akan hilang.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#10B981",
+      cancelButtonColor: "#EF4444",
+      confirmButtonText: "Ya, Tutup",
+      cancelButtonText: "Batal",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setIsModalOpen(false);
+        setEditingId(null);
+        setFormData({
+          nama: "",
+          email: "",
+          telp: "",
+          alamat: "",
+          npwp: "",
+          nik: "",
+          tempatLahir: "",
+          tanggalLahir: "",
+          jenisKelamin: "laki-laki",
+          pekerjaan: "",
+        });
+      }
+    });
   };
 
   return (
@@ -475,12 +478,22 @@ export default function KelolaMuzzaki() {
                   ))
                 ) : (
                   <tr>
-                    <td
-                      colSpan="6"
-                      className="px-6 py-8 text-center text-sm font-medium text-gray-500"
-                    >
-                      Tidak ada data yang cocok dengan pencarian "{searchQuery}"
-                    </td>
+                    {searchQuery ? (
+                      <td
+                        colSpan="6"
+                        className="px-6 py-8 text-center text-sm font-medium text-gray-500"
+                      >
+                        Tidak ada data yang cocok dengan pencarian "
+                        {searchQuery}"
+                      </td>
+                    ) : (
+                      <td
+                        colSpan="6"
+                        className="px-6 py-8 text-center text-sm font-medium text-gray-500"
+                      >
+                        Belum ada data muzzaki. Klik tombol "Tambah Muzzaki"
+                      </td>
+                    )}
                   </tr>
                 )}
               </tbody>

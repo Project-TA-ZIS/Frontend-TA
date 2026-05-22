@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { HandHeart, Users, Wallet, UsersRound } from "lucide-react";
-import PageTransition from "../../components/PageTransition";
+import PageTransition from "../../components/shared/PageTransition";
 import muzakkiService from "../../services/muzakki.service";
 import mustahikService from "../../services/mustahik.service";
 import dasawismaService from "../../services/dasawisma.service";
@@ -21,6 +21,8 @@ import pemasukanDasawismaService from "../../services/pemasukanDasawisma.service
 import pengeluaranDasawismaService from "../../services/pengeluaranDasawisma.service";
 import useAuthStore from "../../store/useAuthStore";
 import Swal from "sweetalert2";
+import authService from "../../services/auth.service";
+
 
 import { useNavigate } from "react-router-dom";
 
@@ -70,11 +72,31 @@ const getMaxYearFromItems = (items, dateKey) => {
 
 const toUiZisKategori = (kategori) => {
   const k = (kategori || "").toString().trim().toLowerCase();
-  if (!k) return null;
-  if (k.includes("zakat mal")) return "Zakat Maal";
-  if (k.includes("zakat fitrah")) return "Zakat Fitrah";
-  if (k === "infaq") return "Infaq";
-  if (k === "shodaqoh") return "Sedekah";
+
+  const normalized = k.replace(/[_-]/g, " ");
+
+  if (!normalized) return null;
+
+  if (normalized.includes("zakat mal")) {
+    return "Zakat Maal";
+  }
+
+  if (normalized.includes("zakat fitrah uang")) {
+    return "Zakat Fitrah Uang";
+  }
+
+  if (normalized.includes("zakat fitrah beras")) {
+    return "Zakat Fitrah Beras";
+  }
+
+  if (normalized === "infaq") {
+    return "Infaq";
+  }
+
+  if (normalized === "shodaqoh" || normalized === "sedekah") {
+    return "Sedekah";
+  }
+
   return null;
 };
 
@@ -104,13 +126,13 @@ const buildZisSeries = ({
     result[idx][key] += amount;
   };
 
-  // For Bulanan: if current year has no data, show the latest year that exists in data.
   const relevantMasuk = (pemasukanItems || []).filter(
     (item) => toUiZisKategori(item?.kategori) === uiKategori,
   );
   const relevantKeluar = (pengeluaranItems || []).filter(
     (item) => toUiZisKategori(item?.kategori) === uiKategori,
   );
+
   const latestYearInData = Math.max(
     getMaxYearFromItems(relevantMasuk, "tanggal_penghimpunan") ?? -Infinity,
     getMaxYearFromItems(relevantKeluar, "tanggal_penyaluran") ?? -Infinity,
@@ -150,11 +172,17 @@ const buildZisSeries = ({
     }
   });
 
-  // Ensure integers for nicer tooltip formatting
   return result.map((row) => ({
     ...row,
-    pemasukan: Math.round(row.pemasukan),
-    pengeluaran: Math.round(row.pengeluaran),
+    pemasukan:
+      uiKategori === "Zakat Fitrah Beras"
+        ? Number(row.pemasukan.toFixed(1))
+        : Math.round(row.pemasukan),
+
+    pengeluaran:
+      uiKategori === "Zakat Fitrah Beras"
+        ? Number(row.pengeluaran.toFixed(1))
+        : Math.round(row.pengeluaran),
   }));
 };
 
@@ -238,31 +266,39 @@ const CLR = {
   danger: "#EF4444",
 };
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-const fmt = (n) =>
-  new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(n);
-
-const CustomTooltip = ({ active, payload, label }) => {
+const CustomTooltip = ({ active, payload, label, kategori }) => {
   if (!active || !payload?.length) return null;
+
+  const fmt = (n, kategori) => {
+    if (kategori === "Zakat Fitrah Beras") {
+      return `${n} KG`;
+    }
+
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      maximumFractionDigits: 0,
+    }).format(n);
+  };
+
   return (
     <div
       style={{ fontFamily: "Manrope, sans-serif" }}
       className="bg-white border border-gray-100 rounded-xl shadow-lg p-3 text-sm"
     >
       <p className="font-bold text-gray-700 mb-2">{label}</p>
+
       {payload.map((p) => (
         <div key={p.name} className="flex items-center gap-2 mb-1">
           <span
             className="w-2 h-2 rounded-full inline-block"
             style={{ background: p.color }}
           />
+
           <span className="text-gray-500 capitalize">{p.name}:</span>
+
           <span className="font-semibold" style={{ color: p.color }}>
-            {fmt(p.value)}
+            {fmt(p.value, kategori)}
           </span>
         </div>
       ))}
@@ -341,6 +377,7 @@ const TrenChart = ({
   rightControls,
   gradientColor = CLR.accent,
   series,
+  kategori,
 }) => {
   const defaultSeries = [
     {
@@ -414,7 +451,7 @@ const TrenChart = ({
             tickLine={false}
           />
           <YAxis hide />
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={<CustomTooltip kategori={kategori} />} />
           <Legend
             wrapperStyle={{
               fontFamily: "Manrope, sans-serif",
@@ -447,6 +484,8 @@ export default function DashboardUtama() {
   const [zisKategori, setZisKategori] = useState("Zakat Maal");
   const [zisWaktu, setZisWaktu] = useState("Bulanan");
   const [kasWaktu, setKasWaktu] = useState("Bulanan");
+  const user = useAuthStore((s) => s.user) || {};
+  const navigate = useNavigate();
 
   const [kpiCounts, setKpiCounts] = useState({
     muzakki: 0,
@@ -463,9 +502,14 @@ export default function DashboardUtama() {
   useEffect(() => {
     let cancelled = false;
 
-    const unwrapToArray = (res, arraySelector) => {
-      const arr = arraySelector?.(res);
-      return Array.isArray(arr) ? arr : [];
+    const unwrapToArray = (value) => {
+      if (Array.isArray(value)) return value;
+
+      if (Array.isArray(value?.data)) {
+        return value.data;
+      }
+
+      return [];
     };
 
     const is404 = (err) => err?.response?.status === 404;
@@ -484,20 +528,24 @@ export default function DashboardUtama() {
           pengeluaranDasawismaService.getAllPengeluaran(),
         ]);
 
-        const pick = (idx, selector) => {
+        const pick = (idx) => {
           const r = settled[idx];
-          if (r.status === "fulfilled") return unwrapToArray(r.value, selector);
+
+          if (r.status === "fulfilled") {
+            return unwrapToArray(r.value);
+          }
+
           if (is404(r.reason)) return [];
-          // non-404 errors are reported, but we still try to render what we can
+
           return null;
         };
 
-        const muzakkiArr = pick(0, (v) => v?.data);
-        const mustahikArr = pick(1, (v) => v?.data);
-        const amilArr = pick(2, (v) => v?.data);
-        const anggotaArr = pick(3, (v) => v?.data);
-        const pemasukanArr = pick(4, (v) => v?.data);
-        const pengeluaranArr = pick(5, (v) => v?.data);
+        const muzakkiArr = pick(0);
+        const mustahikArr = pick(1);
+        const amilArr = pick(2);
+        const anggotaArr = pick(3);
+        const pemasukanArr = pick(4);
+        const pengeluaranArr = pick(5);
         const kasMasukArr = pick(6, (v) => v?.data);
         const kasKeluarArr = pick(7, (v) => v?.data);
 
@@ -568,16 +616,18 @@ export default function DashboardUtama() {
     }));
   }, [kpiCounts]);
 
-  const user = useAuthStore((s) => s.user) || {};
-  const navigate = useNavigate();
   const checkProfileCompletion = async () => {
     try {
-      // cek apakah profile belum lengkap
+      const updatedUser = await authService.getMe();
+
+      useAuthStore.setState({ user: updatedUser?.user || updatedUser });
+
+      // pakai updatedUser, bukan user lama
       const isIncomplete =
-        !user?.nama_lengkap ||
-        !user?.nomor_telpon ||
-        !user?.alamat ||
-        !user?.tanggal_lahir;
+        !updatedUser?.user?.nama_lengkap ||
+        !updatedUser?.user?.nomor_telpon ||
+        !updatedUser?.user?.alamat ||
+        !updatedUser?.user?.tanggal_lahir;
 
       if (isIncomplete) {
         const result = await Swal.fire({
@@ -650,13 +700,21 @@ export default function DashboardUtama() {
             subtitle={`Laporan akumulasi dana ${zisWaktu.toLowerCase()} ${new Date().getFullYear()}`}
             data={zisChartData}
             gradientId="gradZIS"
+            kategori={zisKategori}
             rightControls={
               <>
                 <ToggleGroup
-                  options={["Zakat Maal", "Zakat Fitrah", "Infaq", "Sedekah"]}
+                  options={[
+                    "Zakat Maal",
+                    "Zakat Fitrah Uang",
+                    "Zakat Fitrah Beras",
+                    "Infaq",
+                    "Sedekah",
+                  ]}
                   active={zisKategori}
                   onSelect={setZisKategori}
                 />
+
                 <ToggleGroup
                   options={["Bulanan", "Tahunan"]}
                   active={zisWaktu}

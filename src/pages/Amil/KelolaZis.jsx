@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
+import PageTransition from "../../components/shared/PageTransition";
 import { Download, Plus, Search, X } from "lucide-react";
-import PageTransition from "../../components/PageTransition";
 import Swal from "sweetalert2";
 import Select from "react-select";
 import muzakkiService from "../../services/muzakki.service";
@@ -14,6 +14,9 @@ import pengeluaranZISService, {
 import { formatRupiah } from "../../utils/formatRupiah";
 import { formattedDate } from "../../utils/formattedDate";
 import totalZISService from "../../services/totalZIS.service";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import logoDasawisma from "../../assets/logo.png";
 
 const PAGE_SIZE = 5;
 
@@ -55,7 +58,8 @@ export default function KelolaZis() {
     const k = (kategoriApi || "").toString().trim().toLowerCase();
     if (!k) return "-";
     if (k.includes("zakat mal")) return "Zakat Maal";
-    if (k.includes("zakat fitrah")) return "Zakat Fitrah";
+    if (k.includes("zakat fitrah uang")) return "Zakat Fitrah Uang";
+    if (k.includes("zakat fitrah beras")) return "Zakat Fitrah Beras";
     if (k === "infaq") return "Infaq";
     if (k === "shodaqoh") return "Sedekah";
     return kategoriApi;
@@ -64,7 +68,8 @@ export default function KelolaZis() {
   const toApiKategori = (kategoriUi) => {
     const k = (kategoriUi || "").toString().trim().toLowerCase();
     if (k === "zakat maal" || k === "zakat mal") return "zakat mal";
-    if (k === "zakat fitrah") return "zakat fitrah uang";
+    if (k === "zakat fitrah uang") return "zakat fitrah uang";
+    if (k === "zakat fitrah beras") return "zakat fitrah beras";
     if (k === "infaq") return "infaq";
     if (k === "sedekah" || k === "shodaqoh") return "shodaqoh";
     return "infaq";
@@ -211,15 +216,14 @@ export default function KelolaZis() {
     }
   };
 
-  useEffect(() => {
-    loadTotalZIS();
-    loadData();
-  }, []);
-
   // ─── Perhitungan Otomatis (Real-time) ───
   const totalPenerimaan = transactions
-    .filter((t) => t.tipe === "Pemasukan")
-    .reduce((acc, curr) => acc + curr.nominal, 0);
+    .filter(
+      (item) =>
+        item.tipe?.toLowerCase() === "pemasukan" &&
+        item.kategori !== "Zakat Fitrah Beras",
+    )
+    .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
 
   const totalPenyaluran = transactions
     .filter((t) => t.tipe === "Pengeluaran")
@@ -318,6 +322,30 @@ export default function KelolaZis() {
     });
   };
 
+  const handleCloseModal = () => {
+    Swal.fire({
+      title: "Tutup Form?",
+      text: "Perubahan yang belum disimpan akan hilang.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#10B981",
+      cancelButtonColor: "#EF4444",
+      confirmButtonText: "Ya, Tutup",
+      cancelButtonText: "Batal",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setIsModalOpen(false);
+        setEditingId(null);
+        setFormData({
+          tanggal: "",
+          kategori: "Zakat Maal",
+          deskripsi: "",
+          nominal: "",
+        });
+      }
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -372,6 +400,7 @@ export default function KelolaZis() {
         nominal: "",
       });
       await loadData();
+      await loadTotalZIS();
 
       await Swal.fire({
         title: "Berhasil",
@@ -411,6 +440,158 @@ export default function KelolaZis() {
     return found ? Number(found.jumlah_keseluruhan) : 0;
   };
 
+  const handleDownloadPDF = () => {
+    Swal.fire({
+      title: "Unduh Riwayat ZIS",
+      text: "Apakah Anda ingin mengunduh riwayat ZIS dalam format PDF?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Unduh PDF",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#10B981",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+
+        // ================= HEADER =================
+
+        // Tulisan kiri
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(20);
+        doc.setTextColor(15, 118, 110);
+        doc.text("DASAWISMA", 14, 20);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text("LENTENG AGUNG", 14, 27);
+
+        // Logo kanan
+        const logoWidth = 80;
+        const logoHeight = 25;
+
+        doc.addImage(
+          logoDasawisma,
+          "PNG",
+          pageWidth - logoWidth, // posisi kanan
+          10,
+          logoWidth,
+          logoHeight,
+        );
+
+        // Garis bawah
+        doc.setDrawColor(220);
+        doc.line(20, 36, pageWidth - 14, 36);
+
+        // tanggal cetak
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.setTextColor(120);
+
+        doc.text(
+          `Tanggal Cetak: ${new Date().toLocaleDateString("id-ID")}`,
+          20,
+          43,
+        );
+
+        autoTable(doc, {
+          startY: 50,
+          head: [
+            [
+              "No",
+              "tanggal",
+              "nama",
+              "kategori",
+              "Deskripsi",
+              "Tipe",
+              "jumlah",
+            ],
+          ],
+          body: filteredTransactions.map((tx, index) => [
+            index + 1,
+            formattedDate(tx.tanggal),
+            tx.nama || "-",
+            tx.kategori || "-",
+            tx.deskripsi || "-",
+            tx.tipe || "-",
+            tx.kategori === "Zakat Fitrah Beras"
+              ? `${tx.nominal} KG`
+              : formatRupiah(tx.nominal),
+          ]),
+          styles: {
+            fontSize: 9,
+          },
+          headStyles: {
+            fillColor: [16, 185, 129], // emerald
+          },
+        });
+
+        const totalPemasukan = filteredTransactions
+          .filter(
+            (item) =>
+              item.tipe?.toLowerCase() === "pemasukan" &&
+              item.kategori !== "Zakat Fitrah Beras",
+          )
+          .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
+
+        const totalPengeluaran = filteredTransactions
+          .filter((item) => item.tipe?.toLowerCase() === "pengeluaran")
+          .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
+
+        const total = filteredTransactions
+          .filter(
+            (item) =>
+              item.kategori !== "Zakat Fitrah Beras" &&
+              !Number.isNaN(Number(item.nominal)),
+          )
+          .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
+        const totalBeras = filteredTransactions
+          .filter((item) => item.kategori === "Zakat Fitrah Beras")
+          .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
+        const totalBerasPDF = filteredTransactions
+          .filter(
+            (item) =>
+              item.kategori === "Zakat Fitrah Beras" &&
+              item.tipe?.toLowerCase() === "pemasukan",
+          )
+          .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
+        const finalY = doc.lastAutoTable.finalY + 10;
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+
+        doc.text(
+          `Total Pemasukan: ${formatRupiah(totalPemasukan)}`,
+          14,
+          finalY,
+        );
+
+        doc.text(
+          `Total Pengeluaran: ${formatRupiah(totalPengeluaran)}`,
+          14,
+          finalY + 7,
+        );
+
+        doc.text(
+          `Total Transaksi Keuangan: ${formatRupiah(total)}`,
+          14,
+          finalY + 14,
+        );
+        doc.text(`Total Zakat Fitrah Beras: ${totalBeras} KG`, 14, finalY + 21);
+
+        // Save
+        doc.save(`riwayat-zis-${Date.now()}.pdf`);
+      }
+    });
+  };
+  const isBeras = formData.kategori === "Zakat Fitrah Beras";
+
+  useEffect(() => {
+    loadTotalZIS();
+    loadData();
+  }, []);
+
   return (
     <PageTransition>
       <div className="min-h-screen bg-gray-50 p-6 md:p-10 font-['Manrope']">
@@ -425,12 +606,6 @@ export default function KelolaZis() {
             Kelola penerimaan dan pengeluaran dana ZIS secara transparan.
           </p>
         </div>
-
-        {errorMsg && (
-          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl">
-            <p className="text-sm font-bold text-red-700">{errorMsg}</p>
-          </div>
-        )}
 
         {/* ─── Top Summary Cards ─── */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3 shrink-0">
@@ -527,7 +702,8 @@ export default function KelolaZis() {
             >
               <option value="">Kategori ZIS</option>
               <option value="Zakat Maal">Zakat Maal</option>
-              <option value="Zakat Fitrah">Zakat Fitrah</option>
+              <option value="Zakat Fitrah Uang">Zakat Fitrah Uang</option>
+              <option value="Zakat Fitrah Beras">Zakat Fitrah Beras</option>
               <option value="Infaq">Infaq</option>
               <option value="Sedekah">Sedekah</option>
             </select>
@@ -560,8 +736,12 @@ export default function KelolaZis() {
             </select>
           </div>
           <div className="flex items-center gap-3 w-full xl:w-auto">
-            <button className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2.5 px-4 rounded-lg text-sm hover:bg-gray-50 shadow-sm transition-all">
-              <Download size={18} /> Unduh Data
+            <button
+              onClick={handleDownloadPDF}
+              className="flex items-center justify-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-2 px-4 rounded-lg transition-colors shadow-sm text-sm w-full md:w-auto"
+            >
+              <Download size={16} />
+              Unduh Data
             </button>
             <button
               onClick={() => openModal("PEMASUKAN")}
@@ -655,7 +835,9 @@ export default function KelolaZis() {
                       <td
                         className={`px-6 py-4 whitespace-nowrap text-sm font-bold text-center ${trx.tipe === "Pemasukan" ? "text-[#10B981]" : "text-[#EF4444]"}`}
                       >
-                        {formatRupiah(trx.nominal).replace("Rp", "").trim()}
+                        {trx.kategori === "Zakat Fitrah Beras"
+                          ? `${trx.nominal} KG`
+                          : formatRupiah(trx.nominal).replace("Rp", "").trim()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <div className="flex items-center justify-center gap-2">
@@ -673,12 +855,23 @@ export default function KelolaZis() {
                   ))
                 ) : (
                   <tr>
-                    <td
-                      colSpan="6"
-                      className="px-6 py-8 text-center text-sm font-medium text-gray-500"
-                    >
-                      Data tidak ditemukan.
-                    </td>
+                    {searchQuery ? (
+                      <td
+                        colSpan="6"
+                        className="px-6 py-8 text-center text-sm font-medium text-gray-500"
+                      >
+                        Tidak ada data yang cocok dengan pencarian "
+                        {searchQuery}"
+                      </td>
+                    ) : (
+                      <td
+                        colSpan="6"
+                        className="px-6 py-8 text-center text-sm font-medium text-gray-500"
+                      >
+                        Data ZIS belum tersedia. Klik tombol "Pemasukan" atau
+                        "Pengeluaran" untuk menambahkan data pertama Anda.
+                      </td>
+                    )}
                   </tr>
                 )}
               </tbody>
@@ -728,7 +921,7 @@ export default function KelolaZis() {
                     : "Catat Pengeluaran ZIS"}
                 </h2>
                 <button
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={handleCloseModal}
                   className="text-emerald-200 hover:text-white transition-colors"
                 >
                   <X size={20} />
@@ -778,9 +971,6 @@ export default function KelolaZis() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    Sumber Dana (Kategori)
-                  </label>
                   <select
                     name="kategori"
                     value={formData.kategori}
@@ -788,7 +978,10 @@ export default function KelolaZis() {
                     className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
                   >
                     <option value="Zakat Maal">Zakat Maal</option>
-                    <option value="Zakat Fitrah">Zakat Fitrah</option>
+                    <option value="Zakat Fitrah Uang">Zakat Fitrah Uang</option>
+                    <option value="Zakat Fitrah Beras">
+                      Zakat Fitrah Beras
+                    </option>
                     <option value="Infaq">Infaq</option>
                     <option value="Sedekah">Sedekah</option>
                   </select>
@@ -809,22 +1002,24 @@ export default function KelolaZis() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    Jumlah (Rp)
+                    {isBeras ? "Jumlah Beras (KG)" : "Jumlah (Rp)"}
                   </label>
+
                   <input
                     type="number"
                     name="nominal"
                     required
+                    step={isBeras ? "0.1" : "1"}
                     value={formData.nominal}
                     onChange={handleInputChange}
-                    placeholder="0"
+                    placeholder={isBeras ? "Contoh: 2.5" : "0"}
                     className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
                   />
                 </div>
                 <div className="flex justify-end gap-3 pt-4 border-t mt-6">
                   <button
                     type="button"
-                    onClick={() => setIsModalOpen(false)}
+                    onClick={handleCloseModal}
                     className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200"
                   >
                     Batal
