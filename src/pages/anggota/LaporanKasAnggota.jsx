@@ -9,6 +9,9 @@ import pengeluaranService from "../../services/pengeluaranDasawisma.service";
 import pemasukanDasawismaService from "../../services/pemasukanDasawisma.service";
 import dasawismaService from "../../services/dasawisma.service";
 import totalKasDasawismaService from "../../services/totalKasDasawisma.service";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import logoDasawisma from "../../assets/logo.png";
 
 export default function LaporanKasAnggota() {
   const [anggotaList, setAnggotaList] = useState([]);
@@ -147,6 +150,108 @@ export default function LaporanKasAnggota() {
     }
   };
 
+  const handleDownloadPDF = () => {
+    Swal.fire({
+      title: "Unduh Riwayat Kas",
+      text: "Apakah Anda ingin mengunduh riwayat kas dalam format PDF?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Unduh PDF",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#10B981",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+
+        // ================= HEADER =================
+
+        // Tulisan kiri
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(20);
+        doc.setTextColor(15, 118, 110);
+        doc.text("DASAWISMA", 14, 20);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text("LENTENG AGUNG", 14, 27);
+
+        // Logo kanan
+        const logoWidth = 80;
+        const logoHeight = 25;
+
+        doc.addImage(
+          logoDasawisma,
+          "PNG",
+          pageWidth - logoWidth, // posisi kanan
+          10,
+          logoWidth,
+          logoHeight,
+        );
+
+        // Garis bawah
+        doc.setDrawColor(220);
+        doc.line(20, 36, pageWidth - 14, 36);
+
+        // tanggal cetak
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.setTextColor(120);
+
+        doc.text(
+          `Tanggal Cetak: ${new Date().toLocaleDateString("id-ID")}`,
+          20,
+          43,
+        );
+
+        autoTable(doc, {
+          startY: 50,
+          head: [
+            [
+              "No",
+              "Tanggal",
+              "Anggota",
+              "Sumber",
+              "Deskripsi",
+              "Tipe",
+              "Nominal",
+            ],
+          ],
+          body: transactions.map((tx, index) => [
+            index + 1,
+            formattedDate(tx.tanggal),
+            tx.namaAnggota || "-",
+            tx.sumber || "-",
+            tx.deskripsi || "-",
+            tx.jenis || "-",
+            formatRupiah(tx.nominal),
+          ]),
+          styles: {
+            fontSize: 9,
+          },
+          headStyles: {
+            fillColor: [16, 185, 129], // emerald
+          },
+        });
+
+        const total = transactions.reduce(
+          (sum, item) => sum + Number(item.nominal || 0),
+          0,
+        );
+
+        doc.text(
+          `Total Transaksi: ${formatRupiah(total)}`,
+          14,
+          doc.lastAutoTable.finalY + 10,
+        );
+
+        // Save
+        doc.save(`riwayat-kas-dasawisma-${Date.now()}.pdf`);
+      }
+    });
+  };
+
   // ─── useEffect ───
   useEffect(() => {
     loadKasData();
@@ -242,10 +347,12 @@ export default function LaporanKasAnggota() {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-3 w-full xl:w-auto">
-            <button className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2.5 px-4 rounded-lg text-sm transition-all hover:bg-gray-50 shadow-sm">
+            <button
+              onClick={handleDownloadPDF}
+              className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2.5 px-4 rounded-lg text-sm transition-all hover:bg-gray-50 shadow-sm"
+            >
               <Download size={18} /> Unduh Data
             </button>
-           
           </div>
         </div>
 
