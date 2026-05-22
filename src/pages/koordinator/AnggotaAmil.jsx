@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Plus, Search, Edit, Trash2, X } from "lucide-react";
-import PageTransition from "../../components/PageTransition";
+import PageTransition from "../../components/shared/PageTransition";
 import amilService from "../../services/amil.service";
 import Swal from "sweetalert2";
 

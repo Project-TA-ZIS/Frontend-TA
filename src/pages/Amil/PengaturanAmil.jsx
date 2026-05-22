@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { User, Mail, Phone, Lock, Camera, Check } from "lucide-react";
-import PageTransition from "../../components/PageTransition";
+import PageTransition from "../../components/shared/PageTransition";
 import amilService from "../../services/amil.service";
 import useAuthStore from "../../store/useAuthStore";
 import { formattedDate, formatDateInput } from "../../utils/formattedDate";

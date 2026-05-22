@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Download, Search } from "lucide-react";
-import PageTransition from "../../components/PageTransition";
+import PageTransition from "../../components/shared/PageTransition";
 import { formatRupiah } from "../../utils/formatRupiah";
 import { formattedDate } from "../../utils/formattedDate";
 import pemasukanZISService from "../../services/pemasukanZIS.service";

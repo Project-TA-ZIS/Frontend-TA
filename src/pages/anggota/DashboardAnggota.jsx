@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { HandHeart, Users, Wallet, UsersRound } from "lucide-react";
-import PageTransition from "../../components/PageTransition";
+import PageTransition from "../../components/shared/PageTransition";
 import muzakkiService from "../../services/muzakki.service";
 import mustahikService from "../../services/mustahik.service";
 import dasawismaService from "../../services/dasawisma.service";

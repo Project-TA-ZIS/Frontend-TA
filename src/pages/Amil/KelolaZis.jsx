@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Download, Plus, Search, X } from "lucide-react";
-import PageTransition from "../../components/PageTransition";
+import PageTransition from "../../components/shared/PageTransition";
 import Swal from "sweetalert2";
 import Select from "react-select";
 import muzakkiService from "../../services/muzakki.service";

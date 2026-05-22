@@ -28,6 +28,7 @@ import KelolaKas from "./pages/koordinator/KelolaKas";
 import Home from './pages/publik/Home';
 import Dashboard from "./pages/publik/Dashboard";
 import ManajemenZis from "./pages/publik/ManajemenZis";
+import LupaPassword from "./pages/auth/LupaPassword";
 import Footer from "./components/layout/Footer";
 
 const ROLE = {
@@ -265,6 +266,8 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route path="/lupa-password" element={<LupaPassword />} />
 
           {/* === RUTE PUBLIK DEVELOPMENT === */}
           <Route path="/" element={<Home />} />

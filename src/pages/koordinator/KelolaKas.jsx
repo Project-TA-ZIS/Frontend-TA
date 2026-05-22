@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Download, Plus, X } from "lucide-react";
-import PageTransition from "../../components/PageTransition";
+import PageTransition from "../../components/shared/PageTransition";
 import Swal from "sweetalert2";
 import Select from "react-select";
 import { formattedDate } from "../../utils/formattedDate";
