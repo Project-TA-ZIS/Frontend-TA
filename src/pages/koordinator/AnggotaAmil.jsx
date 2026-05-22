@@ -261,6 +261,14 @@ export default function AnggotaAmil() {
     }
   };
 
+  // ─── Kelas reusable untuk input & label (ukuran lebih besar & jelas) ───
+  const labelClass =
+    "block text-sm font-bold text-gray-500 uppercase tracking-wide mb-2";
+  const inputClass =
+    "w-full bg-gray-50 border border-gray-200 text-gray-900 text-base rounded-xl focus:ring-2 focus:ring-[#10B981] focus:bg-white focus:border-[#0F766E] block px-4 py-3.5 font-semibold outline-none transition-all";
+  const sectionTitleClass =
+    "text-lg font-extrabold text-gray-900 tracking-tight";
+
   return (
     <PageTransition>
       <div
@@ -283,10 +291,10 @@ export default function AnggotaAmil() {
         <div className="mb-8">
           <button
             onClick={handleTambahClick}
-            className="flex items-center justify-center gap-2 bg-[#10B981] hover:bg-[#059669] text-white font-bold py-2.5 px-5 rounded-lg transition-colors shadow-sm text-sm"
+            className="flex items-center justify-center gap-2 bg-[#10B981] hover:bg-[#059669] text-white font-bold py-2.5 px-5 rounded-xl transition-all shadow-sm text-xs active:scale-95"
           >
             <Plus size={18} strokeWidth={3} />
-            Amil
+            Tambah Amil
           </button>
         </div>
 
@@ -401,144 +409,140 @@ export default function AnggotaAmil() {
           </div>
         </div>
 
-        {/* ─── MODAL POP-UP TAMBAH / EDIT DATA ─── */}
+        {/* ─── MODAL FORM: TAMBAH / EDIT DATA (Gaya jelas & lega) ─── */}
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-              {/* Header Modal */}
-              <div className="bg-[#0F766E] px-6 py-4 flex items-center justify-between">
-                <h2 className="text-lg font-bold text-white">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+              {/* Header */}
+              <div className="bg-[#0F766E] px-7 py-5 flex items-center justify-between flex-shrink-0">
+                <h2 className="text-xl font-extrabold text-white tracking-tight">
                   {editingId ? "Edit Data Amil" : "Tambah Anggota Amil"}
                 </h2>
                 <button
                   onClick={handleCloseModal}
-                  className="text-emerald-200 hover:text-white transition-colors"
+                  className="text-emerald-100 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors"
                 >
                   <X size={20} />
                 </button>
               </div>
 
-              {/* Form Body */}
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    Nama Lengkap
-                  </label>
-                  <input
-                    type="text"
-                    name="nama"
-                    required
-                    value={formData.nama}
-                    onChange={handleInputChange}
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] focus:border-transparent block px-4 py-3 font-semibold outline-none transition-all"
-                    placeholder="Masukkan nama amil..."
-                  />
-
-                  {errors.nama && (
-                    <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
-                      {errors.nama}
-                    </p>
+              {/* Body (scrollable) */}
+              <form
+                onSubmit={handleSubmit}
+                className="flex flex-col flex-1 overflow-hidden"
+              >
+                <div className="p-7 space-y-7 overflow-y-auto flex-1">
+                  {/* Section: Akun (hanya saat tambah) */}
+                  {!editingId && (
+                    <div className="space-y-5">
+                      <h3 className={sectionTitleClass}>Informasi Akun</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                          <label className={labelClass}>Alamat Email</label>
+                          <input
+                            type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            className={inputClass}
+                            placeholder="email@contoh.com"
+                          />
+                          {errors.email && (
+                            <p className="text-sm font-semibold text-red-500 mt-1.5">
+                              {errors.email}
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <label className={labelClass}>Password</label>
+                          <input
+                            type="password"
+                            name="password"
+                            value={formData.password}
+                            onChange={handleInputChange}
+                            className={inputClass}
+                            placeholder="Minimal 6 karakter"
+                          />
+                          {errors.password && (
+                            <p className="text-sm font-semibold text-red-500 mt-1.5">
+                              {errors.password}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   )}
-                </div>
 
-                {/* Input Role dihapus di halaman ini */}
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    required
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] focus:border-transparent block px-4 py-3 font-semibold outline-none transition-all"
-                    placeholder="email@contoh.com"
-                  />
-                  {errors.email && (
-                    <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
-                      {errors.email}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    Nomor Telepon
-                  </label>
-                  <input
-                    type="text"
-                    name="telp"
-                    required
-                    value={formData.telp}
-                    onChange={handleInputChange}
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] focus:border-transparent block px-4 py-3 font-semibold outline-none transition-all"
-                    placeholder="08xxxxxxxxxx"
-                  />
-                  {errors.telp && (
-                    <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
-                      {errors.telp}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    Alamat
-                  </label>
-                  <input
-                    type="text"
-                    name="alamat"
-                    required
-                    value={formData.alamat}
-                    onChange={handleInputChange}
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] focus:border-transparent block px-4 py-3 font-semibold outline-none transition-all"
-                    placeholder="Alamat lengkap..."
-                  />
-                  {errors.alamat && (
-                    <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
-                      {errors.alamat}
-                    </p>
-                  )}
-                </div>
-                {!editingId && (
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                      Password
-                    </label>
-
-                    <input
-                      type="password"
-                      name="password"
-                      required={!editingId}
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] focus:border-transparent block px-4 py-3 font-semibold outline-none transition-all"
-                      placeholder="Masukkan password..."
-                    />
-                    {errors.password && (
-                      <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
-                        {errors.password}
-                      </p>
+                  {/* Section: Informasi Dasar */}
+                  <div className="space-y-5">
+                    <h3 className={sectionTitleClass}>Informasi Dasar</h3>
+                    <div>
+                      <label className={labelClass}>Nama Lengkap</label>
+                      <input
+                        type="text"
+                        name="nama"
+                        value={formData.nama}
+                        onChange={handleInputChange}
+                        className={inputClass}
+                        placeholder="Masukkan nama lengkap..."
+                      />
+                      {errors.nama && (
+                        <p className="text-sm font-semibold text-red-500 mt-1.5">
+                          {errors.nama}
+                        </p>
+                      )}
+                    </div>
+                    {!editingId && (
+                      <div>
+                        <label className={labelClass}>Nomor Telepon</label>
+                        <input
+                          type="text"
+                          name="telp"
+                          value={formData.telp}
+                          onChange={handleInputChange}
+                          className={inputClass}
+                          placeholder="08xxxxxxxxxx"
+                        />
+                        {errors.telp && (
+                          <p className="text-sm font-semibold text-red-500 mt-1.5">
+                            {errors.telp}
+                          </p>
+                        )}
+                      </div>
                     )}
+                    <div>
+                      <label className={labelClass}>Alamat</label>
+                      <textarea
+                        type="text"
+                        name="alamat"
+                        value={formData.alamat}
+                        onChange={handleInputChange}
+                        className={inputClass}
+                        placeholder="Bandung, Jawa Barat"
+                      />
+                      {errors.alamat && (
+                        <p className="text-sm font-semibold text-red-500 mt-1.5">
+                          {errors.alamat}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                )}
+                </div>
 
-                {/* Action Buttons */}
-                <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 mt-6">
+                {/* Footer */}
+                <div className="px-7 py-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50 flex-shrink-0">
                   <button
                     type="button"
                     onClick={handleCloseModal}
-                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+                    className="px-6 py-3 rounded-xl text-base font-bold text-gray-600 bg-white border border-gray-200 hover:bg-gray-100 transition-colors active:scale-95"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#10B981] hover:bg-[#059669] shadow-sm transition-colors"
+                    className="px-7 py-3 rounded-xl text-base font-bold text-white bg-[#10B981] hover:bg-[#059669] shadow-sm transition-colors active:scale-95"
                   >
-                    {editingId ? "Simpan Perubahan" : "Buat Akun"}
+                    {editingId ? "Simpan Perubahan" : "Simpan"}
                   </button>
                 </div>
               </form>

@@ -484,7 +484,7 @@ export default function KelolaMustahik() {
         {/* ─── MODAL POP-UP TAMBAH / EDIT DATA ─── */}
         {isModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]">
               <div className="bg-[#0F766E] px-6 py-4 flex items-center justify-between">
                 <h2 className="text-lg font-bold text-white">
                   {editingId ? "Edit Data Mustahik" : "Tambah Mustahik Baru"}
@@ -499,188 +499,212 @@ export default function KelolaMustahik() {
 
               <form
                 onSubmit={handleSubmit}
-                className="flex flex-col flex-1 min-h-0"
+                className="flex-1 overflow-hidden flex flex-col"
               >
-                <div className="p-6 overflow-y-auto space-y-5">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                        Nama Lengkap
-                      </label>
-                      <input
-                        type="text"
-                        name="nama"
-                        required
-                        value={formData.nama}
-                        onChange={handleInputChange}
-                        className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
-                        placeholder="Masukkan nama lengkap..."
-                      />
-                      {errors.nama && (
-                        <p className="text-red-500 text-xs mt-1">
-                          {errors.nama}
-                        </p>
-                      )}
-                    </div>
+                <div className="p-6 overflow-y-auto space-y-6">
+                  {/* ─── Section: Informasi Dasar ─── */}
+                  <div className="border-b border-gray-100 pb-6">
+                    <h4 className="text-base font-extrabold text-gray-900 mb-4">
+                      Informasi Dasar
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                          Nama Lengkap
+                        </label>
+                        <input
+                          type="text"
+                          name="nama"
+                          required
+                          value={formData.nama}
+                          onChange={handleInputChange}
+                          className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
+                          placeholder="Masukkan nama lengkap..."
+                        />
+                        {errors.nama && (
+                          <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                            {errors.nama}
+                          </p>
+                        )}
+                      </div>
 
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                        Nomor Telepon
-                      </label>
-                      <input
-                        type="text"
-                        name="telp"
-                        required
-                        value={formData.telp}
-                        onChange={handleInputChange}
-                        className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
-                        placeholder="08xxxxxxxxxx"
-                      />
-                      {errors.telp && (
-                        <p className="text-red-500 text-xs mt-1">
-                          {errors.telp}
-                        </p>
-                      )}
-                    </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                          Jenis Kelamin
+                        </label>
+                        <select
+                          name="jenisKelamin"
+                          required
+                          value={formData.jenisKelamin}
+                          onChange={handleInputChange}
+                          className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold cursor-pointer"
+                        >
+                          <option value="laki-laki">Laki-laki</option>
+                          <option value="perempuan">Perempuan</option>
+                        </select>
+                        {errors.jenisKelamin && (
+                          <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                            {errors.jenisKelamin}
+                          </p>
+                        )}
+                      </div>
 
-                    <div className="md:col-span-2">
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                        Alamat
-                      </label>
-                      <textarea
-                        name="alamat"
-                        value={formData.alamat}
-                        onChange={handleInputChange}
-                        rows={3}
-                        className="w-full resize-none bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
-                        placeholder="Masukkan alamat..."
-                      />
-                      {errors.alamat && (
-                        <p className="text-red-500 text-xs mt-1">
-                          {errors.alamat}
-                        </p>
-                      )}
-                    </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                          Nomor Telepon
+                        </label>
+                        <input
+                          type="text"
+                          name="telp"
+                          required
+                          value={formData.telp}
+                          onChange={handleInputChange}
+                          className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
+                          placeholder="08xxxxxxxxxx"
+                        />
+                        {errors.telp && (
+                          <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                            {errors.telp}
+                          </p>
+                        )}
+                      </div>
 
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                        NIK
-                      </label>
-                      <input
-                        type="text"
-                        name="nik"
-                        value={formData.nik}
-                        onChange={handleInputChange}
-                        className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
-                        placeholder="Masukkan NIK..."
-                      />
-                      {errors.nik && (
-                        <p className="text-red-500 text-xs mt-1">
-                          {errors.nik}
-                        </p>
-                      )}
-                    </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                          Kategori (Asnaf)
+                        </label>
+                        <select
+                          name="kategori"
+                          required
+                          value={formData.kategori}
+                          onChange={handleInputChange}
+                          className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold cursor-pointer"
+                        >
+                          <option value="fakir">Fakir</option>
+                          <option value="miskin">Miskin</option>
+                          <option value="amil">Amil</option>
+                          <option value="mualaf">Mualaf</option>
+                          <option value="berhutang">Berhutang</option>
+                          <option value="fisabilillah">Fisabilillah</option>
+                          <option value="musafir">Musafir</option>
+                        </select>
+                        {errors.kategori && (
+                          <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                            {errors.kategori}
+                          </p>
+                        )}
+                      </div>
 
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                        Tempat Lahir
-                      </label>
-                      <input
-                        type="text"
-                        name="tempatLahir"
-                        value={formData.tempatLahir}
-                        onChange={handleInputChange}
-                        className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
-                        placeholder="Masukkan tempat lahir..."
-                      />
-                      {errors.tempatLahir && (
-                        <p className="text-red-500 text-xs mt-1">
-                          {errors.tempatLahir}
-                        </p>
-                      )}
+                      <div className="md:col-span-2">
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                          Alamat
+                        </label>
+                        <textarea
+                          name="alamat"
+                          value={formData.alamat}
+                          onChange={handleInputChange}
+                          rows={3}
+                          className="w-full resize-none bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
+                          placeholder="Bandung,Jawa Barat..."
+                        />
+                        {errors.alamat && (
+                          <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                            {errors.alamat}
+                          </p>
+                        )}
+                      </div>
                     </div>
+                  </div>
 
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                        Tanggal Lahir
-                      </label>
-                      <input
-                        type="date"
-                        name="tanggalLahir"
-                        value={formData.tanggalLahir}
-                        onChange={handleInputChange}
-                        className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
-                      />
-                      {errors.tanggalLahir && (
-                        <p className="text-red-500 text-xs mt-1">
-                          {errors.tanggalLahir}
-                        </p>
-                      )}
+                  {/* ─── Section: Identitas ─── */}
+                  <div className="border-b border-gray-100 pb-6">
+                    <h4 className="text-base font-extrabold text-gray-900 mb-4">
+                      Identitas
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="md:col-span-2">
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                          NIK
+                        </label>
+                        <input
+                          type="text"
+                          name="nik"
+                          value={formData.nik}
+                          onChange={handleInputChange}
+                          className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
+                          placeholder="Masukkan NIK..."
+                        />
+                        {errors.nik && (
+                          <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                            {errors.nik}
+                          </p>
+                        )}
+                      </div>
                     </div>
+                  </div>
 
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                        Jenis Kelamin
-                      </label>
-                      <select
-                        name="jenisKelamin"
-                        required
-                        value={formData.jenisKelamin}
-                        onChange={handleInputChange}
-                        className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold cursor-pointer"
-                      >
-                        <option value="laki-laki">Laki-laki</option>
-                        <option value="perempuan">Perempuan</option>
-                      </select>
-                      {errors.jenisKelamin && (
-                        <p className="text-red-500 text-xs mt-1">
-                          {errors.jenisKelamin}
-                        </p>
-                      )}
-                    </div>
+                  {/* ─── Section: Kelahiran ─── */}
+                  <div>
+                    <h4 className="text-base font-extrabold text-gray-900 mb-4">
+                      Kelahiran
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                          Tempat Lahir
+                        </label>
+                        <input
+                          type="text"
+                          name="tempatLahir"
+                          value={formData.tempatLahir}
+                          onChange={handleInputChange}
+                          className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
+                          placeholder="Bandung"
+                        />
+                        {errors.tempatLahir && (
+                          <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                            {errors.tempatLahir}
+                          </p>
+                        )}
+                      </div>
 
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                        Kategori (Asnaf)
-                      </label>
-                      <select
-                        name="kategori"
-                        required
-                        value={formData.kategori}
-                        onChange={handleInputChange}
-                        className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold cursor-pointer"
-                      >
-                        <option value="fakir">Fakir</option>
-                        <option value="miskin">Miskin</option>
-                        <option value="amil">Amil</option>
-                        <option value="mualaf">Mualaf</option>
-                        <option value="berhutang">Berhutang</option>
-                        <option value="fisabilillah">Fisabilillah</option>
-                        <option value="musafir">Musafir</option>
-                      </select>
-                      {errors.kategori && (
-                        <p className="text-red-500 text-xs mt-1">
-                          {errors.kategori}
-                        </p>
-                      )}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                          Tanggal Lahir
+                        </label>
+                        <input
+                          type="date"
+                          name="tanggalLahir"
+                          value={formData.tanggalLahir}
+                          onChange={handleInputChange}
+                          className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
+                        />
+                        {errors.tanggalLahir && (
+                          <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                            {errors.tanggalLahir}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-3 p-6 pt-4 border-t border-gray-100 bg-white">
-                  <button
-                    type="button"
-                    onClick={handleCloseModal}
-                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#10B981] hover:bg-[#059669] shadow-sm transition-colors"
-                  >
-                    {editingId ? "Simpan Perubahan" : "Simpan Data"}
-                  </button>
+                <div className="px-6 py-4 border-t border-gray-100 bg-white shrink-0">
+                  <div className="flex justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={handleCloseModal}
+                      className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#10B981] hover:bg-[#059669] shadow-sm transition-colors"
+                    >
+                      {editingId ? "Simpan Perubahan" : "Simpan Data"}
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>

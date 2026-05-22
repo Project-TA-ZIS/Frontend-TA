@@ -538,7 +538,7 @@ export default function KelolaMuzzaki() {
                           value={formData.nama}
                           onChange={handleInputChange}
                           className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
-                          placeholder="Masukkan nama..."
+                          placeholder="Masukkan nama lengkap..."
                         />
                         {errors.nama && (
                           <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
@@ -611,12 +611,13 @@ export default function KelolaMuzzaki() {
                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                           Alamat
                         </label>
-                        <input
+                        <textarea
                           type="text"
                           name="alamat"
                           value={formData.alamat}
                           onChange={handleInputChange}
-                          className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
+                          rows={3}
+                          className="w-full resize-none bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
                           placeholder="Bandung, Jawa Barat"
                         />
                         {errors.alamat && (
