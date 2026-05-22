@@ -61,11 +61,23 @@ const getMaxYearFromItems = (items, dateKey) => {
 
 const toUiZisKategori = (kategori) => {
   const k = (kategori || "").toString().trim().toLowerCase();
+
   if (!k) return null;
+
   if (k.includes("zakat mal")) return "Zakat Maal";
-  if (k.includes("zakat fitrah")) return "Zakat Fitrah";
+
+  if (k.includes("zakat fitrah uang")) {
+    return "Zakat Fitrah Uang";
+  }
+
+  if (k.includes("zakat fitrah beras")) {
+    return "Zakat Fitrah Beras";
+  }
+
   if (k === "infaq") return "Infaq";
+
   if (k === "shodaqoh") return "Sedekah";
+
   return null;
 };
 
@@ -143,35 +155,52 @@ const buildZisSeries = ({
 
   return result.map((row) => ({
     ...row,
-    pemasukan: Math.round(row.pemasukan),
-    pengeluaran: Math.round(row.pengeluaran),
+    pemasukan:
+      uiKategori === "Zakat Fitrah Beras"
+        ? Number(row.pemasukan.toFixed(1))
+        : Math.round(row.pemasukan),
+
+    pengeluaran:
+      uiKategori === "Zakat Fitrah Beras"
+        ? Number(row.pengeluaran.toFixed(1))
+        : Math.round(row.pengeluaran),
   }));
 };
 
 // ─── Komponen Bantuan ───────────────────────────────────────────────────────
-const CustomTooltip = ({ active, payload, label }) => {
+const CustomTooltip = ({ active, payload, label, kategori }) => {
   if (!active || !payload?.length) return null;
-  const fmt = (n) =>
-    new Intl.NumberFormat("id-ID", {
+
+  const fmt = (n, kategori) => {
+    if (kategori === "Zakat Fitrah Beras") {
+      return `${n} KG`;
+    }
+
+    return new Intl.NumberFormat("id-ID", {
       style: "currency",
       currency: "IDR",
       maximumFractionDigits: 0,
     }).format(n);
+  };
+
   return (
     <div
       style={{ fontFamily: "Manrope, sans-serif" }}
       className="bg-white border border-gray-100 rounded-xl shadow-lg p-3 text-sm"
     >
       <p className="font-bold text-gray-700 mb-2">{label}</p>
+
       {payload.map((p) => (
         <div key={p.name} className="flex items-center gap-2 mb-1">
           <span
             className="w-2 h-2 rounded-full inline-block"
             style={{ background: p.color }}
           />
+
           <span className="text-gray-500 capitalize">{p.name}:</span>
+
           <span className="font-semibold" style={{ color: p.color }}>
-            {fmt(p.value)}
+            {fmt(p.value, kategori)}
           </span>
         </div>
       ))}
@@ -214,7 +243,13 @@ const ChartArea = ({
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <ToggleBtnGroup
-          options={["Zakat Maal", "Zakat Fitrah", "Infaq", "Sedekah"]}
+          options={[
+            "Zakat Maal",
+            "Zakat Fitrah Uang",
+            "Zakat Fitrah Beras",
+            "Infaq",
+            "Sedekah",
+          ]}
           active={kategori}
           onSelect={setKategori}
         />
@@ -249,7 +284,7 @@ const ChartArea = ({
           dy={10}
         />
         <YAxis hide />
-        <Tooltip content={<CustomTooltip />} />
+        <Tooltip content={<CustomTooltip kategori={kategori} />} />
         <Legend
           wrapperStyle={{ fontSize: 12, paddingTop: 20, fontWeight: 700 }}
           iconType="circle"

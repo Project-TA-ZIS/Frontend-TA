@@ -58,7 +58,8 @@ export default function KelolaZis() {
     const k = (kategoriApi || "").toString().trim().toLowerCase();
     if (!k) return "-";
     if (k.includes("zakat mal")) return "Zakat Maal";
-    if (k.includes("zakat fitrah")) return "Zakat Fitrah";
+    if (k.includes("zakat fitrah uang")) return "Zakat Fitrah Uang";
+    if (k.includes("zakat fitrah beras")) return "Zakat Fitrah Beras";
     if (k === "infaq") return "Infaq";
     if (k === "shodaqoh") return "Sedekah";
     return kategoriApi;
@@ -67,7 +68,8 @@ export default function KelolaZis() {
   const toApiKategori = (kategoriUi) => {
     const k = (kategoriUi || "").toString().trim().toLowerCase();
     if (k === "zakat maal" || k === "zakat mal") return "zakat mal";
-    if (k === "zakat fitrah") return "zakat fitrah uang";
+    if (k === "zakat fitrah uang") return "zakat fitrah uang";
+    if (k === "zakat fitrah beras") return "zakat fitrah beras";
     if (k === "infaq") return "infaq";
     if (k === "sedekah" || k === "shodaqoh") return "shodaqoh";
     return "infaq";
@@ -216,8 +218,12 @@ export default function KelolaZis() {
 
   // ─── Perhitungan Otomatis (Real-time) ───
   const totalPenerimaan = transactions
-    .filter((t) => t.tipe === "Pemasukan")
-    .reduce((acc, curr) => acc + curr.nominal, 0);
+    .filter(
+      (item) =>
+        item.tipe?.toLowerCase() === "pemasukan" &&
+        item.kategori !== "Zakat Fitrah Beras",
+    )
+    .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
 
   const totalPenyaluran = transactions
     .filter((t) => t.tipe === "Pengeluaran")
@@ -502,14 +508,16 @@ export default function KelolaZis() {
               "jumlah",
             ],
           ],
-          body: filteredData.map((tx, index) => [
+          body: filteredTransactions.map((tx, index) => [
             index + 1,
             formattedDate(tx.tanggal),
             tx.nama || "-",
             tx.kategori || "-",
             tx.deskripsi || "-",
             tx.tipe || "-",
-            formatRupiah(tx.jumlah),
+            tx.kategori === "Zakat Fitrah Beras"
+              ? `${tx.nominal} KG`
+              : formatRupiah(tx.nominal),
           ]),
           styles: {
             fontSize: 9,
@@ -519,18 +527,35 @@ export default function KelolaZis() {
           },
         });
 
-        const totalPemasukan = filteredData
-          .filter((item) => item.tipe?.toLowerCase() === "pemasukan")
-          .reduce((sum, item) => sum + Number(item.jumlah || 0), 0);
+        const totalPemasukan = filteredTransactions
+          .filter(
+            (item) =>
+              item.tipe?.toLowerCase() === "pemasukan" &&
+              item.kategori !== "Zakat Fitrah Beras",
+          )
+          .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
 
-        const totalPengeluaran = filteredData
+        const totalPengeluaran = filteredTransactions
           .filter((item) => item.tipe?.toLowerCase() === "pengeluaran")
-          .reduce((sum, item) => sum + Number(item.jumlah || 0), 0);
+          .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
 
-        const total = filteredData.reduce(
-          (sum, item) => sum + Number(item.jumlah || 0),
-          0,
-        );
+        const total = filteredTransactions
+          .filter(
+            (item) =>
+              item.kategori !== "Zakat Fitrah Beras" &&
+              !Number.isNaN(Number(item.nominal)),
+          )
+          .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
+        const totalBeras = filteredTransactions
+          .filter((item) => item.kategori === "Zakat Fitrah Beras")
+          .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
+        const totalBerasPDF = filteredTransactions
+          .filter(
+            (item) =>
+              item.kategori === "Zakat Fitrah Beras" &&
+              item.tipe?.toLowerCase() === "pemasukan",
+          )
+          .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
         const finalY = doc.lastAutoTable.finalY + 10;
 
         doc.setFont("helvetica", "bold");
@@ -548,13 +573,19 @@ export default function KelolaZis() {
           finalY + 7,
         );
 
-        doc.text(`Total Transaksi: ${formatRupiah(total)}`, 14, finalY + 14);
+        doc.text(
+          `Total Transaksi Keuangan: ${formatRupiah(total)}`,
+          14,
+          finalY + 14,
+        );
+        doc.text(`Total Zakat Fitrah Beras: ${totalBeras} KG`, 14, finalY + 21);
 
         // Save
         doc.save(`riwayat-zis-${Date.now()}.pdf`);
       }
     });
   };
+  const isBeras = formData.kategori === "Zakat Fitrah Beras";
 
   useEffect(() => {
     loadTotalZIS();
@@ -671,7 +702,8 @@ export default function KelolaZis() {
             >
               <option value="">Kategori ZIS</option>
               <option value="Zakat Maal">Zakat Maal</option>
-              <option value="Zakat Fitrah">Zakat Fitrah</option>
+              <option value="Zakat Fitrah Uang">Zakat Fitrah Uang</option>
+              <option value="Zakat Fitrah Beras">Zakat Fitrah Beras</option>
               <option value="Infaq">Infaq</option>
               <option value="Sedekah">Sedekah</option>
             </select>
@@ -803,7 +835,9 @@ export default function KelolaZis() {
                       <td
                         className={`px-6 py-4 whitespace-nowrap text-sm font-bold text-center ${trx.tipe === "Pemasukan" ? "text-[#10B981]" : "text-[#EF4444]"}`}
                       >
-                        {formatRupiah(trx.nominal).replace("Rp", "").trim()}
+                        {trx.kategori === "Zakat Fitrah Beras"
+                          ? `${trx.nominal} KG`
+                          : formatRupiah(trx.nominal).replace("Rp", "").trim()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <div className="flex items-center justify-center gap-2">
@@ -937,9 +971,6 @@ export default function KelolaZis() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    Sumber Dana (Kategori)
-                  </label>
                   <select
                     name="kategori"
                     value={formData.kategori}
@@ -947,7 +978,10 @@ export default function KelolaZis() {
                     className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
                   >
                     <option value="Zakat Maal">Zakat Maal</option>
-                    <option value="Zakat Fitrah">Zakat Fitrah</option>
+                    <option value="Zakat Fitrah Uang">Zakat Fitrah Uang</option>
+                    <option value="Zakat Fitrah Beras">
+                      Zakat Fitrah Beras
+                    </option>
                     <option value="Infaq">Infaq</option>
                     <option value="Sedekah">Sedekah</option>
                   </select>
@@ -968,15 +1002,17 @@ export default function KelolaZis() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    Jumlah (Rp)
+                    {isBeras ? "Jumlah Beras (KG)" : "Jumlah (Rp)"}
                   </label>
+
                   <input
                     type="number"
                     name="nominal"
                     required
+                    step={isBeras ? "0.1" : "1"}
                     value={formData.nominal}
                     onChange={handleInputChange}
-                    placeholder="0"
+                    placeholder={isBeras ? "Contoh: 2.5" : "0"}
                     className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
                   />
                 </div>
