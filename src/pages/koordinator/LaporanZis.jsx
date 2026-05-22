@@ -644,7 +644,7 @@ export default function KelolaZis() {
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/50">
                   <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    ID TRANSAKSI
+                    NO
                   </th>
                   <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
                     TANGGAL

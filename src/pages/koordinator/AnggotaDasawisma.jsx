@@ -340,7 +340,7 @@ export default function AnggotaDasawisma() {
             onClick={handleTambahClick}
             className="flex items-center justify-center gap-2 bg-[#10B981] hover:bg-[#059669] text-white font-bold py-2.5 px-5 rounded-xl transition-all shadow-sm text-xs active:scale-95"
           >
-            <Plus size={16} strokeWidth={3} />
+            <Plus size={18} strokeWidth={3} />
             Tambah Kader
           </button>
         </div>
@@ -365,22 +365,22 @@ export default function AnggotaDasawisma() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/50">
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center w-20">
-                    Nomor
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center w-20">
+                    NO
                   </th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">
                     Nama Lengkap
                   </th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center">
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">
                     Role
                   </th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">
                     Email
                   </th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center">
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">
                     No. Telp
                   </th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center w-36">
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center w-36">
                     Aksi
                   </th>
                 </tr>
@@ -404,7 +404,7 @@ export default function AnggotaDasawisma() {
                       <td className="px-6 py-4 whitespace-nowrap text-xs font-bold text-[#10B981] text-center">
                         {(currentPage - 1) * itemsPerPage + index + 1}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-xs font-bold text-gray-800">
+                      <td className="px-6 py-4 whitespace-nowrap text-[12px] font-bold text-gray-900 text-center">
                         {item.nama}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -420,7 +420,7 @@ export default function AnggotaDasawisma() {
                           {item.role}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-[12px] font-bold text-gray-900 text-center">
                         {item.email}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-gray-500 text-center">
