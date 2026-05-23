@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import Swal from "sweetalert2";
+import authService from "../../services/auth.service";
 
 export default function LupaPassword() {
   const navigate = useNavigate();
 
   // States untuk input form (Sudah Sinkron)
-  const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -18,13 +18,14 @@ export default function LupaPassword() {
   // State error lokal linear
   const [errorMsg, setErrorMsg] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { token } = useParams();
 
   const handleResetSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
 
     // 1. Validasi Input Kosong
-    if (!email.trim() || !newPassword || !confirmPassword) {
+    if (!newPassword || !confirmPassword) {
       setErrorMsg("Semua kolom input wajib diisi!");
       return;
     }
@@ -45,7 +46,7 @@ export default function LupaPassword() {
       setIsLoading(true);
 
       // Hubungkan dengan API backend Anda di sini nanti, contoh:
-      // await authService.resetPassword({ email, newPassword });
+      await authService.resetPassword({ token, newPassword });
 
       Swal.fire({
         icon: "success",
@@ -137,26 +138,6 @@ export default function LupaPassword() {
 
           {/* Form Elemen */}
           <form onSubmit={handleResetSubmit} className="space-y-4">
-            {/* FIELD 1: EMAIL */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
-                Alamat Email
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#10B981] focus:bg-white focus:border-[#0F766E] transition-all shadow-sm font-medium"
-                  placeholder="kader@dasawisma.com"
-                />
-              </div>
-            </div>
-
             {/* FIELD 2: KATA SANDI BARU (Sihir Perbaikan Variabel) */}
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
