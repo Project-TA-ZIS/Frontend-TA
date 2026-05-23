@@ -26,6 +26,7 @@ import Dashboard from "./pages/publik/Dashboard";
 import ManajemenZis from "./pages/publik/ManajemenZis";
 import LupaPassword from "./pages/auth/LupaPassword";
 import Footer from "./components/layout/Footer";
+import NotFound from "./components/shared/NotFound";
 
 const ROLE = {
   KOORDINATOR: "penanggung jawab dasawisma",
@@ -270,6 +271,10 @@ function App() {
 
           {/* RESET PASSWORD */}
           <Route path="/resetPassword/:token" element={<LupaPassword />} />
+
+          {/* 404 Not Found */}
+          <Route path="/404" element={<NotFound />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </AuthBootstrapper>
     </Router>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Download, Plus, X } from "lucide-react";
 import PageTransition from "../../components/shared/PageTransition";
 import Swal from "sweetalert2";
@@ -13,6 +13,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import logoDasawisma from "../../assets/logo.png";
 import KasSummaryCards from "../../components/shared/KasSummaryCards";
+import { exportKasDasawismaPdf } from "../../utils/exportKasDasawismaPdf";
 
 export default function LaporanKasAnggota() {
   const [anggotaList, setAnggotaList] = useState([]);
@@ -48,7 +49,7 @@ export default function LaporanKasAnggota() {
   const [formData, setFormData] = useState({
     tanggal: "",
     deskripsi: "",
-    jenis: "MASUK",
+    jenis: "Pemasukan",
     nominal: "",
     tipePemasukan: "IURAN",
     anggota_dasawisma_id: "",
@@ -67,6 +68,25 @@ export default function LaporanKasAnggota() {
   const [filterBulan, setFilterBulan] = useState("");
   const [filterTahun, setFilterTahun] = useState("");
 
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter((trx) => {
+      const matchesJenis =
+        !filterJenis || filterJenis === "Semua" || trx.jenis === filterJenis;
+
+      const matchesBulan = filterBulan
+        ? new Date(trx.tanggal).toLocaleString("id-ID", {
+            month: "long",
+          }) === filterBulan
+        : true;
+
+      const matchesTahun = filterTahun
+        ? new Date(trx.tanggal).getFullYear().toString() === filterTahun
+        : true;
+
+      return matchesJenis && matchesBulan && matchesTahun;
+    });
+  }, [transactions, filterJenis, filterBulan, filterTahun]);
+
   // ─── Load Data ───
   const loadKasData = async () => {
     try {
@@ -83,7 +103,7 @@ export default function LaporanKasAnggota() {
           deskripsi: item.deskripsi,
           namaAnggota: item.nama_anggota,
           sumber: item.sumber,
-          jenis: "MASUK",
+          jenis: "Pemasukan",
           nominal: Number(item.jumlah),
         }));
       } catch (error) {
@@ -97,7 +117,7 @@ export default function LaporanKasAnggota() {
           id: item.id,
           tanggal: item.tanggal_penyaluran,
           deskripsi: item.deskripsi,
-          jenis: "KELUAR",
+          jenis: "Pengeluaran",
           nominal: Number(item.jumlah),
         }));
       } catch (error) {
@@ -152,105 +172,7 @@ export default function LaporanKasAnggota() {
   };
 
   const handleDownloadPDF = () => {
-    Swal.fire({
-      title: "Unduh Riwayat Kas",
-      text: "Apakah Anda ingin mengunduh riwayat kas dalam format PDF?",
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonText: "Ya, Unduh PDF",
-      cancelButtonText: "Batal",
-      confirmButtonColor: "#10B981",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        const doc = new jsPDF();
-        const pageWidth = doc.internal.pageSize.getWidth();
-
-        // ================= HEADER =================
-
-        // Tulisan kiri
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(20);
-        doc.setTextColor(15, 118, 110);
-        doc.text("DASAWISMA", 14, 20);
-
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(11);
-        doc.setTextColor(100);
-        doc.text("LENTENG AGUNG", 14, 27);
-
-        // Logo kanan
-        const logoWidth = 80;
-        const logoHeight = 25;
-
-        doc.addImage(
-          logoDasawisma,
-          "PNG",
-          pageWidth - logoWidth, // posisi kanan
-          10,
-          logoWidth,
-          logoHeight,
-        );
-
-        // Garis bawah
-        doc.setDrawColor(220);
-        doc.line(20, 36, pageWidth - 14, 36);
-
-        // tanggal cetak
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(10);
-        doc.setTextColor(120);
-
-        doc.text(
-          `Tanggal Cetak: ${new Date().toLocaleDateString("id-ID")}`,
-          20,
-          43,
-        );
-
-        autoTable(doc, {
-          startY: 50,
-          head: [
-            [
-              "No",
-              "Tanggal",
-              "Anggota",
-              "Sumber",
-              "Deskripsi",
-              "Tipe",
-              "Nominal",
-            ],
-          ],
-          body: transactions.map((tx, index) => [
-            index + 1,
-            formattedDate(tx.tanggal),
-            tx.namaAnggota || "-",
-            tx.sumber || "-",
-            tx.deskripsi || "-",
-            tx.jenis || "-",
-            formatRupiah(tx.nominal),
-          ]),
-          styles: {
-            fontSize: 9,
-          },
-          headStyles: {
-            fillColor: [16, 185, 129], // emerald
-          },
-        });
-
-        const total = transactions.reduce(
-          (sum, item) => sum + Number(item.nominal || 0),
-          0,
-        );
-
-        doc.text(
-          `Total Transaksi: ${formatRupiah(total)}`,
-          14,
-          doc.lastAutoTable.finalY + 10,
-        );
-
-        // Save
-        doc.save(`riwayat-kas-dasawisma-${Date.now()}.pdf`);
-      }
-    });
+    exportKasDasawismaPdf({ historyData: filteredTransactions });
   };
 
   // ─── useEffect ───
@@ -296,8 +218,8 @@ export default function LaporanKasAnggota() {
               onChange={(e) => setFilterJenis(e.target.value)}
             >
               <option value="Semua">Jenis Kas (Semua)</option>
-              <option value="Masuk">Kas Masuk</option>
-              <option value="Keluar">Kas Keluar</option>
+              <option value="Pemasukan">Kas Pemasukan</option>
+              <option value="Pengeluaran">Kas Pengeluaran</option>
             </select>
 
             <select
@@ -364,7 +286,7 @@ export default function LaporanKasAnggota() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {transactions.map((trx, index) => (
+                {filteredTransactions.map((trx, index) => (
                   <tr
                     key={`${trx.jenis}-${trx.id}`}
                     className="hover:bg-emerald-50/30 transition-colors"
@@ -386,15 +308,15 @@ export default function LaporanKasAnggota() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <span
-                        className={`px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wider ${trx.jenis === "MASUK" ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"}`}
+                        className={`px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wider ${trx.jenis === "Pemasukan" ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"}`}
                       >
                         {trx.jenis}
                       </span>
                     </td>
                     <td
-                      className={`px-6 py-4 whitespace-nowrap text-sm font-extrabold text-right ${trx.jenis === "MASUK" ? "text-[#10B981]" : "text-[#EF4444]"}`}
+                      className={`px-6 py-4 whitespace-nowrap text-sm font-extrabold text-right ${trx.jenis === "Pemasukan" ? "text-[#10B981]" : "text-[#EF4444]"}`}
                     >
-                      {trx.jenis === "MASUK" ? "+" : "-"}{" "}
+                      {trx.jenis === "Pemasukan" ? "+" : "-"}{" "}
                       {formatRupiah(trx.nominal).replace("Rp", "").trim()}
                     </td>
                   </tr>
@@ -403,156 +325,6 @@ export default function LaporanKasAnggota() {
             </table>
           </div>
         </div>
-
-        {/* ─── MODAL POP-UP CATAT TRANSAKSI ─── */}
-        {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-              <div className="bg-[#0F766E] px-6 py-4 flex items-center justify-between">
-                <h2 className="text-lg font-bold text-white">
-                  Catat Transaksi Kas
-                </h2>
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="text-emerald-200 hover:text-white transition-colors"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    Tanggal Transaksi
-                  </label>
-                  <input
-                    type="date"
-                    name="tanggal"
-                    required
-                    value={formData.tanggal}
-                    onChange={handleInputChange}
-                    className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    Jenis Transaksi
-                  </label>
-                  <select
-                    name="jenis"
-                    value={formData.jenis}
-                    onChange={handleInputChange}
-                    className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
-                  >
-                    <option value="MASUK">KAS MASUK (PEMASUKAN)</option>
-                    <option value="KELUAR">KAS KELUAR (PENGELUARAN)</option>
-                  </select>
-                </div>
-
-                {formData.jenis === "MASUK" && (
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                      Tipe Pemasukan
-                    </label>
-
-                    <select
-                      name="tipePemasukan"
-                      value={formData.tipePemasukan}
-                      onChange={handleInputChange}
-                      className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
-                    >
-                      <option value="IURAN">Iuran Anggota</option>
-                      <option value="LAINNYA">Lainnya</option>
-                    </select>
-                  </div>
-                )}
-
-                {formData.jenis === "MASUK" &&
-                  formData.tipePemasukan === "IURAN" && (
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                        Cari Anggota Dasawisma
-                      </label>
-
-                      <Select
-                        options={
-                          searchAnggota
-                            ? anggotaOptions.filter((item) =>
-                                item.label
-                                  .toLowerCase()
-                                  .includes(searchAnggota.toLowerCase()),
-                              )
-                            : anggotaOptions.slice(0, 3)
-                        }
-                        placeholder="Cari nama anggota..."
-                        onInputChange={(value) => setSearchAnggota(value)}
-                        value={
-                          anggotaOptions.find(
-                            (item) =>
-                              item.value === formData.anggota_dasawisma_id,
-                          ) || null
-                        }
-                        onChange={(selectedOption) => {
-                          setFormData((prev) => ({
-                            ...prev,
-                            anggota_dasawisma_id: selectedOption?.value || "",
-                          }));
-                        }}
-                        className="text-sm"
-                      />
-                    </div>
-                  )}
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    Deskripsi Kegiatan
-                  </label>
-                  <input
-                    type="text"
-                    name="deskripsi"
-                    required
-                    value={formData.deskripsi}
-                    onChange={handleInputChange}
-                    className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
-                    placeholder="Contoh: Pembelian Sapu..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    Nominal (Rp)
-                  </label>
-                  <input
-                    type="number"
-                    name="nominal"
-                    required
-                    value={formData.nominal}
-                    onChange={handleInputChange}
-                    className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
-                    placeholder="0"
-                  />
-                </div>
-
-                <div className="flex justify-end gap-3 pt-4 border-t mt-6">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#10B981] hover:bg-[#059669]"
-                  >
-                    Simpan Transaksi
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
       </div>
     </PageTransition>
   );

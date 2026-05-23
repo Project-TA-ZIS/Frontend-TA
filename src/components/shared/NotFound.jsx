@@ -8,7 +8,7 @@ export default function NotFound() {
 
   return (
     <PageTransition>
-      <div 
+      <div
         className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 font-['Manrope'] relative overflow-hidden"
         style={{ fontFamily: "Manrope, sans-serif" }}
       >
@@ -20,7 +20,6 @@ export default function NotFound() {
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-teal-100/40 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="w-full max-w-md text-center space-y-6 z-10 animate-in fade-in zoom-in-95 duration-500">
-          
           {/* Ilustrasi Angka 404 */}
           <div className="relative inline-block">
             <h1 className="text-9xl font-extrabold text-[#0F766E]/10 tracking-widest select-none">
@@ -39,20 +38,13 @@ export default function NotFound() {
               Halaman Tidak Ditemukan
             </h2>
             <p className="text-xs text-gray-500 font-medium leading-relaxed max-w-xs mx-auto">
-              Maaf, alamat URL yang Anda tuju salah atau halaman tersebut telah dipindahkan oleh pengelola sistem Dasawisma.
+              Maaf, alamat URL yang Anda tuju salah atau halaman tersebut telah
+              dipindahkan oleh pengelola sistem Dasawisma.
             </p>
           </div>
 
           {/* Tombol Navigasi Alternatif Balik Jalan */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-            <button
-              onClick={() => navigate(-1)} // Kembali ke halaman sebelum tersesat
-              className="flex items-center justify-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 font-bold py-3 px-5 rounded-xl text-xs transition-all shadow-sm active:scale-95"
-            >
-              <ArrowLeft size={14} strokeWidth={2.5} />
-              Kembali
-            </button>
-            
             <button
               onClick={() => navigate("/")} // Langsung meloncat ke halaman utama publik
               className="flex items-center justify-center gap-2 bg-[#0F766E] hover:bg-[#0c645d] text-white font-bold py-3 px-5 rounded-xl text-xs transition-all shadow-md active:scale-95 shadow-teal-900/10"
@@ -61,7 +53,6 @@ export default function NotFound() {
               Ke Beranda Utama
             </button>
           </div>
-
         </div>
 
         {/* Footer Kecil */}

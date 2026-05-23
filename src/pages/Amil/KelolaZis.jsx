@@ -18,6 +18,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import logoDasawisma from "../../assets/logo.png";
 import BottomSummaryCards from "../../components/shared/BottomSummarycards";
+import { exportZISPdf } from "../../utils/exportZISPdf";
 
 const PAGE_SIZE = 5;
 
@@ -441,142 +442,7 @@ export default function KelolaZis() {
   };
 
   const handleDownloadPDF = () => {
-    Swal.fire({
-      title: "Unduh Riwayat ZIS",
-      text: "Apakah Anda ingin mengunduh riwayat ZIS dalam format PDF?",
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonText: "Ya, Unduh PDF",
-      cancelButtonText: "Batal",
-      confirmButtonColor: "#10B981",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        const doc = new jsPDF();
-        const pageWidth = doc.internal.pageSize.getWidth();
-
-        // ================= HEADER =================
-
-        // Tulisan kiri
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(20);
-        doc.setTextColor(15, 118, 110);
-        doc.text("DASAWISMA", 14, 20);
-
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(11);
-        doc.setTextColor(100);
-        doc.text("LENTENG AGUNG", 14, 27);
-
-        // Logo kanan
-        const logoWidth = 80;
-        const logoHeight = 25;
-
-        doc.addImage(
-          logoDasawisma,
-          "PNG",
-          pageWidth - logoWidth, // posisi kanan
-          10,
-          logoWidth,
-          logoHeight,
-        );
-
-        // Garis bawah
-        doc.setDrawColor(220);
-        doc.line(20, 36, pageWidth - 14, 36);
-
-        // tanggal cetak
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(10);
-        doc.setTextColor(120);
-
-        doc.text(
-          `Tanggal Cetak: ${new Date().toLocaleDateString("id-ID")}`,
-          20,
-          43,
-        );
-
-        autoTable(doc, {
-          startY: 50,
-          head: [
-            [
-              "No",
-              "tanggal",
-              "nama",
-              "kategori",
-              "Deskripsi",
-              "Tipe",
-              "jumlah",
-            ],
-          ],
-          body: filteredTransactions.map((tx, index) => [
-            index + 1,
-            formattedDate(tx.tanggal),
-            tx.nama || "-",
-            tx.kategori || "-",
-            tx.deskripsi || "-",
-            tx.tipe || "-",
-            tx.kategori === "Zakat Fitrah Beras"
-              ? `${tx.nominal} KG`
-              : formatRupiah(tx.nominal),
-          ]),
-          styles: {
-            fontSize: 9,
-          },
-          headStyles: {
-            fillColor: [16, 185, 129], // emerald
-          },
-        });
-
-        const totalPemasukan = filteredTransactions
-          .filter(
-            (item) =>
-              item.tipe?.toLowerCase() === "pemasukan" &&
-              item.kategori !== "Zakat Fitrah Beras",
-          )
-          .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
-
-        const totalPengeluaran = filteredTransactions
-          .filter((item) => item.tipe?.toLowerCase() === "pengeluaran")
-          .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
-
-        const total = filteredTransactions
-          .filter(
-            (item) =>
-              item.kategori !== "Zakat Fitrah Beras" &&
-              !Number.isNaN(Number(item.nominal)),
-          )
-          .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
-        const totalBeras = filteredTransactions
-          .filter((item) => item.kategori === "Zakat Fitrah Beras")
-          .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
-        const finalY = doc.lastAutoTable.finalY + 10;
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(10);
-
-        doc.text(
-          `Total Pemasukan: ${formatRupiah(totalPemasukan)}`,
-          14,
-          finalY,
-        );
-
-        doc.text(
-          `Total Pengeluaran: ${formatRupiah(totalPengeluaran)}`,
-          14,
-          finalY + 7,
-        );
-
-        doc.text(
-          `Total Transaksi Keuangan: ${formatRupiah(total)}`,
-          14,
-          finalY + 14,
-        );
-        doc.text(`Total Zakat Fitrah Beras: ${totalBeras} KG`, 14, finalY + 21);
-
-        // Save
-        doc.save(`riwayat-zis-${Date.now()}.pdf`);
-      }
-    });
+    exportZISPdf({ historyData: filteredTransactions });
   };
 
   const isBeras = formData.kategori === "Zakat Fitrah Beras";
@@ -709,6 +575,9 @@ export default function KelolaZis() {
                     KATEGORI
                   </th>
                   <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
+                    DESKRIPSI
+                  </th>
+                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
                     NOMINAL (RP)
                   </th>
                   <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
@@ -749,6 +618,9 @@ export default function KelolaZis() {
                       </td>
                       <td className="px-6 py-4 text-sm font-medium text-gray-600 text-center">
                         {trx.kategori}
+                      </td>
+                      <td className="px-6 py-4 text-sm font-medium text-gray-600 text-center">
+                        {trx.deskripsi}
                       </td>
                       <td
                         className={`px-6 py-4 whitespace-nowrap text-sm font-bold text-center ${trx.tipe === "Pemasukan" ? "text-[#10B981]" : "text-[#EF4444]"}`}

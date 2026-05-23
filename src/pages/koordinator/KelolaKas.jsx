@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Download, Plus, X } from "lucide-react";
 import PageTransition from "../../components/shared/PageTransition";
 import Swal from "sweetalert2";
@@ -13,6 +13,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import logoDasawisma from "../../assets/logo.png";
 import KasSummaryCards from "../../components/shared/KasSummaryCards";
+import { exportKasDasawismaPdf } from "../../utils/exportKasDasawismaPdf";
 
 export default function KelolaKas() {
   const [anggotaList, setAnggotaList] = useState([]);
@@ -48,7 +49,7 @@ export default function KelolaKas() {
   const [formData, setFormData] = useState({
     tanggal: "",
     deskripsi: "",
-    jenis: "MASUK",
+    jenis: "Pemasukan",
     nominal: "",
     tipePemasukan: "IURAN",
     anggota_dasawisma_id: "",
@@ -67,6 +68,25 @@ export default function KelolaKas() {
   const [filterBulan, setFilterBulan] = useState("");
   const [filterTahun, setFilterTahun] = useState("");
 
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter((trx) => {
+      const matchesJenis =
+        !filterJenis || filterJenis === "Semua" || trx.jenis === filterJenis;
+
+      const matchesBulan = filterBulan
+        ? new Date(trx.tanggal).toLocaleString("id-ID", {
+            month: "long",
+          }) === filterBulan
+        : true;
+
+      const matchesTahun = filterTahun
+        ? new Date(trx.tanggal).getFullYear().toString() === filterTahun
+        : true;
+
+      return matchesJenis && matchesBulan && matchesTahun;
+    });
+  }, [transactions, filterJenis, filterBulan, filterTahun]);
+
   // ─── Load Data ───
   const loadKasData = async () => {
     try {
@@ -83,7 +103,7 @@ export default function KelolaKas() {
           deskripsi: item.deskripsi,
           namaAnggota: item.nama_anggota,
           sumber: item.sumber,
-          jenis: "MASUK",
+          jenis: "Pemasukan",
           nominal: Number(item.jumlah),
         }));
       } catch (error) {
@@ -97,7 +117,7 @@ export default function KelolaKas() {
           id: item.id,
           tanggal: item.tanggal_penyaluran,
           deskripsi: item.deskripsi,
-          jenis: "KELUAR",
+          jenis: "Pengeluaran",
           nominal: Number(item.jumlah),
         }));
       } catch (error) {
@@ -155,7 +175,7 @@ export default function KelolaKas() {
     e.preventDefault();
 
     try {
-      if (formData.jenis === "MASUK") {
+      if (formData.jenis === "Pemasukan") {
         await pemasukanDasawismaService.createPemasukanKas({
           jumlah: Number(formData.nominal),
           deskripsi: formData.deskripsi,
@@ -190,7 +210,7 @@ export default function KelolaKas() {
       setFormData({
         tanggal: "",
         deskripsi: "",
-        jenis: "MASUK",
+        jenis: "Pemasukan",
         nominal: "",
         tipePemasukan: "IURAN",
         anggota_dasawisma_id: "",
@@ -223,7 +243,7 @@ export default function KelolaKas() {
       setFormData({
         tanggal: "",
         deskripsi: "",
-        jenis: "MASUK",
+        jenis: "Pemasukan",
         nominal: "",
         tipePemasukan: "IURAN",
         anggota_dasawisma_id: "",
@@ -232,105 +252,7 @@ export default function KelolaKas() {
   };
 
   const handleDownloadPDF = () => {
-    Swal.fire({
-      title: "Unduh Riwayat Kas",
-      text: "Apakah Anda ingin mengunduh riwayat kas dalam format PDF?",
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonText: "Ya, Unduh PDF",
-      cancelButtonText: "Batal",
-      confirmButtonColor: "#10B981",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        const doc = new jsPDF();
-        const pageWidth = doc.internal.pageSize.getWidth();
-
-        // ================= HEADER =================
-
-        // Tulisan kiri
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(20);
-        doc.setTextColor(15, 118, 110);
-        doc.text("DASAWISMA", 14, 20);
-
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(11);
-        doc.setTextColor(100);
-        doc.text("LENTENG AGUNG", 14, 27);
-
-        // Logo kanan
-        const logoWidth = 80;
-        const logoHeight = 25;
-
-        doc.addImage(
-          logoDasawisma,
-          "PNG",
-          pageWidth - logoWidth, // posisi kanan
-          10,
-          logoWidth,
-          logoHeight,
-        );
-
-        // Garis bawah
-        doc.setDrawColor(220);
-        doc.line(20, 36, pageWidth - 14, 36);
-
-        // tanggal cetak
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(10);
-        doc.setTextColor(120);
-
-        doc.text(
-          `Tanggal Cetak: ${new Date().toLocaleDateString("id-ID")}`,
-          20,
-          43,
-        );
-
-        autoTable(doc, {
-          startY: 50,
-          head: [
-            [
-              "No",
-              "Tanggal",
-              "Anggota",
-              "Sumber",
-              "Deskripsi",
-              "Tipe",
-              "Nominal",
-            ],
-          ],
-          body: transactions.map((tx, index) => [
-            index + 1,
-            formattedDate(tx.tanggal),
-            tx.namaAnggota || "-",
-            tx.sumber || "-",
-            tx.deskripsi || "-",
-            tx.jenis || "-",
-            formatRupiah(tx.nominal),
-          ]),
-          styles: {
-            fontSize: 9,
-          },
-          headStyles: {
-            fillColor: [16, 185, 129], // emerald
-          },
-        });
-
-        const total = transactions.reduce(
-          (sum, item) => sum + Number(item.nominal || 0),
-          0,
-        );
-
-        doc.text(
-          `Total Transaksi: ${formatRupiah(total)}`,
-          14,
-          doc.lastAutoTable.finalY + 10,
-        );
-
-        // Save
-        doc.save(`riwayat-kas-dasawisma-${Date.now()}.pdf`);
-      }
-    });
+    exportKasDasawismaPdf({ historyData: filteredTransactions });
   };
 
   // ─── useEffect ───
@@ -376,8 +298,8 @@ export default function KelolaKas() {
               onChange={(e) => setFilterJenis(e.target.value)}
             >
               <option value="Semua">Jenis Kas (Semua)</option>
-              <option value="Masuk">Kas Masuk</option>
-              <option value="Keluar">Kas Keluar</option>
+              <option value="Pemasukan">Kas Pemasukan</option>
+              <option value="Pengeluaran">Kas Pengeluaran</option>
             </select>
 
             <select
@@ -450,7 +372,7 @@ export default function KelolaKas() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {transactions.length === 0 && (
+                {filteredTransactions.length === 0 && (
                   <tr>
                     <td
                       colSpan={8}
@@ -461,7 +383,7 @@ export default function KelolaKas() {
                   </tr>
                 )}
 
-                {transactions.map((trx, index) => (
+                {filteredTransactions.map((trx, index) => (
                   <tr
                     key={`${trx.jenis}-${trx.id}`}
                     className="hover:bg-emerald-50/30 transition-colors"
@@ -483,15 +405,15 @@ export default function KelolaKas() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <span
-                        className={`px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wider ${trx.jenis === "MASUK" ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"}`}
+                        className={`px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wider ${trx.jenis === "Pemasukan" ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"}`}
                       >
                         {trx.jenis}
                       </span>
                     </td>
                     <td
-                      className={`px-6 py-4 whitespace-nowrap text-sm font-extrabold text-right ${trx.jenis === "MASUK" ? "text-[#10B981]" : "text-[#EF4444]"}`}
+                      className={`px-6 py-4 whitespace-nowrap text-sm font-extrabold text-right ${trx.jenis === "Pemasukan" ? "text-[#10B981]" : "text-[#EF4444]"}`}
                     >
-                      {trx.jenis === "MASUK" ? "+" : "-"}{" "}
+                      {trx.jenis === "Pemasukan" ? "+" : "-"}{" "}
                       {formatRupiah(trx.nominal).replace("Rp", "").trim()}
                     </td>
                   </tr>
@@ -542,12 +464,14 @@ export default function KelolaKas() {
                     onChange={handleInputChange}
                     className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
                   >
-                    <option value="MASUK">KAS MASUK (PEMASUKAN)</option>
-                    <option value="KELUAR">KAS KELUAR (PENGELUARAN)</option>
+                    <option value="Pemasukan">KAS MASUK (PEMASUKAN)</option>
+                    <option value="Pengeluaran">
+                      KAS KELUAR (PENGELUARAN)
+                    </option>
                   </select>
                 </div>
 
-                {formData.jenis === "MASUK" && (
+                {formData.jenis === "Pemasukan" && (
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                       Tipe Pemasukan
@@ -565,7 +489,7 @@ export default function KelolaKas() {
                   </div>
                 )}
 
-                {formData.jenis === "MASUK" &&
+                {formData.jenis === "Pemasukan" &&
                   formData.tipePemasukan === "IURAN" && (
                     <div>
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">

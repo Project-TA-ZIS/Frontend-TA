@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import Swal from "sweetalert2";
@@ -19,6 +19,7 @@ export default function LupaPassword() {
   const [errorMsg, setErrorMsg] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { token } = useParams();
+  const [isValidating, setIsValidating] = useState(true);
 
   const handleResetSubmit = async (e) => {
     e.preventDefault();
@@ -67,6 +68,28 @@ export default function LupaPassword() {
     }
   };
 
+  useEffect(() => {
+    const validateToken = async () => {
+      try {
+        await authService.validateResetToken(token);
+      } catch (error) {
+        navigate("/404", { replace: true });
+      } finally {
+        setIsValidating(false);
+      }
+    };
+
+    validateToken();
+  }, [token, navigate]);
+
+  if (isValidating) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
+  
   return (
     <div
       className="min-h-screen flex bg-white"

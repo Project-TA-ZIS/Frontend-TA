@@ -14,6 +14,8 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import NavbarUmum from "../../components/shared/NavbarUmum";
 import BottomSummaryCards from "../../components/shared/BottomSummarycards";
+import pengeluaranZISService from "../../services/pengeluaranZIS.service";
+import { exportZISPdf } from "../../utils/exportZISPdf";
 
 export default function ManajemenZis() {
   const navigate = useNavigate();
@@ -27,12 +29,11 @@ export default function ManajemenZis() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [totalZIS, setTotalZIS] = useState([]);
-  const [totalPenerimaan, setTotalPenerimaan] = useState(0);
-  const [totalPenyaluran, setTotalPenyaluran] = useState(0);
   const [saldoZIS, setSaldoZIS] = useState(0);
   const [saldoUpdatedAt, setSaldoUpdatedAt] = useState("");
   const [historyData, setHistoryData] = useState([]);
   const [showTable, setShowTable] = useState(false);
+  const [transactions, setTransactions] = useState([]);
 
   const loadTotalZIS = async () => {
     try {
@@ -47,8 +48,40 @@ export default function ManajemenZis() {
     }
   };
 
+  const normalizeArray = (value) => {
+    if (Array.isArray(value)) return value;
+    if (Array.isArray(value?.data)) return value.data;
+    return [];
+  };
+
+  const loadData = async () => {
+    try {
+      const [pemasukanRes, pengeluaranRes] = await Promise.all([
+        pemasukanZISService.getAllPemasukanZIS(),
+        pengeluaranZISService.getAllPengeluaranZIS(),
+      ]);
+
+      const pemasukanRows = normalizeArray(pemasukanRes).map((item) => ({
+        nominal: Number(item.jumlah || 0),
+        kategori: item.kategori || "-",
+        tipe: "Pemasukan",
+      }));
+
+      const pengeluaranRows = normalizeArray(pengeluaranRes).map((item) => ({
+        nominal: Number(item.jumlah || 0),
+        kategori: item.kategori || "-",
+        tipe: "Pengeluaran",
+      }));
+
+      setTransactions([...pemasukanRows, ...pengeluaranRows]);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   useEffect(() => {
     loadTotalZIS();
+    loadData();
   }, []);
 
   const getTotalByKategori = (kategori) => {
@@ -57,6 +90,24 @@ export default function ManajemenZis() {
     );
     return found ? Number(found.jumlah_keseluruhan) : 0;
   };
+
+  // ─── Perhitungan Otomatis (Real-time) ───
+  const totalPenerimaan = transactions
+    .filter((item) => {
+      const kategori = item.kategori?.trim().toLowerCase();
+
+      return (
+        item.tipe?.toLowerCase() === "pemasukan" &&
+        kategori !== "zakat fitrah beras"
+      );
+    })
+    .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
+
+  const totalPenyaluran = transactions
+    .filter((t) => t.tipe === "Pengeluaran")
+    .reduce((acc, curr) => acc + curr.nominal, 0);
+
+  const saldoTotal = totalPenerimaan - totalPenyaluran;
 
   // ─── TAHAP 1: Klik "Cari Data" (Validasi NIK & Buka Modal) ───
   const handleSearchClick = (e) => {
@@ -108,16 +159,26 @@ export default function ManajemenZis() {
         return;
       }
 
-      const mappedData = data.map((item) => ({
-        id: `PZ-${item.id}`,
-        tanggal:
-          item.tanggal_penghimpunan || item.created_at || item.updated_at,
-        nama: item.nama_muzakki || "-",
-        deskripsi: item.deskripsi || "-",
-        kategori: item.kategori || "-",
-        nominal: Number(item.jumlah || 0),
-        tipe: "Pemasukan",
-      }));
+      const mappedData = data.map((item) => {
+        const tipeRaw = (item.tipe || item.jenis_transaksi || "").toLowerCase();
+
+        return {
+          id: `PZ-${item.id}`,
+          tanggal:
+            item.tanggal_penghimpunan || item.created_at || item.updated_at,
+          nama: item.nama_muzakki || "-",
+          deskripsi: item.deskripsi || "-",
+          kategori: item.kategori || "-",
+          nominal: Number(item.jumlah || 0),
+
+          tipe:
+            tipeRaw.includes("keluar") ||
+            tipeRaw.includes("pengeluaran") ||
+            tipeRaw.includes("penyaluran")
+              ? "Pengeluaran"
+              : "Pemasukan",
+        };
+      });
 
       setHistoryData(mappedData);
       setShowTable(true);
@@ -144,125 +205,7 @@ export default function ManajemenZis() {
   };
 
   const handleDownloadPDF = () => {
-    Swal.fire({
-      title: "Unduh Riwayat ZIS",
-      text: "Apakah Anda ingin mengunduh riwayat ZIS dalam format PDF?",
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonText: "Ya, Unduh PDF",
-      cancelButtonText: "Batal",
-      confirmButtonColor: "#10B981",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        const doc = new jsPDF();
-        const pageWidth = doc.internal.pageSize.getWidth();
-
-        // ================= HEADER =================
-
-        // Tulisan kiri
-        doc.setFont("manrope", "bold");
-        doc.setFontSize(20);
-        doc.setTextColor(15, 118, 110);
-        doc.text("DASAWISMA", 14, 20);
-
-        doc.setFont("manrope", "normal");
-        doc.setFontSize(11);
-        doc.setTextColor(100);
-        doc.text("LENTENG AGUNG", 14, 27);
-
-        // Logo kanan
-        const logoWidth = 80;
-        const logoHeight = 25;
-
-        doc.addImage(
-          logoDasawisma,
-          "PNG",
-          pageWidth - logoWidth, // posisi kanan
-          10,
-          logoWidth,
-          logoHeight,
-        );
-
-        // Garis bawah
-        doc.setDrawColor(220);
-        doc.line(20, 36, pageWidth - 14, 36);
-
-        // tanggal cetak
-        doc.setFont("manrope", "normal");
-        doc.setFontSize(10);
-        doc.setTextColor(120);
-
-        doc.text(
-          `Tanggal Cetak: ${new Date().toLocaleDateString("id-ID")}`,
-          20,
-          43,
-        );
-
-        autoTable(doc, {
-          startY: 50,
-          head: [
-            [
-              "No",
-              "tanggal",
-              "nama",
-              "kategori",
-              "Deskripsi",
-              "Tipe",
-              "jumlah",
-            ],
-          ],
-          body: filteredData.map((tx, index) => [
-            index + 1,
-            formattedDate(tx.tanggal),
-            tx.nama || "-",
-            tx.kategori || "-",
-            tx.deskripsi || "-",
-            tx.tipe || "-",
-            formatRupiah(tx.jumlah),
-          ]),
-          styles: {
-            fontSize: 9,
-          },
-          headStyles: {
-            fillColor: [16, 185, 129], // emerald
-          },
-        });
-
-        const totalPemasukan = filteredData
-          .filter((item) => item.tipe?.toLowerCase() === "pemasukan")
-          .reduce((sum, item) => sum + Number(item.jumlah || 0), 0);
-
-        const totalPengeluaran = filteredData
-          .filter((item) => item.tipe?.toLowerCase() === "pengeluaran")
-          .reduce((sum, item) => sum + Number(item.jumlah || 0), 0);
-
-        const total = filteredData.reduce(
-          (sum, item) => sum + Number(item.jumlah || 0),
-          0,
-        );
-        const finalY = doc.lastAutoTable.finalY + 10;
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(10);
-
-        doc.text(
-          `Total Pemasukan: ${formatRupiah(totalPemasukan)}`,
-          14,
-          finalY,
-        );
-
-        doc.text(
-          `Total Pengeluaran: ${formatRupiah(totalPengeluaran)}`,
-          14,
-          finalY + 7,
-        );
-
-        doc.text(`Total Transaksi: ${formatRupiah(total)}`, 14, finalY + 14);
-
-        // Save
-        doc.save(`riwayat-zis-${Date.now()}.pdf`);
-      }
-    });
+    exportZISPdf({ historyData });
   };
 
   return (
