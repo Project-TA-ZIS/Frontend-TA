@@ -19,7 +19,7 @@ export default function Sidebar() {
     { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
     { name: "Kelola Kas", icon: Wallet, path: "/kelola-kas" },
     { name: "Laporan ZIS", icon: FileText, path: "/laporan-zis" }, 
-    { name: "Anggota Dasawisma", icon: Users, path: "/anggota-dasawisma" }, 
+    { name: "Kader Dasawisma", icon: Users, path: "/anggota-dasawisma" }, 
     { name: "Anggota Amil", icon: UserCog, path: "/anggota-amil" }, 
     { name: "Pengaturan", icon: Settings, path: "/pengaturan" }, 
   ];

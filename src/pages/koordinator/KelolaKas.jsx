@@ -12,6 +12,7 @@ import totalKasDasawismaService from "../../services/totalKasDasawisma.service";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import logoDasawisma from "../../assets/logo.png";
+import KasSummaryCards from "../../components/shared/KasSummaryCards";
 
 export default function KelolaKas() {
   const [anggotaList, setAnggotaList] = useState([]);
@@ -358,35 +359,12 @@ export default function KelolaKas() {
         </div>
 
         {/* Summary Cards (Data Real-time) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 text-center md:text-left">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-              TOTAL KAS MASUK
-            </p>
-            <h3 className="text-3xl font-extrabold text-[#10B981]">
-              {formatRupiah(summary.pemasukan)}
-            </h3>
-          </div>
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 text-center md:text-left">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-              TOTAL PENGELUARAN
-            </p>
-            <h3 className="text-3xl font-extrabold text-[#EF4444]">
-              {formatRupiah(summary.pengeluaran)}
-            </h3>
-          </div>
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 text-center md:text-left">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-              SALDO KAS SAAT INI
-            </p>
-            <h3 className="text-3xl font-extrabold text-gray-900">
-              {formatRupiah(saldoKasDasawisma)}
-            </h3>
-            <p className="text-xs text-gray-500 mt-1">
-              Terakhir diperbarui: {formattedDate(saldoUpdatedAt) || "N/A"}
-            </p>
-          </div>
-        </div>
+        <KasSummaryCards
+          pemasukan={summary.pemasukan}
+          pengeluaran={summary.pengeluaran}
+          saldoKas={saldoKasDasawisma}
+          saldoUpdatedAt={saldoUpdatedAt}
+        />
 
         {/* Action Bar & Filters (Sudah dikembalikan!) */}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6">
@@ -451,11 +429,11 @@ export default function KelolaKas() {
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
                     No
                   </th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
+                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
                     TANGGAL
                   </th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Anggota
+                    NAMA
                   </th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
                     sumber
@@ -491,7 +469,7 @@ export default function KelolaKas() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#0F766E]">
                       {index + 1}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600 text-center">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600 tracking-wider">
                       {formattedDate(trx.tanggal)}
                     </td>
                     <td className="px-6 py-4 text-sm font-bold text-gray-900">

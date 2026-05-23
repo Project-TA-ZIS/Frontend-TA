@@ -1,6 +1,6 @@
 import React from "react";
 import LogoDasawisma from "../../assets/Logo.svg";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function NavbarUmum() {
   const navigate = useNavigate();

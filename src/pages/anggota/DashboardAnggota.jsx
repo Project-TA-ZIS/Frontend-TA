@@ -33,7 +33,7 @@ const CLR = {
 };
 
 // ─── Sub-Komponen KpiCard Lokal ───
-const KpiCard = ({ icon: Icon, label, value }) => (
+const KpiCard = ({ icon: IconComponent, label, value }) => (
   <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col justify-between" style={{ minHeight: 140 }}>
     <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: CLR.primaryBg }}>
       <IconComponent size={20} style={{ color: CLR.accent }} strokeWidth={2} />

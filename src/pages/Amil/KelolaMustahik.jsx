@@ -347,7 +347,7 @@ export default function KelolaMustahik() {
             className="flex items-center justify-center gap-2 bg-[#10B981] hover:bg-[#059669] text-white font-bold py-2.5 px-5 rounded-lg transition-colors shadow-sm text-sm"
           >
             <Plus size={18} strokeWidth={3} />
-            Mustahik
+            Tambah Mustahik
           </button>
         </div>
 
@@ -372,7 +372,7 @@ export default function KelolaMustahik() {
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/80">
                   <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center w-20">
-                    ID
+                    NO
                   </th>
                   <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
                     NAMA
