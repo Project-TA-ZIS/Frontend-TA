@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 
 function NavbarUmum() {
   const navigate = useNavigate();
-  const location = useLocation();
+
   return (
     <>
       {/* ─── NAVBAR PUBLIK ─── */}

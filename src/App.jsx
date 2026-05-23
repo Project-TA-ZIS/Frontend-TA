@@ -1,9 +1,5 @@
 import React, { useEffect } from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./pages/auth/Login";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import useAuthStore from "./store/useAuthStore";
@@ -25,7 +21,7 @@ import PengaturanAmil from "./pages/Amil/PengaturanAmil";
 import PengaturanKoordinator from "./pages/koordinator/PengaturanKoordinator";
 import PengaturanAnggota from "./pages/anggota/PengaturanAnggota";
 import KelolaKas from "./pages/koordinator/KelolaKas";
-import Home from './pages/publik/Home';
+import Home from "./pages/publik/Home";
 import Dashboard from "./pages/publik/Dashboard";
 import ManajemenZis from "./pages/publik/ManajemenZis";
 import LupaPassword from "./pages/auth/LupaPassword";
@@ -267,16 +263,16 @@ function App() {
             }
           />
 
-          <Route path="/lupa-password" element={<LupaPassword />} />
-
           {/* === RUTE PUBLIK DEVELOPMENT === */}
           <Route path="/" element={<Home />} />
           <Route path="/dashboard-publik" element={<Dashboard />} />
           <Route path="/zis-publik" element={<ManajemenZis />} />
 
+          {/* RESET PASSWORD */}
+          <Route path="/resetPassword/:token" element={<LupaPassword />} />
         </Routes>
       </AuthBootstrapper>
-    </Router> 
+    </Router>
   );
 }
 
