@@ -94,8 +94,8 @@ export default function Dashboard() {
 
         const muzakkiArr = pick(0);
         const mustahikArr = pick(1);
-        const pemasukanArr = pick(2);
-        const pengeluaranArr = pick(3);
+        const pemasukanArr = pick(4);
+        const pengeluaranArr = pick(5);
 
         if (!cancelled) {
           setKpiCounts({
