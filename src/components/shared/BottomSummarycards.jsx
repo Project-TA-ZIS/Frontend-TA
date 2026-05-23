@@ -1,21 +1,25 @@
-import SummaryCard from "./TopSummarycard";
+import React from "react";
 import { formatRupiah } from "../../utils/formatRupiah";
 import { formattedDate } from "../../utils/formattedDate";
 
-/**
- * Seluruh blok kartu ringkasan halaman Manajemen ZIS:
- * - Grup 1 (Top): Total Penerimaan, Total Penyaluran, Saldo ZIS
- * - Grup 2 (Bottom): Zakat Fitrah Beras, Zakat Fitrah Uang
- * - Grup 3 (Bottom): Zakat Maal, Infaq, Shodaqoh
- *
- * Komponen ini murni presentational — semua nilai dihitung di induk
- * lalu dikirim lewat props.
- *
- * Props:
- * - totalPenerimaan, totalPenyaluran, saldoZIS : number
- * - saldoUpdatedAt : string (tanggal mentah)
- * - getTotalByKategori : (kategoriApi: string) => number
- */
+export const TopSummaryCard = ({
+  label,
+  value,
+  valueClassName = "text-xl md:text-2xl font-extrabold text-gray-900",
+  subtext,
+  className = "",
+}) => {
+  return (
+    <div className={`bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-center ${className}`}>
+      <p className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 line-clamp-1">
+        {label}
+      </p>
+      <h3 className={`${valueClassName} truncate`}>{value}</h3>
+      {subtext ? <p className="text-[9px] md:text-[10px] text-gray-500 mt-1">{subtext}</p> : null}
+    </div>
+  );
+};
+
 const BottomSummaryCards = ({
   totalPenerimaan,
   totalPenyaluran,
@@ -23,59 +27,81 @@ const BottomSummaryCards = ({
   saldoUpdatedAt,
   getTotalByKategori,
 }) => {
+  
+  // PERUBAHAN: pb-4 diturunkan drastis menjadi pb-1 agar jarak bawah tidak memakan tempat.
+  const scrollContainerClass = "flex md:grid md:grid-cols-2 gap-3 overflow-x-auto pb-1 -mx-4 px-4 md:mx-0 md:px-0 md:pb-0 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden";
+  
+  const scrollItemClass = "shrink-0 w-[240px] sm:w-[280px] md:w-auto snap-start md:snap-align-none";
+
   return (
-    <>
-      {/* ─── Top Summary Cards ─── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3 shrink-0">
-        <SummaryCard
-          label="TOTAL PENERIMAAN ZIS"
+    // PERUBAHAN: Menggunakan flex-col dan gap-3 (jarak statis 12px yang presisi)
+    <div className="flex flex-col gap-3 md:gap-4 mb-6">
+      
+      {/* ─── GROUP 1: Penerimaan & Penyaluran ─── */}
+      <div className={scrollContainerClass}>
+        <TopSummaryCard
+          label="PENERIMAAN ZIS"
           value={formatRupiah(totalPenerimaan)}
-          valueClassName="text-xl font-extrabold text-[#0F766E]"
+          valueClassName="text-xl md:text-2xl font-extrabold text-[#0F766E]"
+          className={scrollItemClass}
         />
-        <SummaryCard
-          label="TOTAL PENYALURAN"
+        <TopSummaryCard
+          label="PENYALURAN"
           value={formatRupiah(totalPenyaluran)}
-          valueClassName="text-xl font-extrabold text-[#EF4444]"
-        />
-        <SummaryCard
-          label="SALDO ZIS"
-          value={formatRupiah(saldoZIS)}
-          valueClassName="text-xl font-extrabold text-gray-900"
-          subtext={`Terakhir diperbarui: ${formattedDate(saldoUpdatedAt) || "N/A"}`}
+          valueClassName="text-xl md:text-2xl font-extrabold text-[#EF4444]"
+          className={scrollItemClass}
         />
       </div>
+      
+      {/* Saldo ZIS */}
+      <TopSummaryCard
+        label="SALDO ZIS SAAT INI"
+        value={formatRupiah(saldoZIS)}
+        valueClassName="text-2xl md:text-3xl font-extrabold text-gray-900"
+        subtext={`Diperbarui: ${formattedDate(saldoUpdatedAt) || "N/A"}`}
+        // mt-3 dan mb-2 dihapus. Biarkan Flex gap-3 yang mengatur jaraknya
+        className="w-full" 
+      />
 
-      {/* ─── Bottom Summary Cards (Zakat Fitrah) ─── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3 shrink-0">
-        <SummaryCard
+      {/* ─── GROUP 2: Zakat Fitrah ─── */}
+      <div className={scrollContainerClass}>
+        <TopSummaryCard
           label="Zakat Fitrah Beras"
           value={`${getTotalByKategori("zakat fitrah beras")} Kg`}
+          valueClassName="text-xl md:text-2xl font-extrabold text-gray-900"
+          className={scrollItemClass}
         />
-        <SummaryCard
+        <TopSummaryCard
           label="Zakat Fitrah Uang"
           value={formatRupiah(getTotalByKategori("zakat fitrah uang"))}
+          valueClassName="text-xl md:text-2xl font-extrabold text-gray-900"
+          className={scrollItemClass}
         />
       </div>
 
-      {/* ─── Bottom Summary Cards (Maal / Infaq / Shodaqoh) ─── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5 shrink-0">
-        <SummaryCard
+      {/* ─── GROUP 3: Maal / Infaq / Shodaqoh ─── */}
+      <div className="flex md:grid md:grid-cols-3 gap-3 overflow-x-auto pb-1 -mx-4 px-4 md:mx-0 md:px-0 md:pb-0 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden">
+        <TopSummaryCard
           label="Zakat Maal"
           value={formatRupiah(getTotalByKategori("zakat mal"))}
-          valueClassName="text-lg font-extrabold text-gray-900"
+          valueClassName="text-xl md:text-2xl font-extrabold text-gray-900"
+          className={scrollItemClass}
         />
-        <SummaryCard
+        <TopSummaryCard
           label="Infaq"
           value={formatRupiah(getTotalByKategori("infaq"))}
-          valueClassName="text-lg font-extrabold text-gray-900"
+          valueClassName="text-xl md:text-2xl font-extrabold text-gray-900"
+          className={scrollItemClass}
         />
-        <SummaryCard
+        <TopSummaryCard
           label="Shodaqoh"
           value={formatRupiah(getTotalByKategori("shodaqoh"))}
-          valueClassName="text-lg font-extrabold text-gray-900"
+          valueClassName="text-xl md:text-2xl font-extrabold text-gray-900"
+          className={scrollItemClass}
         />
       </div>
-    </>
+      
+    </div>
   );
 };
 

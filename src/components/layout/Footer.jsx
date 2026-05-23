@@ -4,14 +4,14 @@ function Footer() {
   return (
     <>
      {/* ─── FOOTER PUBLIK ─── */}
-        <footer className="w-full bg-[#0F766E] px-8 md:px-12 lg:px-20 py-12 shadow-xl mt-10">
-          {/* Grid 3 kolom: Logo/Deskripsi | Kontak & Alamat | Maps */}
+        <footer className="w-full bg-[#0F766E] px-5 sm:px-8 md:px-12 lg:px-20 py-10 md:py-12 shadow-xl mt-10">
+          {/* Grid: 1 kolom di mobile, 3 kolom di layar besar */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 lg:gap-12">
-            
+
             {/* KOLOM 1: Logo & Deskripsi */}
             <div className="flex flex-col gap-5">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm shrink-0">
                   <span className="text-[#0F766E] font-bold text-xl">D</span>
                 </div>
                 <div>
@@ -80,7 +80,7 @@ function Footer() {
           </div>
 
           {/* Garis Bawah (Copyright) */}
-          <div className="mt-12 pt-6 border-t border-emerald-600/50 text-center flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="mt-10 md:mt-12 pt-6 border-t border-emerald-600/50 text-center flex flex-col md:flex-row items-center justify-between gap-3 md:gap-4">
             <p className="text-xs text-emerald-200/60 font-medium">
               &copy; {new Date().getFullYear()} Sistem Dasawisma Lenteng Agung. All rights reserved.
             </p>

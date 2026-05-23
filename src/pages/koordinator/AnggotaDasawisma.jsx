@@ -217,7 +217,6 @@ export default function AnggotaDasawisma() {
           nomor_telpon: formData.telp,
           roles: roleApi,
         });
-
       } else {
         await dasawismaService.createAnggotaDasawisma({
           nama_lengkap: formData.nama,
@@ -308,13 +307,14 @@ export default function AnggotaDasawisma() {
     }
   };
 
-  // ─── Kelas reusable untuk input & label (ukuran lebih besar & jelas) ───
+  // ─── KUNCI PERUBAHAN: Kelas reusable untuk form responsif ───
+  // Ukuran font dan margin dikecilkan di mobile, kembali normal di desktop (md:)
   const labelClass =
-    "block text-sm font-bold text-gray-500 uppercase tracking-wide mb-2";
+    "block text-[11px] md:text-sm font-bold text-gray-500 uppercase tracking-wide mb-1.5 md:mb-2";
   const inputClass =
-    "w-full bg-gray-50 border border-gray-200 text-gray-900 text-base rounded-xl focus:ring-2 focus:ring-[#10B981] focus:bg-white focus:border-[#0F766E] block px-4 py-3.5 font-semibold outline-none transition-all";
+    "w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm md:text-base rounded-xl focus:ring-2 focus:ring-[#10B981] focus:bg-white focus:border-[#0F766E] block px-4 py-2.5 md:py-3.5 font-semibold outline-none transition-all";
   const sectionTitleClass =
-    "text-lg font-extrabold text-gray-900 tracking-tight";
+    "text-base md:text-lg font-extrabold text-gray-900 tracking-tight";
 
   return (
     <PageTransition>
@@ -499,18 +499,19 @@ export default function AnggotaDasawisma() {
           </div>
         </div>
 
-        {/* ─── MODAL FORM: TAMBAH / EDIT DATA (Gaya jelas & lega) ─── */}
+        {/* ─── MODAL FORM: TAMBAH / EDIT DATA ─── */}
         {isModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+            <div className="bg-white rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[95vh] md:max-h-[90vh]">
               {/* Header */}
-              <div className="bg-[#0F766E] px-7 py-5 flex items-center justify-between flex-shrink-0">
-                <h2 className="text-xl font-extrabold text-white tracking-tight">
+              {/* Padding responsif px-5 py-4 untuk mobile, px-7 py-5 untuk desktop */}
+              <div className="bg-[#0F766E] px-5 md:px-7 py-4 md:py-5 flex items-center justify-between flex-shrink-0">
+                <h2 className="text-lg md:text-xl font-extrabold text-white tracking-tight">
                   {editingId ? "Edit Data Kader" : "Tambah Kader Dasawisma"}
                 </h2>
                 <button
                   onClick={handleCloseModal}
-                  className="text-emerald-100 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors"
+                  className="text-emerald-100 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 md:p-2 rounded-full transition-colors"
                 >
                   <X size={20} />
                 </button>
@@ -521,12 +522,13 @@ export default function AnggotaDasawisma() {
                 onSubmit={handleSubmit}
                 className="flex flex-col flex-1 overflow-hidden"
               >
-                <div className="p-7 space-y-7 overflow-y-auto flex-1">
+                {/* Spasi antar section dikecilkan pada mobile */}
+                <div className="p-5 md:p-7 space-y-5 md:space-y-7 overflow-y-auto flex-1">
                   {/* Section: Akun (hanya saat tambah) */}
                   {!editingId && (
-                    <div className="space-y-5">
+                    <div className="space-y-4 md:space-y-5">
                       <h3 className={sectionTitleClass}>Informasi Akun</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
                         <div>
                           <label className={labelClass}>Alamat Email</label>
                           <input
@@ -538,7 +540,7 @@ export default function AnggotaDasawisma() {
                             placeholder="email@contoh.com"
                           />
                           {errors.email && (
-                            <p className="text-sm font-semibold text-red-500 mt-1.5">
+                            <p className="text-xs md:text-sm font-semibold text-red-500 mt-1">
                               {errors.email}
                             </p>
                           )}
@@ -554,7 +556,7 @@ export default function AnggotaDasawisma() {
                             placeholder="Minimal 6 karakter"
                           />
                           {errors.password && (
-                            <p className="text-sm font-semibold text-red-500 mt-1.5">
+                            <p className="text-xs md:text-sm font-semibold text-red-500 mt-1">
                               {errors.password}
                             </p>
                           )}
@@ -564,7 +566,7 @@ export default function AnggotaDasawisma() {
                   )}
 
                   {/* Section: Informasi Dasar */}
-                  <div className="space-y-5">
+                  <div className="space-y-4 md:space-y-5">
                     <h3 className={sectionTitleClass}>Informasi Dasar</h3>
                     <div>
                       <label className={labelClass}>Nama Lengkap</label>
@@ -577,13 +579,13 @@ export default function AnggotaDasawisma() {
                         placeholder="Masukkan nama lengkap..."
                       />
                       {errors.nama && (
-                        <p className="text-sm font-semibold text-red-500 mt-1.5">
+                        <p className="text-xs md:text-sm font-semibold text-red-500 mt-1">
                           {errors.nama}
                         </p>
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
                       <div>
                         <label className={labelClass}>Role (Peran)</label>
                         <select
@@ -600,13 +602,13 @@ export default function AnggotaDasawisma() {
                           </option>
                         </select>
                         {errors.role && (
-                          <p className="text-sm font-semibold text-red-500 mt-1.5">
+                          <p className="text-xs md:text-sm font-semibold text-red-500 mt-1">
                             {errors.role}
                           </p>
                         )}
                       </div>
 
-                      {/* Saat edit, email & telp ada di sini */}
+                      {/* Saat edit, telp ada di sini */}
                       {editingId && (
                         <div>
                           <label className={labelClass}>Nomor Telepon</label>
@@ -619,7 +621,7 @@ export default function AnggotaDasawisma() {
                             placeholder="08xxxxxxxxxx"
                           />
                           {errors.telp && (
-                            <p className="text-sm font-semibold text-red-500 mt-1.5">
+                            <p className="text-xs md:text-sm font-semibold text-red-500 mt-1">
                               {errors.telp}
                             </p>
                           )}
@@ -639,7 +641,7 @@ export default function AnggotaDasawisma() {
                           placeholder="email@contoh.com"
                         />
                         {errors.email && (
-                          <p className="text-sm font-semibold text-red-500 mt-1.5">
+                          <p className="text-xs md:text-sm font-semibold text-red-500 mt-1">
                             {errors.email}
                           </p>
                         )}
@@ -659,7 +661,7 @@ export default function AnggotaDasawisma() {
                           placeholder="08xxxxxxxxxx"
                         />
                         {errors.telp && (
-                          <p className="text-sm font-semibold text-red-500 mt-1.5">
+                          <p className="text-xs md:text-sm font-semibold text-red-500 mt-1">
                             {errors.telp}
                           </p>
                         )}
@@ -669,17 +671,17 @@ export default function AnggotaDasawisma() {
                 </div>
 
                 {/* Footer */}
-                <div className="px-7 py-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50 flex-shrink-0">
+                <div className="px-5 md:px-7 py-4 md:py-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50 flex-shrink-0">
                   <button
                     type="button"
                     onClick={handleCloseModal}
-                    className="px-6 py-3 rounded-xl text-base font-bold text-gray-600 bg-white border border-gray-200 hover:bg-gray-100 transition-colors active:scale-95"
+                    className="px-5 md:px-6 py-2.5 md:py-3 rounded-xl text-sm md:text-base font-bold text-gray-600 bg-white border border-gray-200 hover:bg-gray-100 transition-colors active:scale-95"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
-                    className="px-7 py-3 rounded-xl text-base font-bold text-white bg-[#10B981] hover:bg-[#059669] shadow-sm transition-colors active:scale-95"
+                    className="px-5 md:px-7 py-2.5 md:py-3 rounded-xl text-sm md:text-base font-bold text-white bg-[#10B981] hover:bg-[#059669] shadow-sm transition-colors active:scale-95"
                   >
                     {editingId ? "Simpan Perubahan" : "Simpan"}
                   </button>
@@ -689,58 +691,58 @@ export default function AnggotaDasawisma() {
           </div>
         )}
 
-        {/* ─── MODAL DETAIL USER KADER (Gaya jelas & lega) ─── */}
+        {/* ─── MODAL DETAIL USER KADER ─── */}
         {isInfoModalOpen && selectedUser && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+            <div className="bg-white rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[95vh] md:max-h-[90vh]">
               {/* Header Modal */}
-              <div className="bg-[#0F766E] px-7 py-5 flex items-center justify-between flex-shrink-0">
-                <h2 className="text-xl font-extrabold text-white tracking-tight">
+              <div className="bg-[#0F766E] px-5 md:px-7 py-4 md:py-5 flex items-center justify-between flex-shrink-0">
+                <h2 className="text-lg md:text-xl font-extrabold text-white tracking-tight">
                   Detail Kader Dasawisma
                 </h2>
                 <button
                   onClick={() => setIsInfoModalOpen(false)}
-                  className="text-emerald-100 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors"
+                  className="text-emerald-100 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 md:p-2 rounded-full transition-colors"
                 >
                   <X size={20} />
                 </button>
               </div>
 
               {/* Body Konten Detail */}
-              <div className="p-7 space-y-7 overflow-y-auto flex-1">
+              <div className="p-5 md:p-7 space-y-6 md:space-y-7 overflow-y-auto flex-1">
                 {/* Section: Informasi Dasar */}
-                <div className="space-y-5">
+                <div className="space-y-4 md:space-y-5">
                   <h3 className={sectionTitleClass}>Informasi Dasar</h3>
                   <div>
                     <span className={labelClass}>Nama Lengkap</span>
-                    <span className="text-lg font-extrabold text-gray-800 block">
+                    <span className="text-base md:text-lg font-extrabold text-gray-800 block">
                       {selectedUser.nama_lengkap || "-"}
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
                     <div>
                       <span className={labelClass}>Role / Peran</span>
-                      <span className="inline-block px-3 py-1.5 rounded-lg text-sm font-bold bg-[#D1FAE5] text-[#0F766E] capitalize">
+                      <span className="inline-block px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold bg-[#D1FAE5] text-[#0F766E] capitalize">
                         {selectedUser.roles || "-"}
                       </span>
                     </div>
                     <div>
                       <span className={labelClass}>NIK</span>
-                      <span className="text-base font-bold text-gray-700 block tracking-wide">
+                      <span className="text-sm md:text-base font-bold text-gray-700 block tracking-wide">
                         {selectedUser.nik || "-"}
                       </span>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
                     <div>
                       <span className={labelClass}>Alamat Email</span>
-                      <span className="text-base font-semibold text-gray-700 block break-all">
+                      <span className="text-sm md:text-base font-semibold text-gray-700 block break-all">
                         {selectedUser.email || "-"}
                       </span>
                     </div>
                     <div>
                       <span className={labelClass}>Nomor Telepon</span>
-                      <span className="text-base font-bold text-gray-700 block">
+                      <span className="text-sm md:text-base font-bold text-gray-700 block">
                         {selectedUser.nomor_telpon || "-"}
                       </span>
                     </div>
@@ -748,18 +750,18 @@ export default function AnggotaDasawisma() {
                 </div>
 
                 {/* Section: Kelahiran */}
-                <div className="space-y-5 border-t border-gray-100 pt-6">
+                <div className="space-y-4 md:space-y-5 border-t border-gray-100 pt-5 md:pt-6">
                   <h3 className={sectionTitleClass}>Kelahiran</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
                     <div>
                       <span className={labelClass}>Tempat Lahir</span>
-                      <span className="text-base font-semibold text-gray-700 block">
+                      <span className="text-sm md:text-base font-semibold text-gray-700 block">
                         {selectedUser.tempat_lahir || "-"}
                       </span>
                     </div>
                     <div>
                       <span className={labelClass}>Tanggal Lahir</span>
-                      <span className="text-base font-bold text-gray-700 block">
+                      <span className="text-sm md:text-base font-bold text-gray-700 block">
                         {selectedUser.tanggal_lahir
                           ? new Date(
                               selectedUser.tanggal_lahir,
@@ -775,26 +777,26 @@ export default function AnggotaDasawisma() {
                 </div>
 
                 {/* Section: Alamat */}
-                <div className="space-y-5 border-t border-gray-100 pt-6">
+                <div className="space-y-4 md:space-y-5 border-t border-gray-100 pt-5 md:pt-6">
                   <h3 className={sectionTitleClass}>Alamat Domisili</h3>
                   <div>
-                    <span className="text-base font-medium text-gray-700 block leading-relaxed">
+                    <span className="text-sm md:text-base font-medium text-gray-700 block leading-relaxed">
                       {selectedUser.alamat || "-"}
                     </span>
                   </div>
                 </div>
 
                 {/* Section: Lainnya */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 border-t border-gray-100 pt-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5 border-t border-gray-100 pt-5 md:pt-6">
                   <div>
                     <span className={labelClass}>Terdaftar Pada</span>
-                    <span className="text-base font-bold text-gray-700 block">
+                    <span className="text-sm md:text-base font-bold text-gray-700 block">
                       {formattedDate(selectedUser.created_at) || "-"}
                     </span>
                   </div>
                   <div>
                     <span className={labelClass}>Pembaruan Terakhir</span>
-                    <span className="text-base font-bold text-gray-700 block">
+                    <span className="text-sm md:text-base font-bold text-gray-700 block">
                       {selectedUser.updated_at
                         ? formattedDate(selectedUser.updated_at)
                         : "-"}
@@ -804,10 +806,10 @@ export default function AnggotaDasawisma() {
               </div>
 
               {/* Footer Modal */}
-              <div className="px-7 py-5 border-t border-gray-100 flex justify-end bg-gray-50/50 flex-shrink-0">
+              <div className="px-5 md:px-7 py-4 md:py-5 border-t border-gray-100 flex justify-end bg-gray-50/50 flex-shrink-0">
                 <button
                   onClick={() => setIsInfoModalOpen(false)}
-                  className="px-7 py-3 bg-white border border-gray-200 hover:bg-gray-100 text-gray-600 font-bold rounded-xl text-base transition shadow-sm active:scale-95"
+                  className="px-6 md:px-7 py-2.5 md:py-3 bg-white border border-gray-200 hover:bg-gray-100 text-gray-600 font-bold rounded-xl text-sm md:text-base transition shadow-sm active:scale-95"
                 >
                   Tutup
                 </button>

@@ -2,9 +2,6 @@ import React, { useState, useRef, useEffect } from "react";
 import { Search, User, LogOut, Settings, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../../store/useAuthStore";
-
-// 👇 UBAH BAGIAN INI 👇
-// Ganti "Sidebar" dengan nama file komponen sidebar Anda yang sebenarnya
 import Sidebar from "./Sidebar";
 import Swal from "sweetalert2";
 
@@ -81,16 +78,18 @@ export default function DashboardLayout({ children }) {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden font-['Manrope']">
-      {/* 👇 PASTIKAN TAG INI SAMA DENGAN NAMA IMPORT DI ATAS 👇 */}
       <Sidebar />
 
-      <div className="flex-1 ml-64 flex flex-col h-screen overflow-hidden">
-        {/* Header / Topbar */}
-        <header className="h-20 bg-white border-b border-gray-100 flex items-center justify-between px-10 shrink-0 shadow-sm z-50">
-          {/* Search Bar */}
-          <div className="relative w-96"></div>
+      {/* CHANGED: md:ml-64 ensures the margin is only applied on desktop. w-full ensures it doesn't overflow. */}
+      <div className="flex-1 md:ml-64 flex flex-col h-screen overflow-hidden w-full transition-all duration-300">
+        
+        {/* CHANGED: Adjusted padding (px-4 md:px-10) and justify-end on mobile since the search bar is hidden or empty */}
+        <header className="h-20 bg-white border-b border-gray-100 flex items-center justify-end md:justify-between px-4 md:px-10 shrink-0 shadow-sm z-30">
+          
+          {/* Search Bar - Kept as is, but you might want to hide it on mobile if it takes up too much space later */}
+          <div className="relative hidden md:block md:w-96"></div>
 
-          {/* ─── Profile Area dengan Dropdown ─── */}
+          {/* Profile Area */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
@@ -148,7 +147,7 @@ export default function DashboardLayout({ children }) {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <main className="flex-1 overflow-y-auto bg-gray-50">{children}</main>
       </div>
     </div>
   );

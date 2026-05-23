@@ -8,6 +8,7 @@ import {
   Check,
   Calendar,
   Home,
+  X
 } from "lucide-react";
 import PageTransition from "../../components/shared/PageTransition";
 import useAuthStore from "../../store/useAuthStore";
@@ -163,6 +164,7 @@ export default function PengaturanKoordinator() {
       setIsSubmitting(false);
     }
   };
+
   const getInitials = (name) => {
     const safe = (name || "").trim();
     if (!safe) return "U";
@@ -259,6 +261,8 @@ export default function PengaturanKoordinator() {
     <PageTransition>
       <div className="min-h-screen bg-gray-50 p-6 md:p-10 font-['Manrope']">
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
+        
+        {/* ─── Header ─── */}
         <div className="mb-8">
           <h1 className="text-2xl md:text-3xl font-extrabold text-[#0F766E]">
             Pengaturan Profil
@@ -268,43 +272,47 @@ export default function PengaturanKoordinator() {
           </p>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
+          {/* ─── Bagian Kiri: Kartu Profil ─── */}
           <div className="w-full lg:w-1/3">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center flex flex-col items-center">
-              <div className="relative mb-6">
-                <div className="w-32 h-32 bg-[#0F766E] rounded-full flex items-center justify-center text-white font-bold text-4xl shadow-md border-4 border-white">
+            <div className="bg-white rounded-2xl md:rounded-3xl shadow-sm border border-gray-100 p-6 md:p-8 text-center flex flex-col items-center">
+              <div className="relative mb-5 md:mb-6">
+                <div className="w-24 h-24 md:w-32 md:h-32 bg-[#0F766E] rounded-full flex items-center justify-center text-white font-bold text-3xl md:text-4xl shadow-md border-4 border-white">
                   {getInitials(formData.nama)}
                 </div>
               </div>
-              <h3 className="text-xl font-extrabold text-gray-900">
+              <h3 className="text-lg md:text-xl font-extrabold text-gray-900">
                 {formData.nama || "Super Admin"}
               </h3>
-              <p className="text-sm font-bold text-[#10B981] mt-1 uppercase tracking-wider">
+              <p className="text-xs md:text-sm font-bold text-[#10B981] mt-1 uppercase tracking-wider">
                 {formData.role || ""}
               </p>
             </div>
           </div>
 
+          {/* ─── Bagian Kanan: Form Edit Profil ─── */}
           <div className="w-full lg:w-2/3">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
+            <div className="bg-white rounded-2xl md:rounded-3xl shadow-sm border border-gray-100 p-5 md:p-8">
               {isSuccess && (
                 <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
                   <div className="w-8 h-8 bg-[#10B981] rounded-full flex items-center justify-center text-white shrink-0">
                     <Check size={16} strokeWidth={3} />
                   </div>
-                  <p className="text-sm font-bold text-emerald-800">
+                  <p className="text-xs md:text-sm font-bold text-emerald-800">
                     Profil berhasil diperbarui!
                   </p>
                 </div>
               )}
-              <form onSubmit={handleSubmit} noValidate className="space-y-6">
+              
+              <form onSubmit={handleSubmit} noValidate className="space-y-5 md:space-y-6">
                 <div className="border-b border-gray-100 pb-6">
-                  <h4 className="text-base font-extrabold text-gray-900 mb-4">
+                  <h4 className="text-base md:text-lg font-extrabold text-gray-900 mb-4">
                     Informasi Dasar
                   </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    {/* Input Nama Lengkap */}
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                      <label className="block text-[11px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                         Nama Lengkap
                       </label>
                       <div className="relative">
@@ -316,17 +324,19 @@ export default function PengaturanKoordinator() {
                           name="nama"
                           value={formData.nama}
                           onChange={handleInputChange}
-                          className={`w-full pl-11 pr-4 py-3 bg-gray-50 text-sm rounded-xl outline-none font-semibold transition-all border ${errors.nama ? "border-red-500 focus:ring-red-500 bg-red-50/50" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`}
+                          className={`w-full pl-11 pr-4 py-2.5 md:py-3 bg-gray-50 text-sm md:text-base rounded-xl outline-none font-semibold transition-all border ${errors.nama ? "border-red-500 focus:ring-red-500 bg-red-50/50" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`}
                         />
                       </div>
                       {errors.nama && (
-                        <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                        <p className="text-red-500 text-[10px] md:text-[11px] font-bold mt-1.5 pl-1">
                           {errors.nama}
                         </p>
                       )}
                     </div>
+
+                    {/* Input Nomor Telepon */}
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                      <label className="block text-[11px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                         Nomor Telepon
                       </label>
                       <div className="relative">
@@ -338,18 +348,20 @@ export default function PengaturanKoordinator() {
                           name="telp"
                           value={formData.telp}
                           onChange={handleInputChange}
-                          className={`w-full pl-11 pr-4 py-3 bg-gray-50 text-sm rounded-xl outline-none font-semibold transition-all border ${errors.telp ? "border-red-500 focus:ring-red-500 bg-red-50/50" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`}
+                          className={`w-full pl-11 pr-4 py-2.5 md:py-3 bg-gray-50 text-sm md:text-base rounded-xl outline-none font-semibold transition-all border ${errors.telp ? "border-red-500 focus:ring-red-500 bg-red-50/50" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`}
                         />
                       </div>
                       {errors.telp && (
-                        <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                        <p className="text-red-500 text-[10px] md:text-[11px] font-bold mt-1.5 pl-1">
                           {errors.telp}
                         </p>
                       )}
                     </div>
+
+                    {/* Input Tempat Lahir */}
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                        tempat lahir
+                      <label className="block text-[11px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                        Tempat Lahir
                       </label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -360,17 +372,19 @@ export default function PengaturanKoordinator() {
                           name="tempat_lahir"
                           value={formData.tempat_lahir}
                           onChange={handleInputChange}
-                          className={`w-full pl-11 pr-4 py-3 bg-gray-50 text-sm rounded-xl outline-none font-semibold transition-all border ${errors.tempat_lahir ? "border-red-500 focus:ring-red-500 bg-red-50/50" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`}
+                          className={`w-full pl-11 pr-4 py-2.5 md:py-3 bg-gray-50 text-sm md:text-base rounded-xl outline-none font-semibold transition-all border ${errors.tempat_lahir ? "border-red-500 focus:ring-red-500 bg-red-50/50" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`}
                         />
                       </div>
                       {errors.tempat_lahir && (
-                        <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                        <p className="text-red-500 text-[10px] md:text-[11px] font-bold mt-1.5 pl-1">
                           {errors.tempat_lahir}
                         </p>
                       )}
                     </div>
+
+                    {/* Input Tanggal Lahir */}
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                      <label className="block text-[11px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                         Tanggal Lahir
                       </label>
                       <div className="relative">
@@ -380,20 +394,21 @@ export default function PengaturanKoordinator() {
                         <input
                           type="date"
                           name="tanggal_lahir"
-                          // value={formData.tanggal_lahir}
                           value={formatDateInput(formData.tanggal_lahir) || ""}
                           onChange={handleInputChange}
-                          className={`w-full pl-11 pr-4 py-3 bg-gray-50 text-sm rounded-xl outline-none font-semibold transition-all border ${errors.tanggal_lahir ? "border-red-500 focus:ring-red-500 bg-red-50/50" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`}
+                          className={`w-full pl-11 pr-4 py-2.5 md:py-3 bg-gray-50 text-sm md:text-base rounded-xl outline-none font-semibold transition-all border ${errors.tanggal_lahir ? "border-red-500 focus:ring-red-500 bg-red-50/50" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`}
                         />
                       </div>
                       {errors.tanggal_lahir && (
-                        <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                        <p className="text-red-500 text-[10px] md:text-[11px] font-bold mt-1.5 pl-1">
                           {errors.tanggal_lahir}
                         </p>
                       )}
                     </div>
+
+                    {/* Input Alamat Email (Memanjang) */}
                     <div className="md:col-span-2">
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                      <label className="block text-[11px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 mt-2">
                         Alamat Email
                       </label>
                       <div className="relative">
@@ -405,16 +420,17 @@ export default function PengaturanKoordinator() {
                           name="email"
                           value={formData.email}
                           onChange={handleInputChange}
-                          className={`w-full pl-11 pr-4 py-3 bg-gray-50 text-sm rounded-xl outline-none font-semibold transition-all border ${errors.email ? "border-red-500 focus:ring-red-500 bg-red-50/50" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`}
+                          className={`w-full pl-11 pr-4 py-2.5 md:py-3 bg-gray-50 text-sm md:text-base rounded-xl outline-none font-semibold transition-all border ${errors.email ? "border-red-500 focus:ring-red-500 bg-red-50/50" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`}
                         />
                       </div>
                       {errors.email && (
-                        <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                        <p className="text-red-500 text-[10px] md:text-[11px] font-bold mt-1.5 pl-1">
                           {errors.email}
                         </p>
                       )}
 
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 mt-2">
+                      {/* Input NIK */}
+                      <label className="block text-[11px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 mt-4 md:mt-5">
                         Nomor Induk Kependudukan (NIK)
                       </label>
                       <div className="relative">
@@ -426,16 +442,17 @@ export default function PengaturanKoordinator() {
                           name="nik"
                           value={formData.nik}
                           onChange={handleInputChange}
-                          className={`w-full pl-11 pr-4 py-3 bg-gray-50 text-sm rounded-xl outline-none font-semibold transition-all border ${errors.nik ? "border-red-500 focus:ring-red-500 bg-red-50/50" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`}
+                          className={`w-full pl-11 pr-4 py-2.5 md:py-3 bg-gray-50 text-sm md:text-base rounded-xl outline-none font-semibold transition-all border ${errors.nik ? "border-red-500 focus:ring-red-500 bg-red-50/50" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`}
                         />
                       </div>
                       {errors.nik && (
-                        <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                        <p className="text-red-500 text-[10px] md:text-[11px] font-bold mt-1.5 pl-1">
                           {errors.nik}
                         </p>
                       )}
 
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 mt-2">
+                      {/* Input Alamat Rumah */}
+                      <label className="block text-[11px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 mt-4 md:mt-5">
                         Alamat Rumah
                       </label>
                       <div className="relative">
@@ -447,29 +464,31 @@ export default function PengaturanKoordinator() {
                           name="alamat"
                           value={formData.alamat}
                           onChange={handleInputChange}
-                          className={`w-full pl-11 pr-4 py-3 bg-gray-50 text-sm rounded-xl outline-none font-semibold transition-all border ${errors.alamat ? "border-red-500 focus:ring-red-500 bg-red-50/50" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`}
+                          className={`w-full pl-11 pr-4 py-2.5 md:py-3 bg-gray-50 text-sm md:text-base rounded-xl outline-none font-semibold transition-all border ${errors.alamat ? "border-red-500 focus:ring-red-500 bg-red-50/50" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`}
                         />
                       </div>
                       {errors.alamat && (
-                        <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                        <p className="text-red-500 text-[10px] md:text-[11px] font-bold mt-1.5 pl-1">
                           {errors.alamat}
                         </p>
                       )}
                     </div>
                   </div>
                 </div>
-                <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
+
+                {/* Footer Buttons */}
+                <div className="flex flex-col md:flex-row justify-end gap-3 pt-2 md:pt-4">
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(true)}
-                    className="px-6 py-3 rounded-xl text-sm font-bold text-white bg-amber-500 hover:bg-amber-600 transition-colors"
+                    className="px-5 md:px-6 py-2.5 md:py-3 rounded-xl text-sm md:text-base font-bold text-white bg-amber-500 hover:bg-amber-600 transition-colors w-full md:w-auto"
                   >
                     Ganti Password
                   </button>
 
                   <button
                     type="submit"
-                    className="px-6 py-3 rounded-xl text-sm font-bold text-white bg-[#10B981] hover:bg-[#059669] shadow-md shadow-emerald-900/10 transition-colors"
+                    className="px-5 md:px-6 py-2.5 md:py-3 rounded-xl text-sm md:text-base font-bold text-white bg-[#10B981] hover:bg-[#059669] shadow-md shadow-emerald-900/10 transition-colors w-full md:w-auto"
                   >
                     Simpan Perubahan
                   </button>
@@ -480,87 +499,81 @@ export default function PengaturanKoordinator() {
         </div>
       </div>
 
-      {/* ─── MODAL POP-UP edit password ─── */}
+      {/* ─── MODAL POP-UP EDIT PASSWORD ─── */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-            {/* Header */}
-            <div className="bg-[#0F766E] px-6 py-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-white">Ganti Password</h2>
-
+          <div className="bg-white rounded-2xl md:rounded-3xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            {/* Header Modal */}
+            <div className="bg-[#0F766E] px-5 md:px-6 py-4 flex items-center justify-between">
+              <h2 className="text-base md:text-lg font-bold text-white">Ganti Password</h2>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-white text-xl"
+                className="text-white hover:bg-white/20 p-1.5 rounded-full transition-colors"
               >
-                ✕
+                <X size={20} />
               </button>
             </div>
 
-            {/* Body */}
-            <form onSubmit={handleSubmitPassword} className="p-6 space-y-5">
+            {/* Body Modal */}
+            <form onSubmit={handleSubmitPassword} className="p-5 md:p-6 space-y-4 md:space-y-5">
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                <label className="block text-[11px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                   Password Lama
                 </label>
-
                 <input
                   type="password"
                   name="passwordLama"
                   value={passwordData.passwordLama}
                   onChange={handlePasswordChange}
-                  className={`w-full px-4 py-3 bg-gray-50 text-sm rounded-xl outline-none font-semibold transition-all border ${
+                  className={`w-full px-4 py-2.5 md:py-3 bg-gray-50 text-sm md:text-base rounded-xl outline-none font-semibold transition-all border ${
                     passwordErrors.passwordLama
                       ? "border-red-500"
                       : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"
                   }`}
                   placeholder="Masukkan password lama"
                 />
-
                 {passwordErrors.passwordLama && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-red-500 text-[10px] md:text-[11px] font-bold mt-1.5">
                     {passwordErrors.passwordLama}
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                <label className="block text-[11px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                   Password Baru
                 </label>
-
                 <input
                   type="password"
                   name="passwordBaru"
                   value={passwordData.passwordBaru}
                   onChange={handlePasswordChange}
-                  className={`w-full px-4 py-3 bg-gray-50 text-sm rounded-xl outline-none font-semibold transition-all border ${
+                  className={`w-full px-4 py-2.5 md:py-3 bg-gray-50 text-sm md:text-base rounded-xl outline-none font-semibold transition-all border ${
                     passwordErrors.passwordBaru
                       ? "border-red-500"
                       : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"
                   }`}
                   placeholder="Masukkan password baru"
                 />
-
                 {passwordErrors.passwordBaru && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-red-500 text-[10px] md:text-[11px] font-bold mt-1.5">
                     {passwordErrors.passwordBaru}
                   </p>
                 )}
               </div>
 
-              {/* Footer */}
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+              {/* Footer Modal */}
+              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+                  className="px-5 py-2.5 md:py-3 rounded-xl text-sm md:text-base font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors w-full sm:w-auto"
                 >
                   Batal
                 </button>
-
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#10B981] hover:bg-[#059669] shadow-sm transition-colors"
+                  className="px-5 py-2.5 md:py-3 rounded-xl text-sm md:text-base font-bold text-white bg-[#10B981] hover:bg-[#059669] shadow-sm transition-colors w-full sm:w-auto"
                 >
                   Simpan Password
                 </button>

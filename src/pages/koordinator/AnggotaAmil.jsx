@@ -15,16 +15,12 @@ const mapApiAmilToRowData = (amil) => ({
 
 export default function AnggotaAmil() {
   // ─── States ───
-  const [anggotaList, setAnggotaList] = useState([]); // Mulai dengan array kosong, data akan dimuat dari API
+  const [anggotaList, setAnggotaList] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // State untuk Modal Pop-up
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // State: Untuk melacak ID mana yang sedang diedit (null = mode Tambah)
   const [editingId, setEditingId] = useState(null);
 
-  // State untuk form input (Tanpa Role)
   const [formData, setFormData] = useState({
     nama: "",
     email: "",
@@ -64,7 +60,6 @@ export default function AnggotaAmil() {
     };
   }, []);
 
-  // ─── Filter Pencarian ───
   const filteredAnggota = anggotaList.filter(
     (anggota) =>
       anggota.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -73,7 +68,6 @@ export default function AnggotaAmil() {
       anggota.alamat.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  // ─── Handlers ───
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -115,14 +109,12 @@ export default function AnggotaAmil() {
     }
   };
 
-  // Handler saat tombol "+ Amil" diklik (Mode Tambah)
   const handleTambahClick = () => {
     setEditingId(null);
     setFormData({ nama: "", email: "", telp: "", alamat: "", password: "" });
     setIsModalOpen(true);
   };
 
-  // Handler saat tombol "Edit" di tabel diklik (Mode Edit)
   const handleEditClick = (anggota) => {
     setEditingId(anggota.id);
     setFormData({
@@ -165,7 +157,6 @@ export default function AnggotaAmil() {
     }
 
     setErrors(newErrors);
-
     return Object.keys(newErrors).length === 0;
   };
 
@@ -176,7 +167,6 @@ export default function AnggotaAmil() {
 
     try {
       if (editingId) {
-        // EDIT DATA
         await amilService.updateAmil(editingId, {
           nama_lengkap: formData.nama,
           email: formData.email,
@@ -184,7 +174,6 @@ export default function AnggotaAmil() {
           alamat: formData.alamat,
         });
 
-        // refresh data
         await loadAmilData();
 
         Swal.fire({
@@ -194,7 +183,6 @@ export default function AnggotaAmil() {
           confirmButtonColor: "#10B981",
         });
       } else {
-        // TAMBAH DATA
         await amilService.createAmil({
           nama_lengkap: formData.nama,
           email: formData.email,
@@ -203,7 +191,6 @@ export default function AnggotaAmil() {
           alamat: formData.alamat,
         });
 
-        // refresh data
         await loadAmilData();
 
         Swal.fire({
@@ -214,10 +201,8 @@ export default function AnggotaAmil() {
         });
       }
 
-      // reset form + tutup modal
       setIsModalOpen(false);
       setEditingId(null);
-
       setFormData({
         nama: "",
         email: "",
@@ -250,7 +235,6 @@ export default function AnggotaAmil() {
     if (result.isConfirmed) {
       setIsModalOpen(false);
       setEditingId(null);
-
       setFormData({
         nama: "",
         email: "",
@@ -261,13 +245,13 @@ export default function AnggotaAmil() {
     }
   };
 
-  // ─── Kelas reusable untuk input & label (ukuran lebih besar & jelas) ───
+  // ─── KUNCI PERUBAHAN: Kelas reusable responsif untuk form ───
   const labelClass =
-    "block text-sm font-bold text-gray-500 uppercase tracking-wide mb-2";
+    "block text-[11px] md:text-sm font-bold text-gray-500 uppercase tracking-wide mb-1.5 md:mb-2";
   const inputClass =
-    "w-full bg-gray-50 border border-gray-200 text-gray-900 text-base rounded-xl focus:ring-2 focus:ring-[#10B981] focus:bg-white focus:border-[#0F766E] block px-4 py-3.5 font-semibold outline-none transition-all";
+    "w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm md:text-base rounded-xl focus:ring-2 focus:ring-[#10B981] focus:bg-white focus:border-[#0F766E] block px-4 py-2.5 md:py-3.5 font-semibold outline-none transition-all";
   const sectionTitleClass =
-    "text-lg font-extrabold text-gray-900 tracking-tight";
+    "text-base md:text-lg font-extrabold text-gray-900 tracking-tight";
 
   return (
     <PageTransition>
@@ -362,7 +346,6 @@ export default function AnggotaAmil() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <div className="flex items-center justify-center gap-3">
-                          {/* Tombol Edit: Hijau Solid Standby */}
                           <button
                             onClick={() => handleEditClick(item)}
                             className="text-[#10B981] bg-emerald-50 hover:bg-emerald-100 hover:text-[#064E3B] p-2 rounded-lg transition-colors shadow-sm"
@@ -370,8 +353,6 @@ export default function AnggotaAmil() {
                           >
                             <Edit size={18} />
                           </button>
-
-                          {/* Tombol Hapus: Merah Solid Standby */}
                           <button
                             onClick={() => handleDeleteClick(item.id)}
                             className="text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-700 p-2 rounded-lg transition-colors shadow-sm"
@@ -390,8 +371,7 @@ export default function AnggotaAmil() {
                         colSpan="6"
                         className="px-6 py-8 text-center text-sm font-medium text-gray-500"
                       >
-                        Tidak ada data yang cocok dengan pencarian "
-                        {searchQuery}"
+                        Tidak ada data yang cocok dengan pencarian "{searchQuery}"
                       </td>
                     ) : (
                       <td
@@ -409,18 +389,18 @@ export default function AnggotaAmil() {
           </div>
         </div>
 
-        {/* ─── MODAL FORM: TAMBAH / EDIT DATA (Gaya jelas & lega) ─── */}
+        {/* ─── MODAL FORM: TAMBAH / EDIT DATA ─── */}
         {isModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+            <div className="bg-white rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[95vh] md:max-h-[90vh]">
               {/* Header */}
-              <div className="bg-[#0F766E] px-7 py-5 flex items-center justify-between flex-shrink-0">
-                <h2 className="text-xl font-extrabold text-white tracking-tight">
+              <div className="bg-[#0F766E] px-5 md:px-7 py-4 md:py-5 flex items-center justify-between flex-shrink-0">
+                <h2 className="text-lg md:text-xl font-extrabold text-white tracking-tight">
                   {editingId ? "Edit Data Amil" : "Tambah Anggota Amil"}
                 </h2>
                 <button
                   onClick={handleCloseModal}
-                  className="text-emerald-100 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors"
+                  className="text-emerald-100 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 md:p-2 rounded-full transition-colors"
                 >
                   <X size={20} />
                 </button>
@@ -431,12 +411,12 @@ export default function AnggotaAmil() {
                 onSubmit={handleSubmit}
                 className="flex flex-col flex-1 overflow-hidden"
               >
-                <div className="p-7 space-y-7 overflow-y-auto flex-1">
+                <div className="p-5 md:p-7 space-y-5 md:space-y-7 overflow-y-auto flex-1">
                   {/* Section: Akun (hanya saat tambah) */}
                   {!editingId && (
-                    <div className="space-y-5">
+                    <div className="space-y-4 md:space-y-5">
                       <h3 className={sectionTitleClass}>Informasi Akun</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
                         <div>
                           <label className={labelClass}>Alamat Email</label>
                           <input
@@ -448,7 +428,7 @@ export default function AnggotaAmil() {
                             placeholder="email@contoh.com"
                           />
                           {errors.email && (
-                            <p className="text-sm font-semibold text-red-500 mt-1.5">
+                            <p className="text-xs md:text-sm font-semibold text-red-500 mt-1">
                               {errors.email}
                             </p>
                           )}
@@ -464,7 +444,7 @@ export default function AnggotaAmil() {
                             placeholder="Minimal 6 karakter"
                           />
                           {errors.password && (
-                            <p className="text-sm font-semibold text-red-500 mt-1.5">
+                            <p className="text-xs md:text-sm font-semibold text-red-500 mt-1">
                               {errors.password}
                             </p>
                           )}
@@ -474,7 +454,7 @@ export default function AnggotaAmil() {
                   )}
 
                   {/* Section: Informasi Dasar */}
-                  <div className="space-y-5">
+                  <div className="space-y-4 md:space-y-5">
                     <h3 className={sectionTitleClass}>Informasi Dasar</h3>
                     <div>
                       <label className={labelClass}>Nama Lengkap</label>
@@ -487,29 +467,47 @@ export default function AnggotaAmil() {
                         placeholder="Masukkan nama lengkap..."
                       />
                       {errors.nama && (
-                        <p className="text-sm font-semibold text-red-500 mt-1.5">
+                        <p className="text-xs md:text-sm font-semibold text-red-500 mt-1">
                           {errors.nama}
                         </p>
                       )}
                     </div>
-                    {!editingId && (
+
+                    {editingId && (
                       <div>
-                        <label className={labelClass}>Nomor Telepon</label>
+                        <label className={labelClass}>Alamat Email</label>
                         <input
-                          type="text"
-                          name="telp"
-                          value={formData.telp}
+                          type="email"
+                          name="email"
+                          value={formData.email}
                           onChange={handleInputChange}
                           className={inputClass}
-                          placeholder="08xxxxxxxxxx"
+                          placeholder="email@contoh.com"
                         />
-                        {errors.telp && (
-                          <p className="text-sm font-semibold text-red-500 mt-1.5">
-                            {errors.telp}
+                        {errors.email && (
+                          <p className="text-xs md:text-sm font-semibold text-red-500 mt-1">
+                            {errors.email}
                           </p>
                         )}
                       </div>
                     )}
+
+                    <div>
+                      <label className={labelClass}>Nomor Telepon</label>
+                      <input
+                        type="text"
+                        name="telp"
+                        value={formData.telp}
+                        onChange={handleInputChange}
+                        className={inputClass}
+                        placeholder="08xxxxxxxxxx"
+                      />
+                      {errors.telp && (
+                        <p className="text-xs md:text-sm font-semibold text-red-500 mt-1">
+                          {errors.telp}
+                        </p>
+                      )}
+                    </div>
                     <div>
                       <label className={labelClass}>Alamat</label>
                       <textarea
@@ -520,158 +518,27 @@ export default function AnggotaAmil() {
                         className={inputClass}
                         placeholder="Bandung, Jawa Barat"
                       />
-                      {errors.alamat && (
-                        <p className="text-sm font-semibold text-red-500 mt-1.5">
-                          {errors.alamat}
-                        </p>
-                      )}
                     </div>
                   </div>
                 </div>
 
                 {/* Footer */}
-                <div className="px-7 py-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50 flex-shrink-0">
+                <div className="px-5 md:px-7 py-4 md:py-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50 flex-shrink-0">
                   <button
                     type="button"
                     onClick={handleCloseModal}
-                    className="px-6 py-3 rounded-xl text-base font-bold text-gray-600 bg-white border border-gray-200 hover:bg-gray-100 transition-colors active:scale-95"
+                    className="px-5 md:px-6 py-2.5 md:py-3 rounded-xl text-sm md:text-base font-bold text-gray-600 bg-white border border-gray-200 hover:bg-gray-100 transition-colors active:scale-95"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
-                    className="px-7 py-3 rounded-xl text-base font-bold text-white bg-[#10B981] hover:bg-[#059669] shadow-sm transition-colors active:scale-95"
+                    className="px-5 md:px-7 py-2.5 md:py-3 rounded-xl text-sm md:text-base font-bold text-white bg-[#10B981] hover:bg-[#059669] shadow-sm transition-colors active:scale-95"
                   >
                     {editingId ? "Simpan Perubahan" : "Simpan"}
                   </button>
                 </div>
               </form>
-            </div>
-          </div>
-        )}
-
-        {isInfoModalOpen && selectedUser && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
-              {/* Header Modal */}
-              <div className="bg-[#0F766E] px-7 py-5 flex items-center justify-between flex-shrink-0">
-                <h2 className="text-xl font-extrabold text-white tracking-tight">
-                  Detail Kader Dasawisma
-                </h2>
-                <button
-                  onClick={() => setIsInfoModalOpen(false)}
-                  className="text-emerald-100 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              {/* Body Konten Detail */}
-              <div className="p-7 space-y-7 overflow-y-auto flex-1">
-                {/* Section: Informasi Dasar */}
-                <div className="space-y-5">
-                  <h3 className={sectionTitleClass}>Informasi Dasar</h3>
-                  <div>
-                    <span className={labelClass}>Nama Lengkap</span>
-                    <span className="text-lg font-extrabold text-gray-800 block">
-                      {selectedUser.nama_lengkap || "-"}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                      <span className={labelClass}>Role / Peran</span>
-                      <span className="inline-block px-3 py-1.5 rounded-lg text-sm font-bold bg-[#D1FAE5] text-[#0F766E] capitalize">
-                        {selectedUser.roles || "-"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className={labelClass}>NIK</span>
-                      <span className="text-base font-bold text-gray-700 block tracking-wide">
-                        {selectedUser.nik || "-"}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                      <span className={labelClass}>Alamat Email</span>
-                      <span className="text-base font-semibold text-gray-700 block break-all">
-                        {selectedUser.email || "-"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className={labelClass}>Nomor Telepon</span>
-                      <span className="text-base font-bold text-gray-700 block">
-                        {selectedUser.nomor_telpon || "-"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Section: Kelahiran */}
-                <div className="space-y-5 border-t border-gray-100 pt-6">
-                  <h3 className={sectionTitleClass}>Kelahiran</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                      <span className={labelClass}>Tempat Lahir</span>
-                      <span className="text-base font-semibold text-gray-700 block">
-                        {selectedUser.tempat_lahir || "-"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className={labelClass}>Tanggal Lahir</span>
-                      <span className="text-base font-bold text-gray-700 block">
-                        {selectedUser.tanggal_lahir
-                          ? new Date(
-                              selectedUser.tanggal_lahir,
-                            ).toLocaleDateString("id-ID", {
-                              day: "numeric",
-                              month: "long",
-                              year: "numeric",
-                            })
-                          : "-"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Section: Alamat */}
-                <div className="space-y-5 border-t border-gray-100 pt-6">
-                  <h3 className={sectionTitleClass}>Alamat Domisili</h3>
-                  <div>
-                    <span className="text-base font-medium text-gray-700 block leading-relaxed">
-                      {selectedUser.alamat || "-"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Section: Lainnya */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 border-t border-gray-100 pt-6">
-                  <div>
-                    <span className={labelClass}>Terdaftar Pada</span>
-                    <span className="text-base font-bold text-gray-700 block">
-                      {formattedDate(selectedUser.created_at) || "-"}
-                    </span>
-                  </div>
-                  <div>
-                    <span className={labelClass}>Pembaruan Terakhir</span>
-                    <span className="text-base font-bold text-gray-700 block">
-                      {selectedUser.updated_at
-                        ? formattedDate(selectedUser.updated_at)
-                        : "-"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Footer Modal */}
-              <div className="px-7 py-5 border-t border-gray-100 flex justify-end bg-gray-50/50 flex-shrink-0">
-                <button
-                  onClick={() => setIsInfoModalOpen(false)}
-                  className="px-7 py-3 bg-white border border-gray-200 hover:bg-gray-100 text-gray-600 font-bold rounded-xl text-base transition shadow-sm active:scale-95"
-                >
-                  Tutup
-                </button>
-              </div>
             </div>
           </div>
         )}
