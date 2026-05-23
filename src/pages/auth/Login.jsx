@@ -2,7 +2,11 @@ import React, { useState } from "react";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../../store/useAuthStore";
-import { login as loginRequest, getMe } from "../../services/auth.service";
+import authService, {
+  login as loginRequest,
+  getMe,
+} from "../../services/auth.service";
+import Swal from "sweetalert2";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -14,6 +18,9 @@ export default function Login() {
   const navigate = useNavigate();
   const setLogin = useAuthStore((s) => s.setLogin);
   const setLogout = useAuthStore((s) => s.setLogout);
+  const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [isLoadingForgotPassword, setIsLoadingForgotPassword] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -38,9 +45,7 @@ export default function Login() {
       } catch {
         // Kalau /me gagal, jangan lanjut navigate karena role belum diketahui dan route guard akan me-redirect.
         setLogout();
-        setErrorMsg(
-          "Maaf terjadi kesalahan. Silakan coba login ulang.",
-        );
+        setErrorMsg("Maaf terjadi kesalahan. Silakan coba login ulang.");
         return;
       }
 
@@ -63,6 +68,39 @@ export default function Login() {
       setErrorMsg(message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+
+    try {
+      setIsLoadingForgotPassword(true);
+
+      await authService.requestPasswordReset({
+        email: forgotEmail,
+      });
+
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil",
+        text: "Link reset password telah dikirim ke email Anda",
+        confirmButtonColor: "#10B981",
+      });
+
+      setIsForgotModalOpen(false);
+      setForgotEmail("");
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Gagal",
+        text:
+          error?.response?.data?.message ||
+          "Gagal mengirim email reset password",
+        confirmButtonColor: "#EF4444",
+      });
+    } finally {
+      setIsLoadingForgotPassword(false);
     }
   };
 
@@ -177,12 +215,13 @@ export default function Login() {
                 <label className="block text-xs font-bold uppercase tracking-wider text-gray-500">
                   Kata Sandi
                 </label>
-                <a
-                  href="#"
+                <button
+                  type="button"
+                  onClick={() => setIsForgotModalOpen(true)}
                   className="text-xs font-bold text-[#0F766E] hover:text-[#10B981] transition-colors"
                 >
                   Lupa Password?
-                </a>
+                </button>
               </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -208,21 +247,6 @@ export default function Login() {
                   )}
                 </button>
               </div>
-            </div>
-
-            {/* Ingat Saya */}
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                type="checkbox"
-                className="h-4 w-4 text-[#0F766E] focus:ring-[#10B981] border-gray-300 rounded cursor-pointer"
-              />
-              <label
-                htmlFor="remember-me"
-                className="ml-2 block text-sm font-medium text-gray-600 cursor-pointer"
-              >
-                Ingat saya di perangkat ini
-              </label>
             </div>
 
             {/* Tombol Login */}
@@ -258,6 +282,67 @@ export default function Login() {
           </form>
         </div>
       </div>
+      {isForgotModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            {/* Header */}
+            <div className="bg-[#0F766E] px-6 py-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-white">Lupa Password</h2>
+
+              <button
+                onClick={() => setIsForgotModalOpen(false)}
+                className="text-white text-xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Body */}
+            <form onSubmit={handleForgotPassword} className="p-6 space-y-5">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  Alamat Email
+                </label>
+
+                <input
+                  type="email"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  placeholder="Masukkan email Anda"
+                  className="w-full px-4 py-3 bg-gray-50 text-sm rounded-xl outline-none font-semibold transition-all border border-gray-200 focus:ring-2 focus:ring-[#10B981]"
+                />
+              </div>
+
+              {/* Footer */}
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setIsForgotModalOpen(false)}
+                  className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+                >
+                  Batal
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isLoadingForgotPassword}
+                  className={`px-5 py-2.5 rounded-xl text-sm font-bold text-white shadow-sm transition-colors flex items-center gap-2 ${
+                    isLoadingForgotPassword
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-[#10B981] hover:bg-[#059669]"
+                  }`}
+                >
+                  {isLoadingForgotPassword && (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  )}
+
+                  {isLoadingForgotPassword ? "Mengirim..." : "Kirim Link Reset"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
