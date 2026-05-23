@@ -17,6 +17,7 @@ import totalZISService from "../../services/totalZIS.service";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import logoDasawisma from "../../assets/logo.png";
+import BottomSummaryCards from "../../components/shared/BottomSummarycards";
 
 const PAGE_SIZE = 5;
 
@@ -335,7 +336,6 @@ export default function KelolaZis() {
     }).then((result) => {
       if (result.isConfirmed) {
         setIsModalOpen(false);
-        setEditingId(null);
         setFormData({
           tanggal: "",
           kategori: "Zakat Maal",
@@ -549,13 +549,6 @@ export default function KelolaZis() {
         const totalBeras = filteredTransactions
           .filter((item) => item.kategori === "Zakat Fitrah Beras")
           .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
-        const totalBerasPDF = filteredTransactions
-          .filter(
-            (item) =>
-              item.kategori === "Zakat Fitrah Beras" &&
-              item.tipe?.toLowerCase() === "pemasukan",
-          )
-          .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
         const finalY = doc.lastAutoTable.finalY + 10;
 
         doc.setFont("helvetica", "bold");
@@ -585,6 +578,7 @@ export default function KelolaZis() {
       }
     });
   };
+
   const isBeras = formData.kategori === "Zakat Fitrah Beras";
 
   useEffect(() => {
@@ -607,90 +601,14 @@ export default function KelolaZis() {
           </p>
         </div>
 
-        {/* ─── Top Summary Cards ─── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3 shrink-0">
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
-              TOTAL PENERIMAAN ZIS
-            </p>
-            <h3 className="text-xl font-extrabold text-gray-900">
-              {formatRupiah(totalPenerimaan)}
-            </h3>
-          </div>
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
-              TOTAL PENYALURAN
-            </p>
-            <h3 className="text-3xl font-extrabold text-[#EF4444]">
-              {formatRupiah(totalPenyaluran)}
-            </h3>
-          </div>
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
-              SALDO ZIS
-            </p>
-            <h3 className="text-xl font-extrabold text-[#0F766E]">
-              {formatRupiah(saldoZIS)}
-            </h3>
-            <p className="text-xs text-gray-500 mt-1">
-              Terakhir diperbarui: {formattedDate(saldoUpdatedAt) || "N/A"}
-            </p>
-          </div>
-        </div>
-        {/* ─── Bottom Summary Cards (Kategori Breakdown) ─── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3 shrink-0">
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
-              Zakat Fitrah Beras
-            </p>
-
-            <h3 className="text-xl font-extrabold text-gray-900">
-              {getTotalByKategori("zakat fitrah beras")} Kg
-            </h3>
-          </div>
-
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
-              Zakat Fitrah Uang
-            </p>
-
-            <h3 className="text-xl font-extrabold text-gray-900">
-              {formatRupiah(getTotalByKategori("zakat fitrah uang"))}
-            </h3>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5 shrink-0">
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
-              Zakat Maal
-            </p>
-
-            <h3 className="text-lg font-extrabold text-gray-900">
-              {formatRupiah(getTotalByKategori("zakat mal"))}
-            </h3>
-          </div>
-
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
-              Infaq
-            </p>
-
-            <h3 className="text-lg font-extrabold text-gray-900">
-              {formatRupiah(getTotalByKategori("infaq"))}
-            </h3>
-          </div>
-
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
-              Shodaqoh
-            </p>
-
-            <h3 className="text-lg font-extrabold text-gray-900">
-              {formatRupiah(getTotalByKategori("shodaqoh"))}
-            </h3>
-          </div>
-        </div>
+        {/* ─── Summary Cards ─── */}
+        <BottomSummaryCards
+          totalPenerimaan={totalPenerimaan}
+          totalPenyaluran={totalPenyaluran}
+          saldoZIS={saldoZIS}
+          saldoUpdatedAt={saldoUpdatedAt}
+          getTotalByKategori={getTotalByKategori}
+        />
 
         {/* ─── Filter & Action Bar ─── */}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6 mt-5">
@@ -779,7 +697,7 @@ export default function KelolaZis() {
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/50">
                   <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    ID TRANSAKSI
+                    NO
                   </th>
                   <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
                     TANGGAL
