@@ -16,7 +16,15 @@ export async function requestPasswordReset({ email }) {
 }
 
 export async function resetPassword({ token, newPassword }) {
-  const res = await api.post("/auth/post/reset-password", { token, newPassword });
+  const res = await api.post("/auth/post/reset-password", {
+    token,
+    newPassword,
+  });
+  return res.data;
+}
+
+export async function validateResetToken(token) {
+  const res = await api.get(`/auth/get/validate-reset-token/${token}`);
   return res.data;
 }
 
@@ -25,6 +33,7 @@ const authService = {
   getMe,
   requestPasswordReset,
   resetPassword,
+  validateResetToken,
 };
 
 export default authService;
