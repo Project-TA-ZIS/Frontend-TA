@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { HandHeart, Users, Wallet, UsersRound } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -22,7 +22,7 @@ const KPI_TEMPLATE = [
   { id: 1, icon: HandHeart, label: "JUMLAH MUZZAKI", key: "muzakki" },
   { id: 2, icon: Users, label: "JUMLAH MUSTAHIQ", key: "mustahik" },
   { id: 3, icon: Wallet, label: "JUMLAH AMIL", key: "amil" },
-  { id: 4, icon: UsersRound, label: "JUMLAH ANGGOTA DASAWISMA", key: "anggota" },
+  { id: 4, icon: UsersRound, label: "JUMLAH ANGGOTA", key: "anggota" }, // Disingkat agar tidak pecah
 ];
 
 const CLR = {
@@ -34,13 +34,17 @@ const CLR = {
 
 // ─── Sub-Komponen KpiCard Lokal ───
 const KpiCard = ({ icon: IconComponent, label, value }) => (
-  <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col justify-between" style={{ minHeight: 140 }}>
-    <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: CLR.primaryBg }}>
-      <IconComponent size={20} style={{ color: CLR.accent }} strokeWidth={2} />
+  <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-center hover:shadow-md transition-shadow duration-200">
+    <div className="flex items-center justify-between mb-1 md:mb-2">
+      <p className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider line-clamp-1">
+        {label}
+      </p>
+      <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: CLR.primaryBg }}>
+        <IconComponent size={18} style={{ color: CLR.accent }} strokeWidth={2.5} />
+      </div>
     </div>
     <div>
-      <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">{label}</p>
-      <p className="text-3xl font-bold text-gray-900">{value}</p>
+      <p className="text-lg md:text-2xl lg:text-3xl font-extrabold text-gray-900 truncate">{value}</p>
     </div>
   </div>
 );
@@ -50,7 +54,6 @@ export default function DashboardUtama() {
   const [errorMsg, setErrorMsg] = useState("");
   const [kpiCounts, setKpiCounts] = useState({ muzakki: 0, mustahik: 0, amil: 0, anggota: 0 });
   
-  // Data State untuk dikirim ke komponen anak grafik
   const [zisPemasukanItems, setZisPemasukanItems] = useState([]);
   const [zisPengeluaranItems, setZisPengeluaranItems] = useState([]);
   const [kasPemasukanItems, setKasPemasukanItems] = useState([]);
@@ -81,26 +84,17 @@ export default function DashboardUtama() {
           return is404(r.reason) ? [] : null;
         };
 
-        const muzakkiArr = pick(0);
-        const mustahikArr = pick(1);
-        const amilArr = pick(2);
-        const anggotaArr = pick(3);
-        const pemasukanArr = pick(4);
-        const pengeluaranArr = pick(5);
-        const kasMasukArr = pick(6);
-        const kasKeluarArr = pick(7);
-
         if (!cancelled) {
           setKpiCounts({
-            muzakki: muzakkiArr?.length || 0,
-            mustahik: mustahikArr?.length || 0,
-            amil: amilArr?.length || 0,
-            anggota: anggotaArr?.length || 0,
+            muzakki: pick(0)?.length || 0,
+            mustahik: pick(1)?.length || 0,
+            amil: pick(2)?.length || 0,
+            anggota: pick(3)?.length || 0,
           });
-          setZisPemasukanItems(pemasukanArr || []);
-          setZisPengeluaranItems(pengeluaranArr || []);
-          setKasPemasukanItems(kasMasukArr || []);
-          setKasPengeluaranItems(kasKeluarArr || []);
+          setZisPemasukanItems(pick(4) || []);
+          setZisPengeluaranItems(pick(5) || []);
+          setKasPemasukanItems(pick(6) || []);
+          setKasPengeluaranItems(pick(7) || []);
 
           const firstError = settled.find((x) => x.status === "rejected" && !is404(x.reason));
           if (firstError) {
@@ -140,7 +134,6 @@ export default function DashboardUtama() {
 
   useEffect(() => { checkProfileCompletion(); }, []);
 
-  // Shared Formatter untuk Tooltip Grafik agar hemat memori
   const customTooltipFormatter = (kategori) => ({ active, payload, label }) => {
     if (!active || !payload?.length) return null;
     const fmt = (n) => {
@@ -148,13 +141,13 @@ export default function DashboardUtama() {
       return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
     };
     return (
-      <div className="bg-white border border-gray-100 rounded-xl shadow-lg p-3 text-sm font-['Manrope']">
+      <div className="bg-white border border-gray-100 rounded-xl shadow-lg p-3 text-xs md:text-sm font-['Manrope'] z-50">
         <p className="font-bold text-gray-700 mb-2">{label}</p>
         {payload.map((p) => (
           <div key={p.name} className="flex items-center gap-2 mb-1">
-            <span className="w-2 h-2 rounded-full inline-block" style={{ background: p.color }} />
-            <span className="text-gray-500 capitalize">{p.name}:</span>
-            <span className="font-semibold" style={{ color: p.color }}>{fmt(p.value)}</span>
+            <span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ background: p.color }} />
+            <span className="text-gray-500 capitalize whitespace-nowrap">{p.name}:</span>
+            <span className="font-semibold whitespace-nowrap" style={{ color: p.color }}>{fmt(p.value)}</span>
           </div>
         ))}
       </div>
@@ -163,43 +156,53 @@ export default function DashboardUtama() {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-gray-50 p-6 md:p-10 font-['Manrope']">
+      <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8 overflow-x-hidden" style={{ fontFamily: "Manrope, sans-serif" }}>
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
         
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold" style={{ color: CLR.primary }}>Dashboard Utama Dasawisma</h1>
-          <p className="text-sm text-gray-500 mt-1">Selamat datang kembali, pantau aktivitas Dasawisma hari ini.</p>
+        {/* Header Responsif */}
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-extrabold text-[#0F766E]">
+            Dashboard Utama
+          </h1>
+          <p className="text-xs md:text-sm text-gray-600 mt-1 font-medium">
+            Pantau aktivitas Dasawisma hari ini.
+          </p>
         </div>
 
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+        {/* KPI Cards dengan Grid Responsif */}
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
           {kpiCards.map((card) => (
             <KpiCard key={card.id} icon={card.icon} label={card.label} value={card.value} />
           ))}
         </div>
 
         {errorMsg && (
-          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl">
-            <p className="text-sm font-bold text-red-700">{errorMsg}</p>
+          <div className="mb-6 p-3 md:p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl">
+            <p className="text-xs md:text-sm font-bold text-red-700">{errorMsg}</p>
           </div>
         )}
 
-        {/* Pemanggilan Komponen Grafik Hasil Refactor */}
-        <div className="flex flex-col gap-6">
-          <ChartZis 
-            pemasukanItems={zisPemasukanItems} 
-            pengeluaranItems={zisPengeluaranItems} 
-            themeColors={CLR} 
-            customTooltipFormatter={customTooltipFormatter} 
-          />
-          <ChartKas 
-            pemasukanItems={kasPemasukanItems} 
-            pengeluaranItems={kasPengeluaranItems} 
-            themeColors={CLR} 
-            customTooltipFormatter={customTooltipFormatter} 
-          />
+        {/* Wrapper Grafik Responsif */}
+        <div className="flex flex-col gap-6 md:gap-8 w-full">
+          <div className="w-full bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <ChartZis 
+              pemasukanItems={zisPemasukanItems} 
+              pengeluaranItems={zisPengeluaranItems} 
+              themeColors={CLR} 
+              customTooltipFormatter={customTooltipFormatter} 
+            />
+          </div>
+          
+          <div className="w-full bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <ChartKas 
+              pemasukanItems={kasPemasukanItems} 
+              pengeluaranItems={kasPengeluaranItems} 
+              themeColors={CLR} 
+              customTooltipFormatter={customTooltipFormatter} 
+            />
+          </div>
         </div>
+
       </div>
     </PageTransition>
   );
