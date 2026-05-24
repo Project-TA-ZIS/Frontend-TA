@@ -85,7 +85,9 @@ export const exportZISPdf = ({ historyData = [] }) => {
       });
 
       // TOTAL
-      const totalPemasukan = historyData
+      // ================= TOTAL =================
+
+      const totalPemasukanUang = historyData
         .filter(
           (item) =>
             item.tipe?.toLowerCase() === "pemasukan" &&
@@ -93,28 +95,71 @@ export const exportZISPdf = ({ historyData = [] }) => {
         )
         .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
 
-      const totalPengeluaran = historyData
-        .filter((item) => item.tipe?.toLowerCase() === "pengeluaran")
+      const totalPengeluaranUang = historyData
+        .filter(
+          (item) =>
+            item.tipe?.toLowerCase() === "pengeluaran" &&
+            item.kategori?.toLowerCase() !== "zakat fitrah beras",
+        )
         .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
 
-      const totalBeras = historyData
-        .filter((item) => item.kategori?.toLowerCase() === "zakat fitrah beras")
+      const totalPemasukanBeras = historyData
+        .filter(
+          (item) =>
+            item.tipe?.toLowerCase() === "pemasukan" &&
+            item.kategori?.toLowerCase() === "zakat fitrah beras",
+        )
         .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
 
-      const finalY = doc.lastAutoTable.finalY + 10;
+      const totalPengeluaranBeras = historyData
+        .filter(
+          (item) =>
+            item.tipe?.toLowerCase() === "pengeluaran" &&
+            item.kategori?.toLowerCase() === "zakat fitrah beras",
+        )
+        .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
 
+      const finalY = doc.lastAutoTable.finalY + 12;
+
+      // JUDUL
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(10);
+      doc.setFontSize(11);
+      doc.setTextColor(15, 118, 110);
 
-      doc.text(`Total Pemasukan: ${formatRupiah(totalPemasukan)}`, 14, finalY);
+      doc.text("Ringkasan Total ZIS", 14, finalY);
 
-      doc.text(
-        `Total Pengeluaran: ${formatRupiah(totalPengeluaran)}`,
-        14,
-        finalY + 7,
-      );
-
-      doc.text(`Total Zakat Fitrah Beras: ${totalBeras} KG`, 14, finalY + 14);
+      // TABLE TOTAL
+      autoTable(doc, {
+        startY: finalY + 5,
+        head: [["Keterangan", "Total"]],
+        body: [
+          ["Total Pemasukan Uang ZIS", formatRupiah(totalPemasukanUang)],
+          ["Total Pengeluaran Uang ZIS", formatRupiah(totalPengeluaranUang)],
+          ["Total Pemasukan Zakat Fitrah Beras", `${totalPemasukanBeras} KG`],
+          [
+            "Total Pengeluaran Zakat Fitrah Beras",
+            `${totalPengeluaranBeras} KG`,
+          ],
+        ],
+        styles: {
+          fontSize: 9,
+        },
+        headStyles: {
+          fillColor: [15, 118, 110],
+          halign: "center", // HEADER TENGAH
+          valign: "middle",
+          fontStyle: "bold",
+        },
+        columnStyles: {
+          0: {
+            halign: "center",
+          },
+          1: {
+            halign: "center",
+          },
+        },
+        theme: "grid",
+      });
 
       doc.save(`riwayat-zis-${Date.now()}.pdf`);
     }

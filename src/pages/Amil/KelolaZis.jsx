@@ -146,24 +146,21 @@ export default function KelolaZis() {
       const pemasukanRows = (
         Array.isArray(pemasukanArr) ? pemasukanArr : []
       ).map((item) => ({
-        id: `PZ-${item?.id ?? ""}`,
+        id: `${item?.id ?? ""}`,
         tanggal: item?.tanggal_penghimpunan ?? item?.created_at ?? null,
-        nama:
-          item?.nama_muzakki ||
-          muzakkiSafe.find((m) => String(m?.id) === String(item?.muzakki_id))
-            ?.nama_lengkap ||
-          "-",
+        nama: item?.nama_muzakki || "-",
         kategori: toUiKategori(item?.kategori),
         nominal: Number(item?.jumlah ?? 0),
         tipe: "Pemasukan",
+        deskripsi: item?.deskripsi ?? "",
       }));
 
       const pengeluaranRows = (
         Array.isArray(pengeluaranArr) ? pengeluaranArr : []
       ).map((item) => ({
-        id: `KZ-${item?.id ?? ""}`,
+        id: `${item?.id ?? ""}`,
         tanggal: item?.tanggal_penyaluran ?? item?.created_at ?? null,
-        nama: mustahikNameById.get(String(item?.mustahik_id)) || "-",
+        nama: item?.nama_mustahik || "-",
         kategori: toUiKategori(item?.kategori),
         nominal: Number(item?.jumlah ?? 0),
         tipe: "Pengeluaran",
@@ -228,8 +225,12 @@ export default function KelolaZis() {
     .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
 
   const totalPenyaluran = transactions
-    .filter((t) => t.tipe === "Pengeluaran")
-    .reduce((acc, curr) => acc + curr.nominal, 0);
+    .filter(
+      (item) =>
+        item.tipe?.toLowerCase() === "pengeluaran" &&
+        item.kategori !== "Zakat Fitrah Beras",
+    )
+    .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
 
   const saldoTotal = totalPenerimaan - totalPenyaluran;
 
@@ -519,7 +520,8 @@ export default function KelolaZis() {
               <option value="Pengeluaran">Pengeluaran</option>
             </select>
           </div>
-          <div className="flex flex-col gap-2 w-full xl:w-auto">
+          <div className="flex flex-col xl:flex-row gap-2 w-full xl:w-auto">
+            {/* Tombol Download */}
             <button
               onClick={handleDownloadPDF}
               className="flex items-center justify-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-2.5 px-4 rounded-lg transition-colors shadow-sm text-sm w-full xl:w-auto"
@@ -527,18 +529,23 @@ export default function KelolaZis() {
               <Download size={16} />
               Unduh Data
             </button>
-            <div className="grid grid-cols-2 gap-2">
+
+            {/* Tombol Tambah */}
+            <div className="grid grid-cols-2 gap-2 w-full xl:w-auto">
               <button
                 onClick={() => openModal("PEMASUKAN")}
                 className="flex items-center justify-center gap-2 bg-[#10B981] text-white font-bold py-2.5 px-4 rounded-lg text-sm hover:bg-[#059669] shadow-sm transition-all"
               >
-                <Plus size={18} strokeWidth={2.5} /> Pemasukan
+                <Plus size={18} strokeWidth={2.5} />
+                Pemasukan
               </button>
+
               <button
                 onClick={() => openModal("PENGELUARAN")}
                 className="flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2.5 px-4 rounded-lg text-sm hover:bg-gray-50 shadow-sm transition-all"
               >
-                <Plus size={18} strokeWidth={2.5} /> Pengeluaran
+                <Plus size={18} strokeWidth={2.5} />
+                Pengeluaran
               </button>
             </div>
           </div>

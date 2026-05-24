@@ -171,10 +171,6 @@ export default function LaporanKasAnggota() {
     }
   };
 
-  const handleDownloadPDF = () => {
-    exportKasDasawismaPdf({ historyData: filteredTransactions });
-  };
-
   // ─── useEffect ───
   useEffect(() => {
     loadKasData();
@@ -249,7 +245,12 @@ export default function LaporanKasAnggota() {
           {/* Action Buttons */}
           <div className="flex items-center w-full md:w-auto mt-1 md:mt-0">
             <button
-              onClick={handleDownloadPDF}
+              onClick={() =>
+                exportKasDasawismaPdf({
+                  historyData: filteredTransactions,
+                  totalKasDaswisma: saldoKasDasawisma,
+                })
+              }
               className="w-full md:w-auto flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2 md:py-2.5 px-4 rounded-lg text-xs md:text-sm transition-all hover:bg-gray-50 shadow-sm active:scale-95"
             >
               <Download size={16} className="md:w-[18px] md:h-[18px]" /> Unduh

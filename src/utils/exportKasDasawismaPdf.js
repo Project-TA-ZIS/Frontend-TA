@@ -7,7 +7,10 @@ import { formatRupiah } from "./formatRupiah";
 import { formattedDate } from "./formattedDate";
 import LogoDasawismaPNG from "../assets/Logo.png";
 
-export const exportKasDasawismaPdf = ({ historyData = [] }) => {
+export const exportKasDasawismaPdf = ({
+  historyData = [],
+  totalKasDaswisma,
+}) => {
   Swal.fire({
     title: "Unduh Riwayat Kas",
     text: "Apakah Anda ingin mengunduh riwayat kas dalam format PDF?",
@@ -100,29 +103,52 @@ export const exportKasDasawismaPdf = ({ historyData = [] }) => {
         .filter((item) => item.jenis === "Pengeluaran")
         .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
 
-      const totalKas = totalPemasukan - totalPengeluaran;
+      // ================= TOTAL =================
 
-      // TOTAL KAS SAAT INI
-      const totalKasDasawisma = totalPemasukan - totalPengeluaran;
+      const finalY = doc.lastAutoTable.finalY + 12;
 
-      const finalY = doc.lastAutoTable.finalY + 10;
-
+      // JUDUL
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(10);
+      doc.setFontSize(11);
+      doc.setTextColor(15, 118, 110);
 
-      doc.text(`Total Pemasukan: ${formatRupiah(totalPemasukan)}`, 14, finalY);
+      doc.text("Ringkasan Total Kas Dasawisma", 14, finalY);
 
-      doc.text(
-        `Total Pengeluaran: ${formatRupiah(totalPengeluaran)}`,
-        14,
-        finalY + 7,
-      );
+      // TABLE TOTAL
+      autoTable(doc, {
+        startY: finalY + 5,
 
-      doc.text(
-        `Total Kas Dasawisma: ${formatRupiah(totalKasDasawisma)}`,
-        14,
-        finalY + 14,
-      );
+        head: [["Keterangan", "Total"]],
+
+        body: [
+          ["Total Pemasukan Kas", formatRupiah(totalPemasukan)],
+          ["Total Pengeluaran Kas", formatRupiah(totalPengeluaran)],
+          ["Total Kas Dasawisma", formatRupiah(totalKasDaswisma)],
+        ],
+
+        styles: {
+          fontSize: 9,
+          valign: "middle",
+        },
+
+        headStyles: {
+          fillColor: [15, 118, 110],
+          halign: "center",
+          valign: "middle",
+          fontStyle: "bold",
+        },
+
+        columnStyles: {
+          0: {
+            halign: "center",
+          },
+          1: {
+            halign: "center",
+          },
+        },
+
+        theme: "grid",
+      });
 
       // Save
       doc.save(`riwayat-kas-dasawisma-${Date.now()}.pdf`);
