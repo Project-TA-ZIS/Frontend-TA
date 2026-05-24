@@ -8,7 +8,7 @@ import {
   Check,
   Calendar,
   Home,
-  X
+  X,
 } from "lucide-react";
 import PageTransition from "../../components/shared/PageTransition";
 import useAuthStore from "../../store/useAuthStore";
@@ -261,7 +261,7 @@ export default function PengaturanKoordinator() {
     <PageTransition>
       <div className="min-h-screen bg-gray-50 p-6 md:p-10 font-['Manrope']">
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
-        
+
         {/* ─── Header ─── */}
         <div className="mb-8">
           <h1 className="text-2xl md:text-3xl font-extrabold text-[#0F766E]">
@@ -303,8 +303,12 @@ export default function PengaturanKoordinator() {
                   </p>
                 </div>
               )}
-              
-              <form onSubmit={handleSubmit} noValidate className="space-y-5 md:space-y-6">
+
+              <form
+                onSubmit={handleSubmit}
+                noValidate
+                className="space-y-5 md:space-y-6"
+              >
                 <div className="border-b border-gray-100 pb-6">
                   <h4 className="text-base md:text-lg font-extrabold text-gray-900 mb-4">
                     Informasi Dasar
@@ -455,18 +459,19 @@ export default function PengaturanKoordinator() {
                       <label className="block text-[11px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 mt-4 md:mt-5">
                         Alamat Rumah
                       </label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                          <Home className="h-4 w-4 text-gray-400" />
-                        </div>
-                        <input
-                          type="text"
-                          name="alamat"
-                          value={formData.alamat}
-                          onChange={handleInputChange}
-                          className={`w-full pl-11 pr-4 py-2.5 md:py-3 bg-gray-50 text-sm md:text-base rounded-xl outline-none font-semibold transition-all border ${errors.alamat ? "border-red-500 focus:ring-red-500 bg-red-50/50" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`}
-                        />
-                      </div>
+                      <textarea
+                        name="alamat"
+                        value={formData.alamat}
+                        onChange={handleInputChange}
+                        className={`w-full px-4 py-3 bg-gray-50 text-sm rounded-xl outline-none font-semibold transition-all border ${errors.alamat ? "border-red-500 focus:ring-red-500 bg-red-50/50" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`}
+                        placeholder="Masukkan alamat"
+                        rows="3"
+                      />
+                      {errors.alamat && (
+                        <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                          {errors.alamat}
+                        </p>
+                      )}
                       {errors.alamat && (
                         <p className="text-red-500 text-[10px] md:text-[11px] font-bold mt-1.5 pl-1">
                           {errors.alamat}
@@ -505,7 +510,9 @@ export default function PengaturanKoordinator() {
           <div className="bg-white rounded-2xl md:rounded-3xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
             {/* Header Modal */}
             <div className="bg-[#0F766E] px-5 md:px-6 py-4 flex items-center justify-between">
-              <h2 className="text-base md:text-lg font-bold text-white">Ganti Password</h2>
+              <h2 className="text-base md:text-lg font-bold text-white">
+                Ganti Password
+              </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="text-white hover:bg-white/20 p-1.5 rounded-full transition-colors"
@@ -515,7 +522,10 @@ export default function PengaturanKoordinator() {
             </div>
 
             {/* Body Modal */}
-            <form onSubmit={handleSubmitPassword} className="p-5 md:p-6 space-y-4 md:space-y-5">
+            <form
+              onSubmit={handleSubmitPassword}
+              className="p-5 md:p-6 space-y-4 md:space-y-5"
+            >
               <div>
                 <label className="block text-[11px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                   Password Lama
