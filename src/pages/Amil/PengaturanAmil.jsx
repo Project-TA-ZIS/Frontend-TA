@@ -377,18 +377,18 @@ export default function PengaturanAmil() {
                 </div>
 
                 {/* ─── Tombol CTA dengan Pewarnaan Sesuai Revisi (Poin 4) ─── */}
-                <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
+                <div className="flex flex-col md:flex-row justify-end gap-3 pt-2 md:pt-4">
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(true)}
-                    className="px-6 py-3 rounded-xl text-sm font-bold text-white bg-amber-500 hover:bg-amber-600 transition-colors"
+                    className="px-5 md:px-6 py-2.5 md:py-3 rounded-xl text-sm md:text-base font-bold text-white bg-amber-500 hover:bg-amber-600 transition-colors w-full md:w-auto"
                   >
                     Ganti Password
                   </button>
 
                   <button
                     type="submit"
-                    className="px-6 py-3 rounded-xl text-sm font-bold text-white bg-[#10B981] hover:bg-[#059669] shadow-md shadow-emerald-900/10 transition-colors"
+                    className="px-5 md:px-6 py-2.5 md:py-3 rounded-xl text-sm md:text-base font-bold text-white bg-[#10B981] hover:bg-[#059669] shadow-md shadow-emerald-900/10 transition-colors w-full md:w-auto"
                   >
                     Simpan Perubahan
                   </button>
@@ -467,18 +467,17 @@ export default function PengaturanAmil() {
               </div>
 
               {/* Footer */}
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+                  className="px-5 py-2.5 md:py-3 rounded-xl text-sm md:text-base font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors w-full sm:w-auto"
                 >
                   Batal
                 </button>
-
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#10B981] hover:bg-[#059669] shadow-sm transition-colors"
+                  className="px-5 py-2.5 md:py-3 rounded-xl text-sm md:text-base font-bold text-white bg-[#10B981] hover:bg-[#059669] shadow-sm transition-colors w-full sm:w-auto"
                 >
                   Simpan Password
                 </button>
