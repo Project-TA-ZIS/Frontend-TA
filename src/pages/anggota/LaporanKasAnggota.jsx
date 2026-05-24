@@ -164,7 +164,7 @@ export default function LaporanKasAnggota() {
   const loadTotalKasDasawisma = async () => {
     try {
       const res = await totalKasDasawismaService.getTotalKasDasawisma();
-      setSaldoKasDasawisma(res.data?.jumlah_keseluruhan || 0);
+      setSaldoKasDasawisma(Number(res.data?.jumlah_keseluruhan || 0));
       setSaldoUpdatedAt(res.data?.updated_at || "");
     } catch (error) {
       console.log("Gagal memuat total kas dasawisma");
