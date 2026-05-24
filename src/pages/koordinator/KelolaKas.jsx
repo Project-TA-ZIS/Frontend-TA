@@ -290,7 +290,6 @@ export default function KelolaKas() {
 
         {/* Action Bar & Filters */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-          
           {/* Filter Dropdowns - Mobile pakai Grid agar rapi */}
           <div className="grid grid-cols-2 md:flex md:flex-wrap items-center gap-2 md:gap-3 w-full md:w-auto">
             {/* select Jenis Kas (Memakan 2 kolom di mobile agar panjang) */}
@@ -425,149 +424,149 @@ export default function KelolaKas() {
 
         {/* ─── MODAL POP-UP CATAT TRANSAKSI ─── */}
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-              <div className="bg-[#0F766E] px-6 py-4 flex items-center justify-between">
-                <h2 className="text-lg font-bold text-white">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
+            {/* Menggunakan max-h-[90vh] agar modal tetap bisa di-scroll jika layar kecil */}
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+              {/* Header Modal - Dikecilkan padding-nya */}
+              <div className="bg-[#0F766E] px-5 py-4 flex items-center justify-between flex-shrink-0">
+                <h2 className="text-base md:text-lg font-bold text-white">
                   Catat Transaksi Kas
                 </h2>
                 <button
                   onClick={handleCloseModal}
-                  className="text-emerald-200 hover:text-white transition-colors"
+                  className="text-emerald-100 hover:text-white transition-colors"
                 >
                   <X size={20} />
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    Tanggal Transaksi
-                  </label>
-                  <input
-                    type="date"
-                    name="tanggal"
-                    required
-                    value={formData.tanggal}
-                    onChange={handleInputChange}
-                    className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    Jenis Transaksi
-                  </label>
-                  <select
-                    name="jenis"
-                    value={formData.jenis}
-                    onChange={handleInputChange}
-                    className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
-                  >
-                    <option value="Pemasukan">KAS MASUK (PEMASUKAN)</option>
-                    <option value="Pengeluaran">
-                      KAS KELUAR (PENGELUARAN)
-                    </option>
-                  </select>
-                </div>
-
-                {formData.jenis === "Pemasukan" && (
+              {/* Form Body - Menggunakan space-y-3 (rapat) untuk mobile */}
+              <form
+                onSubmit={handleSubmit}
+                className="flex flex-col flex-1 overflow-hidden"
+              >
+                <div className="p-5 space-y-3 overflow-y-auto flex-1">
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                      Tipe Pemasukan
+                    <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                      Tanggal Transaksi
                     </label>
-
-                    <select
-                      name="tipePemasukan"
-                      value={formData.tipePemasukan}
+                    <input
+                      type="date"
+                      name="tanggal"
+                      required
+                      value={formData.tanggal}
                       onChange={handleInputChange}
-                      className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
+                      className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-2.5 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                      Jenis Transaksi
+                    </label>
+                    <select
+                      name="jenis"
+                      value={formData.jenis}
+                      onChange={handleInputChange}
+                      className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-2.5 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
                     >
-                      <option value="IURAN">Iuran Anggota</option>
-                      <option value="LAINNYA">Lainnya</option>
+                      <option value="Pemasukan">KAS MASUK (PEMASUKAN)</option>
+                      <option value="Pengeluaran">
+                        KAS KELUAR (PENGELUARAN)
+                      </option>
                     </select>
                   </div>
-                )}
 
-                {formData.jenis === "Pemasukan" &&
-                  formData.tipePemasukan === "IURAN" && (
+                  {formData.jenis === "Pemasukan" && (
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                        Cari Anggota Dasawisma
+                      <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                        Tipe Pemasukan
                       </label>
-
-                      <Select
-                        options={
-                          searchAnggota
-                            ? anggotaOptions.filter((item) =>
-                                item.label
-                                  .toLowerCase()
-                                  .includes(searchAnggota.toLowerCase()),
-                              )
-                            : anggotaOptions.slice(0, 3)
-                        }
-                        placeholder="Cari nama anggota..."
-                        onInputChange={(value) => setSearchAnggota(value)}
-                        value={
-                          anggotaOptions.find(
-                            (item) =>
-                              item.value === formData.anggota_dasawisma_id,
-                          ) || null
-                        }
-                        onChange={(selectedOption) => {
-                          setFormData((prev) => ({
-                            ...prev,
-                            anggota_dasawisma_id: selectedOption?.value || "",
-                          }));
-                        }}
-                        className="text-sm"
-                      />
+                      <select
+                        name="tipePemasukan"
+                        value={formData.tipePemasukan}
+                        onChange={handleInputChange}
+                        className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-2.5 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
+                      >
+                        <option value="IURAN">Iuran Anggota</option>
+                        <option value="LAINNYA">Lainnya</option>
+                      </select>
                     </div>
                   )}
 
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    Deskripsi Kegiatan
-                  </label>
-                  <input
-                    type="text"
-                    name="deskripsi"
-                    required
-                    value={formData.deskripsi}
-                    onChange={handleInputChange}
-                    className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
-                    placeholder="Contoh: Pembelian Sapu..."
-                  />
+                  {formData.jenis === "Pemasukan" &&
+                    formData.tipePemasukan === "IURAN" && (
+                      <div>
+                        <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                          Cari Anggota Dasawisma
+                        </label>
+                        <Select
+                          options={
+                            searchAnggota
+                              ? anggotaOptions.filter((item) =>
+                                  item.label
+                                    .toLowerCase()
+                                    .includes(searchQuery.toLowerCase()),
+                                )
+                              : anggotaOptions.slice(0, 3)
+                          }
+                          placeholder="Cari nama anggota..."
+                          onChange={(selectedOption) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              anggota_dasawisma_id: selectedOption?.value || "",
+                            }))
+                          }
+                          className="text-sm"
+                        />
+                      </div>
+                    )}
+
+                  <div>
+                    <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                      Deskripsi Kegiatan
+                    </label>
+                    <input
+                      type="text"
+                      name="deskripsi"
+                      required
+                      value={formData.deskripsi}
+                      onChange={handleInputChange}
+                      className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-2.5 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
+                      placeholder="Contoh: Pembelian Sapu..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                      Nominal (Rp)
+                    </label>
+                    <input
+                      type="number"
+                      name="nominal"
+                      required
+                      value={formData.nominal}
+                      onChange={handleInputChange}
+                      className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-2.5 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
+                      placeholder="0"
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    Nominal (Rp)
-                  </label>
-                  <input
-                    type="number"
-                    name="nominal"
-                    required
-                    value={formData.nominal}
-                    onChange={handleInputChange}
-                    className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
-                    placeholder="0"
-                  />
-                </div>
-
-                <div className="flex justify-end gap-3 pt-4 border-t mt-6">
+                {/* Footer Tombol - Dikecilkan padding-nya */}
+                <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-2 bg-gray-50 flex-shrink-0">
                   <button
                     type="button"
                     onClick={handleCloseModal}
-                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200"
+                    className="px-5 py-2 rounded-xl text-sm font-bold text-gray-600 bg-white border border-gray-200 hover:bg-gray-100 transition-colors"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#10B981] hover:bg-[#059669]"
+                    className="px-5 py-2 rounded-xl text-sm font-bold text-white bg-[#10B981] hover:bg-[#059669] transition-colors"
                   >
-                    Simpan Transaksi
+                    Simpan
                   </button>
                 </div>
               </form>
