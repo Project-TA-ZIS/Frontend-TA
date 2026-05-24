@@ -208,12 +208,13 @@ export default function LaporanKasAnggota() {
           saldoUpdatedAt={saldoUpdatedAt}
         />
 
-        {/* Action Bar & Filters (Sudah dikembalikan!) */}
-        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6">
-          {/* Filter Dropdowns */}
-          <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
+        {/* Action Bar & Filters */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-4 mb-6">
+          {/* Filter Dropdowns - Mobile pakai Grid agar rapi */}
+          <div className="grid grid-cols-2 md:flex md:flex-wrap items-center gap-2 md:gap-3 w-full md:w-auto">
+            {/* KUNCI: col-span-2 membuat filter ini panjang penuh di mobile, kembali normal di desktop */}
             <select
-              className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-[#10B981] focus:border-[#10B981] block px-4 py-2.5 font-semibold shadow-sm outline-none flex-1 md:flex-none"
+              className="col-span-2 md:col-span-1 bg-white border border-gray-200 text-gray-700 text-xs md:text-sm rounded-lg focus:ring-[#10B981] focus:border-[#10B981] block px-3 md:px-4 py-2 md:py-2.5 font-semibold shadow-sm outline-none w-full md:w-auto cursor-pointer transition-all"
               value={filterJenis}
               onChange={(e) => setFilterJenis(e.target.value)}
             >
@@ -223,7 +224,7 @@ export default function LaporanKasAnggota() {
             </select>
 
             <select
-              className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-[#10B981] focus:border-[#10B981] block px-4 py-2.5 font-semibold shadow-sm outline-none flex-1 md:flex-none"
+              className="bg-white border border-gray-200 text-gray-700 text-xs md:text-sm rounded-lg focus:ring-[#10B981] focus:border-[#10B981] block px-3 md:px-4 py-2 md:py-2.5 font-semibold shadow-sm outline-none w-full md:w-28 cursor-pointer transition-all"
               value={filterBulan}
               onChange={(e) => setFilterBulan(e.target.value)}
             >
@@ -233,7 +234,7 @@ export default function LaporanKasAnggota() {
             </select>
 
             <select
-              className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-[#10B981] focus:border-[#10B981] block px-4 py-2.5 font-semibold shadow-sm outline-none w-full md:w-28"
+              className="bg-white border border-gray-200 text-gray-700 text-xs md:text-sm rounded-lg focus:ring-[#10B981] focus:border-[#10B981] block px-3 md:px-4 py-2 md:py-2.5 font-semibold shadow-sm outline-none w-full md:w-28 cursor-pointer transition-all"
               value={filterTahun}
               onChange={(e) => setFilterTahun(e.target.value)}
             >
@@ -246,12 +247,13 @@ export default function LaporanKasAnggota() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-3 w-full xl:w-auto">
+          <div className="flex items-center w-full md:w-auto mt-1 md:mt-0">
             <button
               onClick={handleDownloadPDF}
-              className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2.5 px-4 rounded-lg text-sm transition-all hover:bg-gray-50 shadow-sm"
+              className="w-full md:w-auto flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2 md:py-2.5 px-4 rounded-lg text-xs md:text-sm transition-all hover:bg-gray-50 shadow-sm active:scale-95"
             >
-              <Download size={18} /> Unduh Data
+              <Download size={16} className="md:w-[18px] md:h-[18px]" /> Unduh
+              Data
             </button>
           </div>
         </div>
@@ -259,62 +261,73 @@ export default function LaporanKasAnggota() {
         {/* Table */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[600px]">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/50">
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">
                     No
                   </th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">
                     TANGGAL
                   </th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">
                     NAMA
                   </th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    sumber
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    SUMBER
                   </th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">
                     DESKRIPSI
                   </th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
                     JENIS
                   </th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider text-right">
                     NOMINAL
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
+                {filteredTransactions.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={7}
+                      className="px-4 md:px-6 py-8 text-center text-xs md:text-sm text-gray-500"
+                    >
+                      Belum ada transaksi kas yang tercatat.
+                    </td>
+                  </tr>
+                )}
+
                 {filteredTransactions.map((trx, index) => (
                   <tr
                     key={`${trx.jenis}-${trx.id}`}
                     className="hover:bg-emerald-50/30 transition-colors"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#0F766E]">
+                    <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap text-xs md:text-sm font-bold text-[#0F766E]">
                       {index + 1}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600 tracking-wider">
+                    <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap text-xs md:text-sm font-medium text-gray-600 tracking-wider">
                       {formattedDate(trx.tanggal)}
                     </td>
-                    <td className="px-6 py-4 text-sm font-bold text-gray-900">
+                    <td className="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-bold text-gray-900">
                       {trx.namaAnggota || "-"}
                     </td>
-                    <td className="px-6 py-4 text-sm font-bold text-gray-900">
+                    <td className="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-bold text-gray-900">
                       {trx.sumber || "-"}
                     </td>
-                    <td className="px-6 py-4 text-sm font-bold text-gray-900">
+                    <td className="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-bold text-gray-900 line-clamp-2 md:line-clamp-none min-w-[150px]">
                       {trx.deskripsi}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap text-center">
                       <span
-                        className={`px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wider ${trx.jenis === "Pemasukan" ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"}`}
+                        className={`px-2 md:px-2.5 py-1 rounded-md text-[9px] md:text-[10px] font-extrabold uppercase tracking-wider ${trx.jenis === "Pemasukan" ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"}`}
                       >
                         {trx.jenis}
                       </span>
                     </td>
                     <td
-                      className={`px-6 py-4 whitespace-nowrap text-sm font-extrabold text-right ${trx.jenis === "Pemasukan" ? "text-[#10B981]" : "text-[#EF4444]"}`}
+                      className={`px-4 md:px-6 py-3 md:py-4 whitespace-nowrap text-xs md:text-sm font-extrabold text-right ${trx.jenis === "Pemasukan" ? "text-[#10B981]" : "text-[#EF4444]"}`}
                     >
                       {trx.jenis === "Pemasukan" ? "+" : "-"}{" "}
                       {formatRupiah(trx.nominal).replace("Rp", "").trim()}

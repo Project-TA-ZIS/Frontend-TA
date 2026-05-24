@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Search, User, LogOut, Settings, ChevronDown } from "lucide-react";
+import { Search, User, LogOut, Settings, ChevronDown, Menu } from "lucide-react"; // Tambahkan Menu
 import { useNavigate } from "react-router-dom";
 import AmilSidebar from "./AmilSidebar";
 import useAuthStore from "../../store/useAuthStore";
@@ -32,6 +32,9 @@ const roleToLabel = (role) => {
 
 export default function AmilLayout({ children }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  // KUNCI 1: State untuk Sidebar Mobile
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
+  
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const logout = useAuthStore((s) => s.setLogout);
@@ -78,13 +81,24 @@ export default function AmilLayout({ children }) {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden font-['Manrope']">
-      <AmilSidebar />
+      {/* KUNCI 2: Lempar state ke Sidebar */}
+      <AmilSidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
-      <div className="flex-1 ml-64 flex flex-col h-screen overflow-hidden">
-        {/* Header / Topbar */}
-        <header className="h-20 bg-white border-b border-gray-100 flex items-center justify-between px-10 shrink-0 shadow-sm z-50">
-          {/* Search Bar */}
-          <div className="relative w-96"></div>
+      <div className="flex-1 md:ml-64 flex flex-col h-screen overflow-hidden w-full transition-all duration-300">
+        
+        {/* KUNCI 3: Header menggunakan px-4 untuk mobile */}
+        <header className="h-20 bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-10 shrink-0 shadow-sm z-30">
+          
+          {/* KUNCI 4: Tombol Hamburger di kiri khusus Mobile */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="md:hidden p-2 rounded-xl text-[#0F766E] hover:bg-emerald-50 transition-colors"
+            >
+              <Menu size={24} strokeWidth={2.5} />
+            </button>
+            <div className="hidden md:block relative w-96"></div>
+          </div>
 
           {/* ─── Profile Area dengan Dropdown ─── */}
           <div className="relative" ref={dropdownRef}>
@@ -133,7 +147,6 @@ export default function AmilLayout({ children }) {
 
                 <div className="h-px bg-gray-100 my-1 mx-4"></div>
 
-                {/* Button Logout dengan warna CTA tegas sesuai revisi dosen */}
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-50 transition-all"

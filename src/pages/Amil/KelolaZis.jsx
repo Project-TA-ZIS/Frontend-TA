@@ -519,26 +519,28 @@ export default function KelolaZis() {
               <option value="Pengeluaran">Pengeluaran</option>
             </select>
           </div>
-          <div className="flex items-center gap-3 w-full xl:w-auto">
+          <div className="flex flex-col gap-2 w-full xl:w-auto">
             <button
               onClick={handleDownloadPDF}
-              className="flex items-center justify-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-2 px-4 rounded-lg transition-colors shadow-sm text-sm w-full md:w-auto"
+              className="flex items-center justify-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-2.5 px-4 rounded-lg transition-colors shadow-sm text-sm w-full xl:w-auto"
             >
               <Download size={16} />
               Unduh Data
             </button>
-            <button
-              onClick={() => openModal("PEMASUKAN")}
-              className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-[#10B981] text-white font-bold py-2.5 px-4 rounded-lg text-sm hover:bg-[#059669] shadow-sm transition-all"
-            >
-              <Plus size={18} strokeWidth={2.5} /> Pemasukan
-            </button>
-            <button
-              onClick={() => openModal("PENGELUARAN")}
-              className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2.5 px-4 rounded-lg text-sm hover:bg-gray-50 shadow-sm transition-all"
-            >
-              <Plus size={18} strokeWidth={2.5} /> Pengeluaran
-            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => openModal("PEMASUKAN")}
+                className="flex items-center justify-center gap-2 bg-[#10B981] text-white font-bold py-2.5 px-4 rounded-lg text-sm hover:bg-[#059669] shadow-sm transition-all"
+              >
+                <Plus size={18} strokeWidth={2.5} /> Pemasukan
+              </button>
+              <button
+                onClick={() => openModal("PENGELUARAN")}
+                className="flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2.5 px-4 rounded-lg text-sm hover:bg-gray-50 shadow-sm transition-all"
+              >
+                <Plus size={18} strokeWidth={2.5} /> Pengeluaran
+              </button>
+            </div>
           </div>
         </div>
 

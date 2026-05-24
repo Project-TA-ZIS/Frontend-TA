@@ -40,16 +40,6 @@ export default function AnggotaLayout({ children }) {
   const user = useAuthStore((s) => s.user);
   const role = useAuthStore((s) => s.role);
 
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsProfileOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   const rawDisplayName =
     user?.nama_lengkap ||
     user?.name ||
@@ -92,9 +82,12 @@ export default function AnggotaLayout({ children }) {
     <div className="flex h-screen bg-gray-50 overflow-hidden font-['Manrope']">
       <AnggotaSidebar />
 
-      <div className="flex-1 ml-64 flex flex-col h-screen overflow-hidden">
-        {/* Header / Topbar */}
-        <header className="h-20 bg-white border-b border-gray-100 flex items-center justify-end px-10 shrink-0 shadow-sm z-50">
+      {/* KUNCI PERUBAHAN: md:ml-64 dan penambahan w-full */}
+      <div className="flex-1 md:ml-64 flex flex-col h-screen overflow-hidden w-full transition-all duration-300">
+        
+        {/* Header / Topbar - Padding disesuaikan untuk mobile (px-4) */}
+        <header className="h-20 bg-white border-b border-gray-100 flex items-center justify-end px-4 md:px-10 shrink-0 shadow-sm z-30">
+          
           {/* ─── Profile Area dengan Dropdown ─── */}
           <div className="relative" ref={dropdownRef}>
             <button
@@ -153,7 +146,8 @@ export default function AnggotaLayout({ children }) {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        {/* Bg diubah ke gray-50 agar konsisten dengan warna dasar halaman */}
+        <main className="flex-1 overflow-y-auto bg-gray-50">{children}</main>
       </div>
     </div>
   );

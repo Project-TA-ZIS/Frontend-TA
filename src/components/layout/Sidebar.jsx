@@ -69,13 +69,6 @@ export default function Sidebar() {
               }}
               className="h-[75px] w-auto object-contain object-left drop-shadow-sm cursor-pointer hover:scale-[1.02] transition-transform duration-300"
             />
-            {/* Tombol Close 'X' (Hanya Tampil di Mobile) */}
-            <button 
-              className="md:hidden text-[#0F766E] p-1 bg-white rounded-md shadow-sm"
-              onClick={() => setIsOpen(false)}
-            >
-              <X size={20} />
-            </button>
           </div>
 
           {/* ─── NAVIGATION MENU ─── */}
