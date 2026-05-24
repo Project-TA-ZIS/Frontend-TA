@@ -11,7 +11,7 @@ import {
 } from "recharts";
 
 const MONTH_LABELS = ["JAN", "FEB", "MAR", "APR", "MEI", "JUN", "JUL", "AGT", "SEP", "OKT", "NOV", "DES"];
-const KATEGORI_ZIS = ["Zakat Maal", "Zakat Fitrah Uang", "Zakat Fitrah Beras", "Infaq", "Sedekah"];
+const KATEGORI_ZIS = ["Zakat Maal", "Zakat Fitrah Beras", "Zakat Fitrah Uang", "Infaq", "Sedekah"];
 
 const parseDateSafe = (dateLike) => {
   if (!dateLike) return null;
@@ -49,7 +49,6 @@ export default function ChartZis({ pemasukanItems, pengeluaranItems, themeColors
   const [kategori, setKategori] = useState("Zakat Maal");
   const [waktu, setWaktu] = useState("Bulanan");
 
-  // Fallback warna jika props themeColors tidak dilempar dari parent
   const CLR = themeColors || {
     primary: "#0F766E",
     accent: "#10B981",
@@ -105,61 +104,68 @@ export default function ChartZis({ pemasukanItems, pengeluaranItems, themeColors
   }, [pemasukanItems, pengeluaranItems, kategori, waktu]);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-4 md:p-6 font-['Manrope'] w-full">
+    <div className="bg-white rounded-xl shadow-sm p-4 md:p-6 font-['Manrope'] w-full border border-gray-100">
       
-      {/* ─── HEADER GRAFIK ─── */}
-      <div className="mb-4">
-        <h2 className="text-base md:text-lg font-bold text-gray-900">Tren Transaksi ZIS</h2>
-        <p className="text-xs text-gray-500 mt-1">Laporan akumulasi dana {waktu.toLowerCase()} {new Date().getFullYear()}</p>
-      </div>
-
-      {/* ─── AREA FILTER (RESPONSIF & SCROLLABLE) ─── */}
-      <div className="flex flex-col gap-3 mb-6">
+      {/* ─── HEADER & FILTER AREA ─── */}
+      {/* KUNCI: lg:flex-row dan lg:items-center agar Judul (Kiri) dan SEMUA Filter (Kanan) sejajar horizontal */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
         
-        {/* Filter Kategori: Bisa di-scroll horizontal di HP */}
-        {/* [&::-webkit-scrollbar]:hidden untuk menyembunyikan garis scrollbar */}
-        <div className="w-full overflow-x-auto pb-1 -mb-1 [&::-webkit-scrollbar]:hidden">
-          <div className="inline-flex bg-gray-100 rounded-lg p-1 min-w-max">
-            {KATEGORI_ZIS.map((opt) => (
+        {/* ─── KIRI: Teks Header ─── */}
+        <div className="shrink-0">
+          <h2 className="text-base md:text-xl font-extrabold text-gray-900">Tren Transaksi ZIS</h2>
+          <p className="text-xs md:text-sm text-gray-500 mt-1 font-medium">
+            Laporan akumulasi dana {waktu.toLowerCase()} {new Date().getFullYear()}
+          </p>
+        </div>
+
+        {/* ─── KANAN: Semua Filter (Kategori & Waktu) ─── */}
+        {/* flex-row ini akan menempatkan filter Kategori dan filter Waktu berdampingan secara horizontal */}
+        <div className="flex flex-row items-center gap-2 md:gap-3 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0 [&::-webkit-scrollbar]:hidden">
+
+          {/* 2. Filter Periode (Bulanan/Tahunan) diletakkan tepat di sebelah Filter Kategori */}
+          <div className="inline-flex bg-gray-100 rounded-lg p-1 min-w-max shrink-0">
+            {["Bulanan", "Tahunan"].map((opt) => (
               <button
                 key={opt}
                 type="button"
-                onClick={() => setKategori(opt)}
-                className={`px-3 md:px-4 py-1.5 md:py-2 rounded-md text-[11px] md:text-xs font-semibold transition-all duration-300 ${
-                  kategori === opt 
+                onClick={() => setWaktu(opt)}
+                className={`px-3 md:px-4 py-1.5 md:py-2 rounded-md text-[11px] md:text-sm font-bold transition-all duration-300 ${
+                  waktu === opt 
                     ? "bg-[#10B981] text-white shadow-sm" 
-                    : "text-gray-500 hover:text-gray-800 hover:bg-gray-200"
+                    : "text-gray-500 hover:text-gray-800 hover:bg-gray-200/50"
                 }`}
               >
                 {opt}
               </button>
             ))}
           </div>
-        </div>
+          
+          {/* 1. Filter Kategori */}
+          <div className="inline-flex bg-gray-100 rounded-lg p-1 min-w-max shrink-0">
+            {KATEGORI_ZIS.map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => setKategori(opt)}
+                className={`px-3 md:px-4 py-1.5 md:py-2 rounded-md text-[11px] md:text-sm font-bold transition-all duration-300 ${
+                  kategori === opt 
+                    ? "bg-[#10B981] text-white shadow-sm" 
+                    : "text-gray-500 hover:text-gray-800 hover:bg-gray-200/50"
+                }`}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
 
-        {/* Filter Periode */}
-        <div className="inline-flex bg-gray-100 rounded-lg p-1 self-start">
-          {["Bulanan", "Tahunan"].map((opt) => (
-            <button
-              key={opt}
-              type="button"
-              onClick={() => setWaktu(opt)}
-              className={`px-3 md:px-4 py-1.5 md:py-2 rounded-md text-[11px] md:text-xs font-semibold transition-all duration-300 ${
-                waktu === opt 
-                  ? "bg-[#10B981] text-white shadow-sm" 
-                  : "text-gray-500 hover:text-gray-800 hover:bg-gray-200"
-              }`}
-            >
-              {opt}
-            </button>
-          ))}
+          
+
         </div>
       </div>
 
       {/* ─── AREA RENDER GRAFIK ─── */}
-      <div className="w-full h-[250px] md:h-[300px]">
+      <div className="w-full h-[250px] md:h-[350px]">
         <ResponsiveContainer width="100%" height="100%">
-          {/* Margin Kiri (left) dinolkan jika YAxis di-hide agar grafik mentok ke kiri (hemat ruang) */}
           <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             
             <defs>
@@ -177,17 +183,16 @@ export default function ChartZis({ pemasukanItems, pengeluaranItems, themeColors
             
             <XAxis 
               dataKey="label" 
-              tick={{ fontSize: 11, fill: "#9CA3AF", fontWeight: 500 }} 
+              tick={{ fontSize: 11, fill: "#9CA3AF", fontWeight: 600 }} 
               axisLine={false} 
               tickLine={false} 
               dy={10} 
             />
             
-            {/* YAxis disembunyikan sesuai kodemu sebelumnya untuk tampilan yang lebih bersih */}
             <YAxis hide />
             
             <Tooltip content={customTooltipFormatter ? customTooltipFormatter(kategori) : undefined} />
-            <Legend wrapperStyle={{ fontSize: 12, paddingTop: 20 }} />
+            <Legend wrapperStyle={{ fontSize: 12, paddingTop: 20, fontWeight: 700 }} />
             
             <Area 
               type="monotone" 

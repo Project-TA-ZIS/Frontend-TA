@@ -420,22 +420,22 @@ export default function KelolaZis() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/50">
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
                     NO
                   </th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">
                     TANGGAL
                   </th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">
                     NAMA
                   </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">
                     KATEGORI
                   </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">
                     NOMINAL (RP)
                   </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">
                     TIPE
                   </th>
                 </tr>
@@ -459,7 +459,7 @@ export default function KelolaZis() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#0F766E]">
                         {index + 1 + (safePage - 1) * PAGE_SIZE}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600 tracking-wider">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600 text-center">
                         {trx.tanggal
                           ? new Date(trx.tanggal).toLocaleDateString("id-ID", {
                               day: "2-digit",
@@ -468,7 +468,7 @@ export default function KelolaZis() {
                             })
                           : "-"}
                       </td>
-                      <td className="px-6 py-4 text-sm font-bold text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-[12px] font-bold text-gray-900 text-center">
                         {trx.nama}
                       </td>
                       <td className="px-6 py-4 text-sm font-medium text-gray-600 text-center">
