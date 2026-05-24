@@ -189,20 +189,6 @@ export default function KelolaMustahik() {
       newErrors.nama = "Nama lengkap wajib diisi!";
     }
 
-    if (!(formData.email || "").trim()) {
-      newErrors.email = "Alamat email wajib diisi!";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Format email tidak valid!";
-    }
-
-    if (!editingId) {
-      if (!(formData.password || "").trim()) {
-        newErrors.password = "Password wajib diisi!";
-      } else if (formData.password.length < 6) {
-        newErrors.password = "Password minimal 6 karakter!";
-      }
-    }
-
     if (!(formData.telp || "").trim()) {
       newErrors.telp = "Nomor telepon wajib diisi!";
     } else if (!/^[0-9]+$/.test(formData.telp)) {
@@ -215,12 +201,8 @@ export default function KelolaMustahik() {
       newErrors.jenisKelamin = "Jenis kelamin wajib dipilih!";
     }
 
-    if (!(formData.alamat || "").trim()) {
-      newErrors.alamat = "Alamat wajib diisi!";
-    }
-
-    if (!(formData.npwp || "").trim()) {
-      newErrors.npwp = "NPWP wajib diisi!";
+    if (!formData.kategori) {
+      newErrors.kategori = "Kategori wajib dipilih!";
     }
 
     if (!(formData.nik || "").trim()) {
@@ -241,16 +223,13 @@ export default function KelolaMustahik() {
       newErrors.tanggalLahir = "Tanggal lahir tidak valid!";
     }
 
-    if (!(formData.pekerjaan || "").trim()) {
-      newErrors.pekerjaan = "Pekerjaan wajib diisi!";
-    }
-
     setErrors(newErrors);
 
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
+    console.log("Submitting form with data:", formData);
     e.preventDefault();
     if (!validateForm()) return;
     setErrorMsg("");

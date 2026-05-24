@@ -163,7 +163,7 @@ export default function ManajemenZis() {
         const tipeRaw = (item.tipe || item.jenis_transaksi || "").toLowerCase();
 
         return {
-          id: `PZ-${item.id}`,
+          id: `${item.id}`,
           tanggal:
             item.tanggal_penghimpunan || item.created_at || item.updated_at,
           nama: item.nama_muzakki || "-",
@@ -347,7 +347,7 @@ export default function ManajemenZis() {
                         className="hover:bg-gray-50/40 transition-colors"
                       >
                         <td className="py-4 px-6 text-xs font-bold text-[#0F766E] text-center">
-                          {tx.id}
+                          {idx + 1}
                         </td>
                         <td className="py-4 px-6 text-xs font-bold text-gray-400 text-center">
                           {formattedDate(tx.tanggal)}

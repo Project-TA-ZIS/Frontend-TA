@@ -280,7 +280,7 @@ export default function KelolaMuzzaki() {
           Swal.fire({
             icon: "error",
             title: "Oops...",
-            text: "Terjadi kesalahan pada server",
+            text: msg,
             confirmButtonColor: "#EF4444",
           });
           return;

@@ -327,7 +327,12 @@ export default function KelolaKas() {
           {/* Action Buttons - Berjejer rapi di mobile */}
           <div className="grid grid-cols-2 md:flex items-center gap-2 md:gap-3 w-full md:w-auto">
             <button
-              onClick={handleDownloadPDF}
+              onClick={() =>
+                exportKasDasawismaPdf({
+                  historyData: filteredTransactions,
+                  totalKasDaswisma: saldoKasDasawisma,
+                })
+              }
               className="flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2 px-3 rounded-lg text-xs md:text-sm transition-all hover:bg-gray-50 shadow-sm w-full md:w-auto"
             >
               <Download size={16} /> Unduh
