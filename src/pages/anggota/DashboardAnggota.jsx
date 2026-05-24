@@ -133,7 +133,7 @@ export default function DashboardAnggota() {
           allowOutsideClick: false,
           allowEscapeKey: false,
         });
-        if (result.isConfirmed) navigate("/pengaturan");
+        if (result.isConfirmed) navigate("/anggota/pengaturan");
       }
     } catch (e) { console.log(e); }
   };

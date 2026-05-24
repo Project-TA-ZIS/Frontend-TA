@@ -104,8 +104,15 @@ export default function ManajemenZis() {
     .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
 
   const totalPenyaluran = transactions
-    .filter((t) => t.tipe === "Pengeluaran")
-    .reduce((acc, curr) => acc + curr.nominal, 0);
+    .filter((item) => {
+      const kategori = item.kategori?.trim().toLowerCase();
+
+      return (
+        item.tipe?.toLowerCase() === "pengeluaran" &&
+        kategori !== "zakat fitrah beras"
+      );
+    })
+    .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
 
   const saldoTotal = totalPenerimaan - totalPenyaluran;
 

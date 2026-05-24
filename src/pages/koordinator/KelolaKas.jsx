@@ -164,7 +164,7 @@ export default function KelolaKas() {
   const loadTotalKasDasawisma = async () => {
     try {
       const res = await totalKasDasawismaService.getTotalKasDasawisma();
-      setSaldoKasDasawisma(res.data?.jumlah_keseluruhan || 0);
+      setSaldoKasDasawisma(Number(res.data?.jumlah_keseluruhan || 0));
       setSaldoUpdatedAt(res.data?.updated_at || "");
     } catch (error) {
       console.log("Gagal memuat total kas dasawisma");
@@ -355,22 +355,22 @@ export default function KelolaKas() {
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
                     No
                   </th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
                     TANGGAL
                   </th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
                     NAMA
                   </th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
                     sumber
                   </th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
                     DESKRIPSI
                   </th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
                     JENIS
                   </th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">
+                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
                     NOMINAL
                   </th>
                 </tr>
@@ -395,16 +395,16 @@ export default function KelolaKas() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#0F766E]">
                       {index + 1}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600 tracking-wider">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600 tracking-wider text-center">
                       {formattedDate(trx.tanggal)}
                     </td>
-                    <td className="px-6 py-4 text-sm font-bold text-gray-900">
+                    <td className="px-6 py-4 text-sm font-bold text-gray-900 text-center">
                       {trx.namaAnggota || "-"}
                     </td>
-                    <td className="px-6 py-4 text-sm font-bold text-gray-900">
+                    <td className="px-6 py-4 text-sm font-bold text-gray-900 text-center  ">
                       {trx.sumber || "-"}
                     </td>
-                    <td className="px-6 py-4 text-sm font-bold text-gray-900">
+                    <td className="px-6 py-4 text-sm font-bold text-gray-900 text-center">
                       {trx.deskripsi}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
