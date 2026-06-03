@@ -530,7 +530,9 @@ export default function AnggotaDasawisma() {
                       <h3 className={sectionTitleClass}>Informasi Akun</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
                         <div>
-                          <label className={labelClass}>Alamat Email</label>
+                          <label className={labelClass}>
+                            Alamat Email<span className="text-red-500"> *</span>
+                          </label>
                           <input
                             type="email"
                             name="email"
@@ -546,7 +548,9 @@ export default function AnggotaDasawisma() {
                           )}
                         </div>
                         <div>
-                          <label className={labelClass}>Password</label>
+                          <label className={labelClass}>
+                            Password<span className="text-red-500"> *</span>
+                          </label>
                           <input
                             type="password"
                             name="password"
@@ -569,7 +573,9 @@ export default function AnggotaDasawisma() {
                   <div className="space-y-4 md:space-y-5">
                     <h3 className={sectionTitleClass}>Informasi Dasar</h3>
                     <div>
-                      <label className={labelClass}>Nama Lengkap</label>
+                      <label className={labelClass}>
+                        Nama Lengkap<span className="text-red-500"> *</span>
+                      </label>
                       <input
                         type="text"
                         name="nama"
@@ -587,7 +593,9 @@ export default function AnggotaDasawisma() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
                       <div>
-                        <label className={labelClass}>Role (Peran)</label>
+                        <label className={labelClass}>
+                          Role (Peran)<span className="text-red-500"> *</span>
+                        </label>
                         <select
                           name="role"
                           value={formData.role}
@@ -611,7 +619,9 @@ export default function AnggotaDasawisma() {
                       {/* Saat edit, telp ada di sini */}
                       {editingId && (
                         <div>
-                          <label className={labelClass}>Nomor Telepon</label>
+                          <label className={labelClass}>
+                            Nomor Telepon<span className="text-red-500"> *</span>
+                          </label>
                           <input
                             type="text"
                             name="telp"
@@ -631,7 +641,9 @@ export default function AnggotaDasawisma() {
 
                     {editingId && (
                       <div>
-                        <label className={labelClass}>Alamat Email</label>
+                        <label className={labelClass}>
+                          Alamat Email<span className="text-red-500"> *</span>
+                        </label>
                         <input
                           type="email"
                           name="email"
@@ -651,7 +663,9 @@ export default function AnggotaDasawisma() {
                     {/* Saat tambah, nomor telepon di section dasar */}
                     {!editingId && (
                       <div>
-                        <label className={labelClass}>Nomor Telepon</label>
+                        <label className={labelClass}>
+                          Nomor Telepon<span className="text-red-500"> *</span>
+                        </label>
                         <input
                           type="text"
                           name="telp"

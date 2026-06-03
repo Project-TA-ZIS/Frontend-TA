@@ -2,6 +2,7 @@ import React from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import PageTransition from "../../components/shared/PageTransition";
 import LogoDasawisma from "../../assets/Logo.svg";
+import fotoDasawisma from "../../assets/foto_dasawisma.png";
 import Footer from "../../components/layout/Footer";
 import NavbarUmum from "../../components/shared/NavbarUmum";
 
@@ -49,7 +50,7 @@ export default function Home() {
             <div className="order-1 md:order-2">
               <div className="w-full aspect-video bg-gray-200 rounded-2xl border-4 border-white shadow-md overflow-hidden relative">
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400 font-bold text-sm">
-                  [ Area Foto Kegiatan Dasawisma ]
+                  <img src={fotoDasawisma} alt="Foto Dasawisma" className="w-full h-full object-cover" />
                 </div>
               </div>
             </div>

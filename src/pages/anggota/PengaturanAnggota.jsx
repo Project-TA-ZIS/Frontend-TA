@@ -393,7 +393,9 @@ export default function PengaturanKoordinator() {
             {/* Body Modal */}
             <form onSubmit={handleSubmitPassword} className="p-5 space-y-4">
               <div>
-                <label className={labelClass}>Password Lama</label>
+                <label className={labelClass}>
+                  Password Lama<span className="text-red-500"> *</span>
+                </label>
                 <input
                   type="password"
                   name="passwordLama"
@@ -406,7 +408,9 @@ export default function PengaturanKoordinator() {
               </div>
 
               <div>
-                <label className={labelClass}>Password Baru</label>
+                <label className={labelClass}>
+                  Password Baru<span className="text-red-500"> *</span>
+                </label>
                 <input
                   type="password"
                   name="passwordBaru"

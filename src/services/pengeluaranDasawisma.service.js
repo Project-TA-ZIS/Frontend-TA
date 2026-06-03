@@ -13,9 +13,18 @@ async function createPengeluaran(payload) {
   return res.data;
 }
 
+async function updatePengeluaran(id, payload) {
+  const res = await api.put(
+    `/pengeluaranDasawisma/update/updatePengeluaran/${id}`,
+    payload,
+  );
+  return res.data;
+}
+
 const pengeluaranDasawismaService = {
   getAllPengeluaran,
   createPengeluaran,
+  updatePengeluaran,
 };
 
 export default pengeluaranDasawismaService;

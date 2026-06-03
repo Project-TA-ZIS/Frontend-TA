@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import amilService from "../../services/amil.service";
 import Swal from "sweetalert2";
 import { formattedDate } from "../../utils/formattedDate";
@@ -17,6 +17,8 @@ export default function AnggotaAmil() {
   // ─── States ───
   const [anggotaList, setAnggotaList] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 5;
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -60,13 +62,23 @@ export default function AnggotaAmil() {
     };
   }, []);
 
-  const filteredAnggota = anggotaList.filter(
-    (anggota) =>
-      anggota.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      anggota.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      anggota.telp.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      anggota.alamat.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  const filteredAnggota = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    return anggotaList.filter(
+      (anggota) =>
+        anggota.nama.toLowerCase().includes(q) ||
+        anggota.email.toLowerCase().includes(q) ||
+        anggota.telp.toLowerCase().includes(q) ||
+        anggota.alamat.toLowerCase().includes(q),
+    );
+  }, [anggotaList, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredAnggota.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paginatedAnggota = useMemo(() => {
+    const start = (safePage - 1) * PAGE_SIZE;
+    return filteredAnggota.slice(start, start + PAGE_SIZE);
+  }, [filteredAnggota, safePage]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -292,7 +304,10 @@ export default function AnggotaAmil() {
             placeholder="Cari data amil berdasarkan nama..."
             className="bg-gray-200/60 border-none text-gray-700 text-sm rounded-lg focus:ring-2 focus:ring-[#10B981] block w-full pl-11 pr-5 py-3.5 font-medium outline-none transition-all placeholder-gray-400"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(1);
+            }}
           />
         </div>
 
@@ -324,13 +339,13 @@ export default function AnggotaAmil() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredAnggota.length > 0 ? (
-                  filteredAnggota.map((item, index) => (
+                  paginatedAnggota.map((item, index) => (
                     <tr
                       key={index}
                       className="hover:bg-emerald-50/30 transition-colors"
                     >
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#0F766E] text-center">
-                        {index + 1}
+                        {index + 1 + (safePage - 1) * PAGE_SIZE}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-center">
                         {item.nama}
@@ -386,6 +401,41 @@ export default function AnggotaAmil() {
                 )}
               </tbody>
             </table>
+
+            {/* Pagination (maks 5 data per halaman) */}
+            <div className="flex items-center justify-between m-6">
+              <p className="text-xs text-gray-400 font-bold">
+                Halaman {safePage} dari {totalPages}
+              </p>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  disabled={safePage <= 1}
+                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                    safePage <= 1
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-700"
+                  }`}
+                >
+                  Sebelumnya
+                </button>
+                <button
+                  type="button"
+                  disabled={safePage >= totalPages}
+                  onClick={() =>
+                    setPage((prev) => Math.min(totalPages, prev + 1))
+                  }
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                    safePage >= totalPages
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-[#10B981] hover:bg-[#059669] text-white"
+                  }`}
+                >
+                  Selanjutnya
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -418,7 +468,9 @@ export default function AnggotaAmil() {
                       <h3 className={sectionTitleClass}>Informasi Akun</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
                         <div>
-                          <label className={labelClass}>Alamat Email</label>
+                          <label className={labelClass}>
+                            Alamat Email<span className="text-red-500"> *</span>
+                          </label>
                           <input
                             type="email"
                             name="email"
@@ -434,7 +486,9 @@ export default function AnggotaAmil() {
                           )}
                         </div>
                         <div>
-                          <label className={labelClass}>Password</label>
+                          <label className={labelClass}>
+                            Password<span className="text-red-500"> *</span>
+                          </label>
                           <input
                             type="password"
                             name="password"
@@ -457,7 +511,9 @@ export default function AnggotaAmil() {
                   <div className="space-y-4 md:space-y-5">
                     <h3 className={sectionTitleClass}>Informasi Dasar</h3>
                     <div>
-                      <label className={labelClass}>Nama Lengkap</label>
+                      <label className={labelClass}>
+                        Nama Lengkap<span className="text-red-500"> *</span>
+                      </label>
                       <input
                         type="text"
                         name="nama"
@@ -475,7 +531,9 @@ export default function AnggotaAmil() {
 
                     {editingId && (
                       <div>
-                        <label className={labelClass}>Alamat Email</label>
+                        <label className={labelClass}>
+                          Alamat Email<span className="text-red-500"> *</span>
+                        </label>
                         <input
                           type="email"
                           name="email"
@@ -493,7 +551,9 @@ export default function AnggotaAmil() {
                     )}
 
                     <div>
-                      <label className={labelClass}>Nomor Telepon</label>
+                      <label className={labelClass}>
+                        Nomor Telepon<span className="text-red-500"> *</span>
+                      </label>
                       <input
                         type="text"
                         name="telp"
@@ -509,7 +569,9 @@ export default function AnggotaAmil() {
                       )}
                     </div>
                     <div>
-                      <label className={labelClass}>Alamat</label>
+                      <label className={labelClass}>
+                        Alamat<span className="text-red-500"> *</span>
+                      </label>
                       <textarea
                         type="text"
                         name="alamat"

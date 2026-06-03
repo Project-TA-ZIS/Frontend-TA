@@ -302,6 +302,7 @@ export default function Login() {
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                   Alamat Email
+                  <span className="text-red-500"> *</span>
                 </label>
 
                 <input

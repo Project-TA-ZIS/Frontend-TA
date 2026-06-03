@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Download, Search, AlertCircle, CheckCircle2, X } from "lucide-react";
 import PageTransition from "../../components/shared/PageTransition";
@@ -22,6 +22,8 @@ export default function ManajemenZis() {
   const [searchQuery, setSearchQuery] = useState("");
   const [phoneDigits, setPhoneDigits] = useState("");
   const [alertMessage, setAlertMessage] = useState(null);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 5;
 
   // State untuk mengontrol Modal Popup Nomor HP
   const [showPhoneModal, setShowPhoneModal] = useState(false);
@@ -188,6 +190,7 @@ export default function ManajemenZis() {
       });
 
       setHistoryData(mappedData);
+      setPage(1);
       setShowTable(true);
 
       setAlertMessage({
@@ -214,6 +217,13 @@ export default function ManajemenZis() {
   const handleDownloadPDF = () => {
     exportZISPdf({ historyData });
   };
+
+  const totalPages = Math.max(1, Math.ceil(historyData.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paginatedHistoryData = useMemo(() => {
+    const start = (safePage - 1) * PAGE_SIZE;
+    return historyData.slice(start, start + PAGE_SIZE);
+  }, [historyData, safePage]);
 
   return (
     <PageTransition>
@@ -348,13 +358,13 @@ export default function ManajemenZis() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {historyData.map((tx, idx) => (
+                    {paginatedHistoryData.map((tx, idx) => (
                       <tr
                         key={idx}
                         className="hover:bg-gray-50/40 transition-colors"
                       >
                         <td className="py-4 px-6 text-xs font-bold text-[#0F766E] text-center">
-                          {idx + 1}
+                          {idx + 1 + (safePage - 1) * PAGE_SIZE}
                         </td>
                         <td className="py-4 px-6 text-xs font-bold text-gray-400 text-center">
                           {formattedDate(tx.tanggal)}
@@ -378,6 +388,41 @@ export default function ManajemenZis() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Pagination */}
+              <div className="flex items-center justify-between m-6">
+                <p className="text-xs text-gray-400 font-bold">
+                  Halaman {safePage} dari {totalPages}
+                </p>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    disabled={safePage <= 1}
+                    onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                      safePage <= 1
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-gray-200 hover:bg-gray-300 text-gray-700"
+                    }`}
+                  >
+                    Sebelumnya
+                  </button>
+                  <button
+                    type="button"
+                    disabled={safePage >= totalPages}
+                    onClick={() =>
+                      setPage((prev) => Math.min(totalPages, prev + 1))
+                    }
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                      safePage >= totalPages
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-[#10B981] hover:bg-[#059669] text-white"
+                    }`}
+                  >
+                    Selanjutnya
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -423,6 +468,10 @@ export default function ManajemenZis() {
               )}
 
               <form onSubmit={handleVerifyPhone}>
+                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  4 Digit Terakhir Nomor Telepon
+                  <span className="text-red-500"> *</span>
+                </label>
                 <input
                   type="text"
                   maxLength={4}

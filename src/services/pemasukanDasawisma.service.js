@@ -23,10 +23,18 @@ export async function getTotalKas() {
   return res.data;
 }
 
+export async function updatePemasukanKas(id, payload) {
+  const res = await api.put(
+    `/pemasukanDasawisma/update/updatePemasukan/${id}`,
+    payload,
+  );
+}
+
 const pemasukanDasawismaService = {
   getAllPemasukanKas,
   createPemasukanKas,
   getTotalKas,
+  updatePemasukanKas,
 }
 
 export default pemasukanDasawismaService;
