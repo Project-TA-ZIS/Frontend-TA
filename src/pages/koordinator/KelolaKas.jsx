@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Download, Plus, X } from "lucide-react";
+import { Download, Edit, Info, Plus, Trash2, X } from "lucide-react";
 import PageTransition from "../../components/shared/PageTransition";
 import Swal from "sweetalert2";
 import Select from "react-select";
@@ -14,12 +14,46 @@ import autoTable from "jspdf-autotable";
 import logoDasawisma from "../../assets/logo.png";
 import KasSummaryCards from "../../components/shared/KasSummaryCards";
 import { exportKasDasawismaPdf } from "../../utils/exportKasDasawismaPdf";
+import {
+  formatThousands,
+  parseThousandsToNumber,
+} from "../../utils/formatThousands";
 
 export default function KelolaKas() {
   const [anggotaList, setAnggotaList] = useState([]);
   const [searchAnggota, setSearchAnggota] = useState("");
   const [saldoUpdatedAt, setSaldoUpdatedAt] = useState("");
   const [saldoKasDasawisma, setSaldoKasDasawisma] = useState(0);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 5;
+
+  const escapeHtml = (value) => {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  };
+
+  const kasSaldoErrorDetails = (err) => {
+    const data = err?.response?.data;
+    const saldo = data?.saldo_tersedia;
+    const kategori = data?.kategori;
+
+    if (saldo === undefined && !kategori) return null;
+
+    const parts = [];
+    if (kategori) parts.push(`<div><b>Kategori:</b> ${escapeHtml(kategori)}</div>`);
+    if (saldo !== undefined) {
+      const saldoNum = Number(saldo);
+      parts.push(
+        `<div><b>Saldo tersedia:</b> ${escapeHtml(formatRupiah(Number.isNaN(saldoNum) ? 0 : saldoNum))}</div>`,
+      );
+    }
+
+    return { html: parts.join("") };
+  };
 
   const loadAnggotaDasawisma = async () => {
     try {
@@ -58,6 +92,14 @@ export default function KelolaKas() {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
+    if (name === "nominal") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: formatThousands(value),
+      }));
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -86,6 +128,16 @@ export default function KelolaKas() {
       return matchesJenis && matchesBulan && matchesTahun;
     });
   }, [transactions, filterJenis, filterBulan, filterTahun]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredTransactions.length / PAGE_SIZE),
+  );
+  const safePage = Math.min(page, totalPages);
+  const paginatedTransactions = useMemo(() => {
+    const start = (safePage - 1) * PAGE_SIZE;
+    return filteredTransactions.slice(start, start + PAGE_SIZE);
+  }, [filteredTransactions, safePage]);
 
   // ─── Load Data ───
   const loadKasData = async () => {
@@ -175,9 +227,11 @@ export default function KelolaKas() {
     e.preventDefault();
 
     try {
+      const nominal = parseThousandsToNumber(formData.nominal);
+
       if (formData.jenis === "Pemasukan") {
         await pemasukanDasawismaService.createPemasukanKas({
-          jumlah: Number(formData.nominal),
+          jumlah: nominal,
           deskripsi: formData.deskripsi,
           sumber: formData.tipePemasukan,
           tanggal_penghimpunan: formData.tanggal,
@@ -189,7 +243,7 @@ export default function KelolaKas() {
         });
       } else {
         await pengeluaranService.createPengeluaran({
-          jumlah: Number(formData.nominal),
+          jumlah: nominal,
           deskripsi: formData.deskripsi,
           tanggal_penyaluran: formData.tanggal,
         });
@@ -217,10 +271,109 @@ export default function KelolaKas() {
       });
     } catch (error) {
       console.log(error);
+      const msg =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        "Terjadi kesalahan pada server";
+      const extra = kasSaldoErrorDetails(error);
       Swal.fire({
         icon: "error",
         title: "Oops...",
-        text: error?.response?.data?.message || "Terjadi kesalahan pada server",
+        ...(extra
+          ? { html: `<div>${escapeHtml(msg)}</div><br/>${extra.html}` }
+          : { text: msg }),
+        confirmButtonColor: "#10B981",
+      });
+    }
+  };
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [editForm, setEditForm] = useState({
+    tanggal: "",
+    deskripsi: "",
+    nominal: "",
+    jenis: "",
+    sumber: "",
+    namaAnggota: "",
+  });
+
+  const handleEdit = (trx) => {
+    setSelectedTransaction(trx);
+
+    setEditForm({
+      tanggal: trx.tanggal || "",
+      deskripsi: trx.deskripsi || "",
+      nominal: formatThousands(trx.nominal || 0),
+      jenis: trx.jenis || "",
+      sumber: trx.sumber || "",
+      namaAnggota: trx.namaAnggota || "",
+    });
+
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    const result = await Swal.fire({
+      title: "Simpan perubahan?",
+      text: "Data transaksi akan diperbarui.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Simpan",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#10B981",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      if (selectedTransaction.jenis === "Pemasukan") {
+        const payload = {
+          jumlah: parseThousandsToNumber(editForm.nominal),
+          deskripsi: editForm.deskripsi,
+          tanggal_penghimpunan: editForm.tanggal,
+        };
+
+        await pemasukanDasawismaService.updatePemasukanKas(
+          selectedTransaction.id,
+          payload,
+        );
+      } else {
+        const payload = {
+          jumlah: parseThousandsToNumber(editForm.nominal),
+          deskripsi: editForm.deskripsi,
+          tanggal_penyaluran: editForm.tanggal,
+        };
+        await pengeluaranService.updatePengeluaran(
+          selectedTransaction.id,
+          payload,
+        );
+      }
+
+      await loadKasData();
+      await loadTotalKasDasawisma();
+
+      setIsEditModalOpen(false);
+
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil",
+        text: "Transaksi berhasil diperbarui",
+        confirmButtonColor: "#10B981",
+      });
+    } catch (error) {
+      const msg =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        "Terjadi kesalahan saat memperbarui data";
+      const extra = kasSaldoErrorDetails(error);
+      Swal.fire({
+        icon: "error",
+        title: "Gagal",
+        ...(extra
+          ? { html: `<div>${escapeHtml(msg)}</div><br/>${extra.html}` }
+          : { text: msg }),
+        confirmButtonColor: "#10B981",
       });
     }
   };
@@ -247,6 +400,32 @@ export default function KelolaKas() {
         nominal: "",
         tipePemasukan: "IURAN",
         anggota_dasawisma_id: "",
+      });
+    }
+  };
+
+  const handleCloseEditModal = async () => {
+    const result = await Swal.fire({
+      title: "Tutup form?",
+      text: "Data yang belum disimpan akan hilang",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#10B981",
+      cancelButtonColor: "#6B7280",
+      confirmButtonText: "Ya, tutup",
+      cancelButtonText: "Batal",
+    });
+
+    if (result.isConfirmed) {
+      setIsEditModalOpen(false);
+
+      setEditForm({
+        tanggal: selectedTransaction.tanggal || "",
+        deskripsi: selectedTransaction.deskripsi || "",
+        nominal: formatThousands(selectedTransaction.nominal || 0),
+        jenis: selectedTransaction.jenis || "",
+        sumber: selectedTransaction.sumber || "",
+        namaAnggota: selectedTransaction.namaAnggota || "",
       });
     }
   };
@@ -296,7 +475,10 @@ export default function KelolaKas() {
             <select
               className="col-span-2 md:col-span-1 bg-white border border-gray-200 text-gray-700 text-sm md:text-sm rounded-lg focus:ring-[#10B981] focus:border-[#10B981] px-3 py-2 font-semibold shadow-sm outline-none w-full md:w-auto"
               value={filterJenis}
-              onChange={(e) => setFilterJenis(e.target.value)}
+              onChange={(e) => {
+                setFilterJenis(e.target.value);
+                setPage(1);
+              }}
             >
               <option value="Semua">Jenis Kas (Semua)</option>
               <option value="Pemasukan">Kas Pemasukan</option>
@@ -306,7 +488,10 @@ export default function KelolaKas() {
             <select
               className="bg-white border border-gray-200 text-gray-700 text-sm md:text-sm rounded-lg focus:ring-[#10B981] focus:border-[#10B981] px-3 py-2 font-semibold shadow-sm outline-none w-full md:w-28"
               value={filterBulan}
-              onChange={(e) => setFilterBulan(e.target.value)}
+              onChange={(e) => {
+                setFilterBulan(e.target.value);
+                setPage(1);
+              }}
             >
               <option value="">Bulan</option>
               <option value="April">April</option>
@@ -316,7 +501,10 @@ export default function KelolaKas() {
             <select
               className="bg-white border border-gray-200 text-gray-700 text-sm md:text-sm rounded-lg focus:ring-[#10B981] focus:border-[#10B981] px-3 py-2 font-semibold shadow-sm outline-none w-full md:w-28"
               value={filterTahun}
-              onChange={(e) => setFilterTahun(e.target.value)}
+              onChange={(e) => {
+                setFilterTahun(e.target.value);
+                setPage(1);
+              }}
             >
               <option value="">Tahun</option>
               <option value="2026">2026</option>
@@ -371,7 +559,10 @@ export default function KelolaKas() {
                     JENIS
                   </th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
-                    NOMINAL
+                    NOMINAL (RP)
+                  </th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center w-36">
+                    Aksi
                   </th>
                 </tr>
               </thead>
@@ -387,13 +578,13 @@ export default function KelolaKas() {
                   </tr>
                 )}
 
-                {filteredTransactions.map((trx, index) => (
+                {paginatedTransactions.map((trx, index) => (
                   <tr
                     key={`${trx.jenis}-${trx.id}`}
                     className="hover:bg-emerald-50/30 transition-colors"
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#0F766E]">
-                      {index + 1}
+                      {index + 1 + (safePage - 1) * PAGE_SIZE}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600 tracking-wider text-center">
                       {formattedDate(trx.tanggal)}
@@ -415,15 +606,61 @@ export default function KelolaKas() {
                       </span>
                     </td>
                     <td
-                      className={`px-6 py-4 whitespace-nowrap text-sm font-extrabold text-right ${trx.jenis === "Pemasukan" ? "text-[#10B981]" : "text-[#EF4444]"}`}
+                      className={`px-6 py-4 whitespace-nowrap text-sm font-extrabold text-center ${trx.jenis === "Pemasukan" ? "text-[#10B981]" : "text-[#EF4444]"}`}
                     >
-                      {trx.jenis === "Pemasukan" ? "+" : "-"}{" "}
-                      {formatRupiah(trx.nominal).replace("Rp", "").trim()}
+                      Rp {formatRupiah(trx.nominal).replace("Rp", "").trim()}
+                    </td>
+
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => handleEdit(trx)}
+                          className="text-amber-600 bg-amber-50 hover:bg-amber-500 hover:text-white p-2 rounded-xl transition-all shadow-sm"
+                          title="Edit"
+                        >
+                          <Edit size={15} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+
+            {/* Pagination */}
+            <div className="flex items-center justify-between m-6">
+              <p className="text-xs text-gray-400 font-bold">
+                Halaman {safePage} dari {totalPages}
+              </p>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  disabled={safePage <= 1}
+                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                    safePage <= 1
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-700"
+                  }`}
+                >
+                  Sebelumnya
+                </button>
+                <button
+                  type="button"
+                  disabled={safePage >= totalPages}
+                  onClick={() =>
+                    setPage((prev) => Math.min(totalPages, prev + 1))
+                  }
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                    safePage >= totalPages
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-[#10B981] hover:bg-[#059669] text-white"
+                  }`}
+                >
+                  Selanjutnya
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -454,6 +691,7 @@ export default function KelolaKas() {
                   <div>
                     <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
                       Tanggal Transaksi
+                      <span className="text-red-500"> *</span>
                     </label>
                     <input
                       type="date"
@@ -468,6 +706,7 @@ export default function KelolaKas() {
                   <div>
                     <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
                       Jenis Transaksi
+                      <span className="text-red-500"> *</span>
                     </label>
                     <select
                       name="jenis"
@@ -486,6 +725,7 @@ export default function KelolaKas() {
                     <div>
                       <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
                         Tipe Pemasukan
+                        <span className="text-red-500"> *</span>
                       </label>
                       <select
                         name="tipePemasukan"
@@ -504,6 +744,7 @@ export default function KelolaKas() {
                       <div>
                         <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
                           Cari Anggota Dasawisma
+                          <span className="text-red-500"> *</span>
                         </label>
                         <Select
                           options={
@@ -530,6 +771,7 @@ export default function KelolaKas() {
                   <div>
                     <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
                       Deskripsi Kegiatan
+                      <span className="text-red-500"> *</span>
                     </label>
                     <input
                       type="text"
@@ -545,9 +787,12 @@ export default function KelolaKas() {
                   <div>
                     <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
                       Nominal (Rp)
+                      <span className="text-red-500"> *</span>
                     </label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9.]*"
                       name="nominal"
                       required
                       value={formData.nominal}
@@ -579,6 +824,125 @@ export default function KelolaKas() {
           </div>
         )}
       </div>
+
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+            <div className="bg-[#0F766E] p-4 flex justify-between items-center">
+              <h2 className="text-white font-bold text-lg">
+                Detail Transaksi Kas
+              </h2>
+
+              <button
+                onClick={() => handleCloseEditModal()}
+                className="text-white"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="text-xs font-bold text-gray-500">
+                  Jenis Transaksi
+                </label>
+                <input
+                  disabled
+                  value={editForm.jenis}
+                  className="w-full mt-1 bg-gray-100 border rounded-xl px-4 py-2"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-500">
+                  Nama Anggota
+                </label>
+                <input
+                  disabled
+                  value={editForm.namaAnggota}
+                  className="w-full mt-1 bg-gray-100 border rounded-xl px-4 py-2"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-500">
+                  Sumber
+                </label>
+                <input
+                  disabled
+                  value={editForm.sumber}
+                  className="w-full mt-1 bg-gray-100 border rounded-xl px-4 py-2"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-500">
+                  Tanggal
+                </label>
+                <input
+                  type="date"
+                  value={editForm.tanggal?.split("T")[0]}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      tanggal: e.target.value,
+                    })
+                  }
+                  className="w-full mt-1 border rounded-xl px-4 py-2"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-500">
+                  Deskripsi
+                </label>
+                <input
+                  value={editForm.deskripsi}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      deskripsi: e.target.value,
+                    })
+                  }
+                  className="w-full mt-1 border rounded-xl px-4 py-2"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-500">
+                  Nominal
+                </label>
+                <input
+                  value={editForm.nominal}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      nominal: formatThousands(e.target.value),
+                    })
+                  }
+                  className="w-full mt-1 border rounded-xl px-4 py-2"
+                />
+              </div>
+            </div>
+
+            <div className="border-t p-4 flex justify-end gap-2">
+              <button
+                onClick={() => handleCloseEditModal()}
+                className="px-5 py-2 rounded-xl bg-gray-100 font-bold"
+              >
+                Batal
+              </button>
+
+              <button
+                onClick={handleSaveEdit}
+                className="px-5 py-2 rounded-xl bg-[#10B981] text-white font-bold"
+              >
+                Simpan Perubahan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </PageTransition>
   );
 }

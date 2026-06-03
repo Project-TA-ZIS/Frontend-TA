@@ -391,7 +391,9 @@ export default function KelolaZis() {
           </div>
           <div className="flex items-center gap-3 w-full xl:w-auto">
             <button
-              onClick={() => exportZISPdf({ historyData: filteredTransactions })}
+              onClick={() =>
+                exportZISPdf({ historyData: filteredTransactions })
+              }
               className="flex items-center justify-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-2 px-4 rounded-lg transition-colors shadow-sm text-sm w-full md:w-auto"
             >
               <Download size={16} />
@@ -479,7 +481,7 @@ export default function KelolaZis() {
                       >
                         {trx.kategori === "Zakat Fitrah Beras"
                           ? `${trx.nominal} KG`
-                          : formatRupiah(trx.nominal).replace("Rp", "").trim()}
+                          : `Rp ${formatRupiah(trx.nominal).replace("Rp", "").trim()}`}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <div className="flex items-center justify-center gap-2">
@@ -518,37 +520,39 @@ export default function KelolaZis() {
                 )}
               </tbody>
             </table>
-          </div>
-        </div>
 
-        {/* Pagination (maks 5 data per halaman) */}
-        <div className="flex items-center justify-between mb-10">
-          <p className="text-sm font-medium text-gray-500">
-            Halaman <span className="font-bold text-gray-700">{safePage}</span>{" "}
-            dari <span className="font-bold text-gray-700">{totalPages}</span>{" "}
-            (total{" "}
-            <span className="font-bold text-gray-700">
-              {filteredTransactions.length}
-            </span>{" "}
-            data)
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={safePage <= 1}
-              className="px-4 py-2 rounded-lg text-sm font-bold bg-white border border-gray-200 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-            >
-              Sebelumnya
-            </button>
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={safePage >= totalPages}
-              className="px-4 py-2 rounded-lg text-sm font-bold bg-white border border-gray-200 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-            >
-              Berikutnya
-            </button>
+            {/* Pagination */}
+            <div className="flex items-center justify-between m-6">
+              <p className="text-xs text-gray-400 font-bold">
+                Halaman {safePage} dari {totalPages}
+              </p>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  disabled={safePage <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                    safePage <= 1
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-700"
+                  }`}
+                >
+                  Sebelumnya
+                </button>
+                <button
+                  type="button"
+                  disabled={safePage >= totalPages}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                    safePage >= totalPages
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-[#10B981] hover:bg-[#059669] text-white"
+                  }`}
+                >
+                  Selanjutnya
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

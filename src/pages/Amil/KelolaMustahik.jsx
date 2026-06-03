@@ -61,6 +61,8 @@ export default function KelolaMustahik() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [errors, setErrors] = useState({});
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 5;
 
   // State untuk Modal Pop-up
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -116,6 +118,13 @@ export default function KelolaMustahik() {
         (item.kategori || "").toString().toLowerCase().includes(q),
     );
   }, [mustahikList, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredMustahik.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paginatedMustahik = useMemo(() => {
+    const start = (safePage - 1) * PAGE_SIZE;
+    return filteredMustahik.slice(start, start + PAGE_SIZE);
+  }, [filteredMustahik, safePage]);
 
   // ─── Handlers ───
   const handleInputChange = (e) => {
@@ -340,7 +349,10 @@ export default function KelolaMustahik() {
             placeholder="Cari data warga atau transaksi..."
             className="bg-gray-200/60 border-none text-gray-700 text-sm rounded-lg focus:ring-2 focus:ring-[#10B981] block w-full pl-11 pr-5 py-3.5 font-medium outline-none transition-all placeholder-gray-400"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(1);
+            }}
           />
         </div>
 
@@ -381,7 +393,7 @@ export default function KelolaMustahik() {
                     </td>
                   </tr>
                 ) : filteredMustahik.length > 0 ? (
-                  filteredMustahik.map((item, index) => (
+                  paginatedMustahik.map((item, index) => (
                     <tr
                       key={index}
                       className="hover:bg-emerald-50/30 transition-colors"
@@ -457,6 +469,41 @@ export default function KelolaMustahik() {
                 )}
               </tbody>
             </table>
+
+            {/* Pagination */}
+            <div className="flex items-center justify-between m-6">
+              <p className="text-xs text-gray-400 font-bold">
+                Halaman {safePage} dari {totalPages}
+              </p>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  disabled={safePage <= 1}
+                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                    safePage <= 1
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-700"
+                  }`}
+                >
+                  Sebelumnya
+                </button>
+                <button
+                  type="button"
+                  disabled={safePage >= totalPages}
+                  onClick={() =>
+                    setPage((prev) => Math.min(totalPages, prev + 1))
+                  }
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                    safePage >= totalPages
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-[#10B981] hover:bg-[#059669] text-white"
+                  }`}
+                >
+                  Selanjutnya
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -490,6 +537,7 @@ export default function KelolaMustahik() {
                       <div>
                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                           Nama Lengkap
+                          <span className="text-red-500"> *</span>
                         </label>
                         <input
                           type="text"
@@ -510,6 +558,7 @@ export default function KelolaMustahik() {
                       <div>
                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                           Jenis Kelamin
+                          <span className="text-red-500"> *</span>
                         </label>
                         <select
                           name="jenisKelamin"
@@ -531,6 +580,7 @@ export default function KelolaMustahik() {
                       <div>
                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                           Nomor Telepon
+                          <span className="text-red-500"> *</span>
                         </label>
                         <input
                           type="text"
@@ -551,6 +601,7 @@ export default function KelolaMustahik() {
                       <div>
                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                           Kategori (Asnaf)
+                          <span className="text-red-500"> *</span>
                         </label>
                         <select
                           name="kategori"
@@ -577,6 +628,7 @@ export default function KelolaMustahik() {
                       <div className="md:col-span-2">
                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                           Alamat
+                          <span className="text-red-500"> *</span>
                         </label>
                         <textarea
                           name="alamat"
@@ -604,6 +656,7 @@ export default function KelolaMustahik() {
                       <div className="md:col-span-2">
                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                           NIK
+                          <span className="text-red-500"> *</span>
                         </label>
                         <input
                           type="text"
@@ -631,6 +684,7 @@ export default function KelolaMustahik() {
                       <div>
                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                           Tempat Lahir
+                          <span className="text-red-500"> *</span>
                         </label>
                         <input
                           type="text"
@@ -650,6 +704,7 @@ export default function KelolaMustahik() {
                       <div>
                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                           Tanggal Lahir
+                          <span className="text-red-500"> *</span>
                         </label>
                         <input
                           type="date"

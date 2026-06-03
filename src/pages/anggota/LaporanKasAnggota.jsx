@@ -20,6 +20,8 @@ export default function LaporanKasAnggota() {
   const [searchAnggota, setSearchAnggota] = useState("");
   const [saldoUpdatedAt, setSaldoUpdatedAt] = useState("");
   const [saldoKasDasawisma, setSaldoKasDasawisma] = useState(0);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 5;
 
   const loadAnggotaDasawisma = async () => {
     try {
@@ -86,6 +88,16 @@ export default function LaporanKasAnggota() {
       return matchesJenis && matchesBulan && matchesTahun;
     });
   }, [transactions, filterJenis, filterBulan, filterTahun]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredTransactions.length / PAGE_SIZE),
+  );
+  const safePage = Math.min(page, totalPages);
+  const paginatedTransactions = useMemo(() => {
+    const start = (safePage - 1) * PAGE_SIZE;
+    return filteredTransactions.slice(start, start + PAGE_SIZE);
+  }, [filteredTransactions, safePage]);
 
   // ─── Load Data ───
   const loadKasData = async () => {
@@ -212,7 +224,10 @@ export default function LaporanKasAnggota() {
             <select
               className="col-span-2 md:col-span-1 bg-white border border-gray-200 text-gray-700 text-xs md:text-sm rounded-lg focus:ring-[#10B981] focus:border-[#10B981] block px-3 md:px-4 py-2 md:py-2.5 font-semibold shadow-sm outline-none w-full md:w-auto cursor-pointer transition-all"
               value={filterJenis}
-              onChange={(e) => setFilterJenis(e.target.value)}
+              onChange={(e) => {
+                setFilterJenis(e.target.value);
+                setPage(1);
+              }}
             >
               <option value="Semua">Jenis Kas (Semua)</option>
               <option value="Pemasukan">Kas Pemasukan</option>
@@ -222,7 +237,10 @@ export default function LaporanKasAnggota() {
             <select
               className="bg-white border border-gray-200 text-gray-700 text-xs md:text-sm rounded-lg focus:ring-[#10B981] focus:border-[#10B981] block px-3 md:px-4 py-2 md:py-2.5 font-semibold shadow-sm outline-none w-full md:w-28 cursor-pointer transition-all"
               value={filterBulan}
-              onChange={(e) => setFilterBulan(e.target.value)}
+              onChange={(e) => {
+                setFilterBulan(e.target.value);
+                setPage(1);
+              }}
             >
               <option value="">Bulan</option>
               <option value="April">April</option>
@@ -232,7 +250,10 @@ export default function LaporanKasAnggota() {
             <select
               className="bg-white border border-gray-200 text-gray-700 text-xs md:text-sm rounded-lg focus:ring-[#10B981] focus:border-[#10B981] block px-3 md:px-4 py-2 md:py-2.5 font-semibold shadow-sm outline-none w-full md:w-28 cursor-pointer transition-all"
               value={filterTahun}
-              onChange={(e) => setFilterTahun(e.target.value)}
+              onChange={(e) => {
+                setFilterTahun(e.target.value);
+                setPage(1);
+              }}
             >
               <option value="">Tahun</option>
               <option value="2026">2026</option>
@@ -300,13 +321,13 @@ export default function LaporanKasAnggota() {
                   </tr>
                 )}
 
-                {filteredTransactions.map((trx, index) => (
+                {paginatedTransactions.map((trx, index) => (
                   <tr
                     key={`${trx.jenis}-${trx.id}`}
                     className="hover:bg-emerald-50/30 transition-colors"
                   >
                     <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap text-xs md:text-sm font-bold text-[#0F766E]">
-                      {index + 1}
+                      {index + 1 + (safePage - 1) * PAGE_SIZE}
                     </td>
                     <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap text-xs md:text-sm font-medium text-gray-600 tracking-wider">
                       {formattedDate(trx.tanggal)}
@@ -337,6 +358,41 @@ export default function LaporanKasAnggota() {
                 ))}
               </tbody>
             </table>
+
+            {/* Pagination */}
+            <div className="flex items-center justify-between m-6">
+              <p className="text-xs text-gray-400 font-bold">
+                Halaman {safePage} dari {totalPages}
+              </p>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  disabled={safePage <= 1}
+                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                    safePage <= 1
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-700"
+                  }`}
+                >
+                  Sebelumnya
+                </button>
+                <button
+                  type="button"
+                  disabled={safePage >= totalPages}
+                  onClick={() =>
+                    setPage((prev) => Math.min(totalPages, prev + 1))
+                  }
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                    safePage >= totalPages
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-[#10B981] hover:bg-[#059669] text-white"
+                  }`}
+                >
+                  Selanjutnya
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

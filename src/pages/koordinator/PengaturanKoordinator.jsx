@@ -529,6 +529,7 @@ export default function PengaturanKoordinator() {
               <div>
                 <label className="block text-[11px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                   Password Lama
+                  <span className="text-red-500"> *</span>
                 </label>
                 <input
                   type="password"
@@ -552,6 +553,7 @@ export default function PengaturanKoordinator() {
               <div>
                 <label className="block text-[11px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                   Password Baru
+                  <span className="text-red-500"> *</span>
                 </label>
                 <input
                   type="password"

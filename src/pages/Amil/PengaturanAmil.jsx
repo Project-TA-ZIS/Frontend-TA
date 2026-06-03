@@ -419,6 +419,7 @@ export default function PengaturanAmil() {
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                   Password Lama
+                  <span className="text-red-500"> *</span>
                 </label>
 
                 <input
@@ -444,6 +445,7 @@ export default function PengaturanAmil() {
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                   Password Baru
+                  <span className="text-red-500"> *</span>
                 </label>
 
                 <input
