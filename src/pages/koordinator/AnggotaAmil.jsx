@@ -363,15 +363,14 @@ export default function AnggotaAmil() {
                         <div className="flex items-center justify-center gap-3">
                           <button
                             onClick={() => handleEditClick(item)}
-                            className="text-[#10B981] bg-emerald-50 hover:bg-emerald-100 hover:text-[#064E3B] p-2 rounded-lg transition-colors shadow-sm"
+                            className="text-amber-600 bg-amber-50 hover:bg-amber-500 hover:text-white p-2 rounded-xl transition-all shadow-sm"
                             title="Edit"
                           >
                             <Edit size={18} />
                           </button>
                           <button
                             onClick={() => handleDeleteClick(item.id)}
-                            className="text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-700 p-2 rounded-lg transition-colors shadow-sm"
-                            title="Hapus"
+                            className="text-red-500 bg-red-50 hover:bg-red-500 hover:text-white p-2 rounded-xl transition-all shadow-sm"
                           >
                             <Trash2 size={18} />
                           </button>

@@ -12,6 +12,7 @@ import AnggotaAmil from "./pages/koordinator/AnggotaAmil";
 import AnggotaLayout from "./components/layout/AnggotaLayout";
 import DashboardAnggota from "./pages/anggota/DashboardAnggota";
 import LaporanKasAnggota from "./pages/anggota/LaporanKasAnggota";
+import LaporanZisAnggota from "./pages/anggota/LaporanZisAnggota";
 import AmilLayout from "./components/layout/AmilLayout";
 import DashboardAmil from "./pages/Amil/DashboardAmil";
 import KelolaZis from "./pages/Amil/KelolaZis";
@@ -192,6 +193,17 @@ function App() {
               <ProtectedRoute allowedRoles={[ROLE.ANGGOTA]}>
                 <AnggotaLayout>
                   <LaporanKasAnggota />
+                </AnggotaLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/anggota/laporan-zis"
+            element={
+              <ProtectedRoute allowedRoles={[ROLE.ANGGOTA]}>
+                <AnggotaLayout>
+                  <LaporanZisAnggota />
                 </AnggotaLayout>
               </ProtectedRoute>
             }

@@ -35,7 +35,7 @@ export default function Login() {
         return;
       }
 
-      // Simpan token dulu supaya interceptor axios bisa mengirim Authorization saat memanggil /me.
+      
       setLogin(null, token);
 
       let userData = null;
@@ -43,7 +43,6 @@ export default function Login() {
         const me = await getMe();
         userData = me?.user || null;
       } catch {
-        // Kalau /me gagal, jangan lanjut navigate karena role belum diketahui dan route guard akan me-redirect.
         setLogout();
         setErrorMsg("Maaf terjadi kesalahan. Silakan coba login ulang.");
         return;

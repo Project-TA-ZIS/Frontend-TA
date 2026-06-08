@@ -19,12 +19,12 @@ export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
-    { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-    { name: "Kelola Kas", icon: Wallet, path: "/kelola-kas" },
-    { name: "Laporan ZIS", icon: FileText, path: "/laporan-zis" },
-    { name: "Kader Dasawisma", icon: Users, path: "/anggota-dasawisma" },
-    { name: "Anggota Amil", icon: UserCog, path: "/anggota-amil" },
-    { name: "Pengaturan", icon: Settings, path: "/pengaturan" },
+    { name: "DASHBOARD", icon: LayoutDashboard, path: "/dashboard" },
+    { name: "KELOLA KAS", icon: Wallet, path: "/kelola-kas" },
+    { name: "LAPORAN ZIS", icon: FileText, path: "/laporan-zis" },
+    { name: "KADER DASAWISMA", icon: Users, path: "/anggota-dasawisma" },
+    { name: "ANGGOTA AMIL", icon: UserCog, path: "/anggota-amil" },
+    { name: "PENGATURAN", icon: Settings, path: "/pengaturan" },
   ];
 
   // Fungsi untuk menutup sidebar setelah menu diklik (khusus mobile)
