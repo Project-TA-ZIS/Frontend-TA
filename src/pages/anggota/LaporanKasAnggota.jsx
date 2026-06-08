@@ -14,14 +14,13 @@ import autoTable from "jspdf-autotable";
 import logoDasawisma from "../../assets/logo.png";
 import KasSummaryCards from "../../components/shared/KasSummaryCards";
 import { exportKasDasawismaPdf } from "../../utils/exportKasDasawismaPdf";
+import KasTable from "../../components/shared/kasTable";
 
 export default function LaporanKasAnggota() {
   const [anggotaList, setAnggotaList] = useState([]);
   const [searchAnggota, setSearchAnggota] = useState("");
   const [saldoUpdatedAt, setSaldoUpdatedAt] = useState("");
   const [saldoKasDasawisma, setSaldoKasDasawisma] = useState(0);
-  const [page, setPage] = useState(1);
-  const PAGE_SIZE = 5;
 
   const loadAnggotaDasawisma = async () => {
     try {
@@ -88,16 +87,6 @@ export default function LaporanKasAnggota() {
       return matchesJenis && matchesBulan && matchesTahun;
     });
   }, [transactions, filterJenis, filterBulan, filterTahun]);
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredTransactions.length / PAGE_SIZE),
-  );
-  const safePage = Math.min(page, totalPages);
-  const paginatedTransactions = useMemo(() => {
-    const start = (safePage - 1) * PAGE_SIZE;
-    return filteredTransactions.slice(start, start + PAGE_SIZE);
-  }, [filteredTransactions, safePage]);
 
   // ─── Load Data ───
   const loadKasData = async () => {
@@ -283,114 +272,10 @@ export default function LaporanKasAnggota() {
         {/* Table */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[600px]">
-              <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/50">
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    No
-                  </th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    TANGGAL
-                  </th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    NAMA
-                  </th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    SUMBER
-                  </th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    DESKRIPSI
-                  </th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
-                    JENIS
-                  </th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider text-right">
-                    NOMINAL
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredTransactions.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-4 md:px-6 py-8 text-center text-xs md:text-sm text-gray-500"
-                    >
-                      Belum ada transaksi kas yang tercatat.
-                    </td>
-                  </tr>
-                )}
-
-                {paginatedTransactions.map((trx, index) => (
-                  <tr
-                    key={`${trx.jenis}-${trx.id}`}
-                    className="hover:bg-emerald-50/30 transition-colors"
-                  >
-                    <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap text-xs md:text-sm font-bold text-[#0F766E]">
-                      {index + 1 + (safePage - 1) * PAGE_SIZE}
-                    </td>
-                    <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap text-xs md:text-sm font-medium text-gray-600 tracking-wider">
-                      {formattedDate(trx.tanggal)}
-                    </td>
-                    <td className="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-bold text-gray-900">
-                      {trx.namaAnggota || "-"}
-                    </td>
-                    <td className="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-bold text-gray-900">
-                      {trx.sumber || "-"}
-                    </td>
-                    <td className="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-bold text-gray-900 line-clamp-2 md:line-clamp-none min-w-[150px]">
-                      {trx.deskripsi}
-                    </td>
-                    <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap text-center">
-                      <span
-                        className={`px-2 md:px-2.5 py-1 rounded-md text-[9px] md:text-[10px] font-extrabold uppercase tracking-wider ${trx.jenis === "Pemasukan" ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"}`}
-                      >
-                        {trx.jenis}
-                      </span>
-                    </td>
-                    <td
-                      className={`px-4 md:px-6 py-3 md:py-4 whitespace-nowrap text-xs md:text-sm font-extrabold text-right ${trx.jenis === "Pemasukan" ? "text-[#10B981]" : "text-[#EF4444]"}`}
-                    >
-                      {trx.jenis === "Pemasukan" ? "+" : "-"}{" "}
-                      {formatRupiah(trx.nominal).replace("Rp", "").trim()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {/* Pagination */}
-            <div className="flex items-center justify-between m-6">
-              <p className="text-xs text-gray-400 font-bold">
-                Halaman {safePage} dari {totalPages}
-              </p>
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  disabled={safePage <= 1}
-                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                    safePage <= 1
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-gray-200 hover:bg-gray-300 text-gray-700"
-                  }`}
-                >
-                  Sebelumnya
-                </button>
-                <button
-                  type="button"
-                  disabled={safePage >= totalPages}
-                  onClick={() =>
-                    setPage((prev) => Math.min(totalPages, prev + 1))
-                  }
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                    safePage >= totalPages
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-[#10B981] hover:bg-[#059669] text-white"
-                  }`}
-                >
-                  Selanjutnya
-                </button>
+            {/* INI BAGIAN TABLE, JANGAN DI REFACTORING LAGI */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="overflow-x-auto">
+                <KasTable data={filteredTransactions} showAction={false} />
               </div>
             </div>
           </div>
