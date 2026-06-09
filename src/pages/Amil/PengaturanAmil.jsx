@@ -3,17 +3,16 @@ import { User, Mail, Phone, Lock, Camera, Check } from "lucide-react";
 import PageTransition from "../../components/shared/PageTransition";
 import amilService from "../../services/amil.service";
 import useAuthStore from "../../store/useAuthStore";
-import { formattedDate, formatDateInput } from "../../utils/formattedDate";
 import Swal from "sweetalert2";
 import authService from "../../services/auth.service";
 
+// Halaman Pengaturan profil Amil: edit data diri + ganti password (modal).
 export default function PengaturanAmil() {
   const user = useAuthStore((s) => s.user) || {};
-  const role = useAuthStore((s) => s.role);
   const [errors, setErrors] = useState({});
   const [isSuccess, setIsSuccess] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isUserLoaded, setIsUserLoaded] = useState(false);
+  const [, setIsSubmitting] = useState(false);
+  const [, setIsUserLoaded] = useState(false);
   const [formData, setFormData] = useState({
     nama: "",
     email: "",
@@ -22,6 +21,7 @@ export default function PengaturanAmil() {
     role: "",
   });
 
+  // Ambil data user terbaru dari server lalu isi ke form.
   const loadUser = async () => {
     try {
       const updatedUser = await authService.getMe();
@@ -49,6 +49,7 @@ export default function PengaturanAmil() {
     }
   };
 
+  // Update field form saat user mengetik & bersihkan error field tsb.
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
@@ -68,6 +69,7 @@ export default function PengaturanAmil() {
   };
 
   // ─── FUNGSI VALIDASI (Revisi Poin 1 & 2) ───
+  // Validasi isian form (nama, email, nomor telepon); kumpulkan pesan error.
   const validateForm = () => {
     let newErrors = {};
 
@@ -88,6 +90,7 @@ export default function PengaturanAmil() {
     return Object.keys(newErrors).length === 0; // Lolos validasi jika tidak ada error
   };
 
+  // Simpan perubahan profil amil: validasi dulu, lalu kirim ke server.
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -135,6 +138,7 @@ export default function PengaturanAmil() {
     }
   };
 
+  // Buat inisial nama untuk avatar (mis. "Budi Santoso" → "BS").
   const getInitials = (name) => {
     const safe = (name || "").trim();
     if (!safe) return "U";
@@ -152,6 +156,7 @@ export default function PengaturanAmil() {
 
   const [passwordErrors, setPasswordErrors] = useState({});
 
+  // Update field form ganti password saat diketik.
   const handlePasswordChange = async (e) => {
     const { name, value } = e.target;
 
@@ -168,6 +173,7 @@ export default function PengaturanAmil() {
     }
   };
 
+  // Simpan password baru: validasi (wajib isi, min 6 karakter) lalu kirim ke server.
   const handleSubmitPassword = async (e) => {
     e.preventDefault();
 
@@ -193,7 +199,7 @@ export default function PengaturanAmil() {
         newPassword: passwordData.passwordBaru,
       };
 
-      const rs = await amilService.updateAmilPassword(data);
+      await amilService.updateAmilPassword(data);
 
       Swal.fire({
         icon: "success",
@@ -223,8 +229,13 @@ export default function PengaturanAmil() {
     });
   };
 
+  // Muat data user saat halaman pertama dibuka (dibungkus async agar update
+  // state tidak berjalan sinkron saat render).
   useEffect(() => {
-    loadUser();
+    const init = async () => {
+      await loadUser();
+    };
+    init();
   }, []);
 
   return (

@@ -3,17 +3,21 @@ import LogoDasawisma from "../../assets/Logo.svg";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { LogIn, Menu, X } from "lucide-react"; // Menambah ikon LogIn
 
+// Navbar untuk halaman publik (tanpa login): logo, menu navigasi, tombol Masuk,
+// dan menu hamburger untuk tampilan mobile.
 function NavbarUmum() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
 
+  // Daftar link navigasi publik.
   const navLinks = [
     { to: "/", label: "Home" },
     { to: "/dashboard-publik", label: "Dashboard" },
     { to: "/zis-publik", label: "Laporan ZIS" },
   ];
 
+  // Menghasilkan kelas styling link; menu yang sedang aktif diberi gaya berbeda.
   const linkClass = (path) =>
     `px-6 py-2 rounded-full font-bold text-xs uppercase tracking-wider transition-all duration-300 ${
       location.pathname === path

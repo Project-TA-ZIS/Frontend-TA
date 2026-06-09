@@ -8,6 +8,7 @@ import authService, {
 } from "../../services/auth.service";
 import Swal from "sweetalert2";
 
+// Halaman Login: form masuk + modal "Lupa Password".
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,12 +23,16 @@ export default function Login() {
   const [forgotEmail, setForgotEmail] = useState("");
   const [isLoadingForgotPassword, setIsLoadingForgotPassword] = useState(false);
 
+  // Proses login saat form dikirim:
+  // 1) minta token ke server, 2) ambil data user, 3) simpan ke store,
+  // 4) arahkan ke dashboard sesuai peran (role).
   const handleLogin = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // cegah reload halaman bawaan form
     setIsLoading(true);
     setErrorMsg("");
 
     try {
+      // 1) Kirim email & password, ambil token dari respons.
       const data = await loginRequest({ email, password });
       const token = data?.token;
       if (!token) {
@@ -35,21 +40,25 @@ export default function Login() {
         return;
       }
 
-      
+      // Simpan token dulu agar request berikutnya (getMe) membawa token.
       setLogin(null, token);
 
+      // 2) Ambil data user yang sedang login.
       let userData = null;
       try {
         const me = await getMe();
         userData = me?.user || null;
       } catch {
+        // Jika gagal ambil profil, batalkan login (logout) & tampilkan pesan.
         setLogout();
         setErrorMsg("Maaf terjadi kesalahan. Silakan coba login ulang.");
         return;
       }
 
+      // 3) Simpan token + data user lengkap ke store.
       setLogin(userData, token);
 
+      // 4) Arahkan ke halaman sesuai peran user.
       const role = userData?.roles;
       if (role === "kader dasawisma") {
         navigate("/anggota/dashboard");
@@ -70,12 +79,14 @@ export default function Login() {
     }
   };
 
+  // Proses "Lupa Password": kirim permintaan link reset ke email user.
   const handleForgotPassword = async (e) => {
     e.preventDefault();
 
     try {
       setIsLoadingForgotPassword(true);
 
+      // Minta server mengirim email berisi link reset password.
       await authService.requestPasswordReset({
         email: forgotEmail,
       });

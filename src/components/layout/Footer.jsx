@@ -1,5 +1,6 @@
 import React from 'react'
 
+// Footer halaman publik: logo, deskripsi, kontak, alamat, dan peta lokasi.
 function Footer() {
   return (
     <>

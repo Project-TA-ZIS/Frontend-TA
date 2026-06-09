@@ -1,5 +1,7 @@
 import React from "react";
 
+// Kartu KPI (indikator) dengan ikon di kiri + label & angka di kanan.
+// Dipakai di dashboard. Props: label, value (angka), icon (komponen ikon).
 export default function KpiCardShared({ label, value, icon: IconComponent }) {
   return (
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5 hover:shadow-md transition-shadow font-['Manrope']">

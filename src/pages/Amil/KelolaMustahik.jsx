@@ -9,12 +9,14 @@ import {
 } from "../../services/mustahik.service";
 import Swal from "sweetalert2";
 
+// Ubah kode jenis kelamin menjadi label tampilan.
 const toGenderLabel = (value) => {
   if (value === "laki-laki") return "Laki-laki";
   if (value === "perempuan") return "Perempuan";
   return value ?? "-";
 };
 
+// Ubah kode kategori (asnaf) menjadi label tampilan yang rapi.
 const toKategoriLabel = (value) => {
   const v = (value || "").toString().trim().toLowerCase();
   if (!v) return "-";
@@ -24,6 +26,7 @@ const toKategoriLabel = (value) => {
   return v.charAt(0).toUpperCase() + v.slice(1);
 };
 
+// Ambil bagian tanggal saja (yyyy-mm-dd) dari string tanggal/ISO.
 const toDateOnly = (value) => {
   if (!value) return "";
   const raw = String(value);
@@ -31,6 +34,7 @@ const toDateOnly = (value) => {
   return raw;
 };
 
+// Ubah satu data mustahik dari format server → format baris tabel/form.
 const mapApiToRow = (item) => ({
   id: String(item?.id ?? ""),
   nama: item?.nama_lengkap ?? "-",
@@ -43,6 +47,7 @@ const mapApiToRow = (item) => ({
   jenisKelamin: item?.jenis_kelamin ?? "laki-laki",
 });
 
+// Kebalikan mapApiToRow: ubah isi form → format yang dikirim ke server.
 const mapFormToApi = (form) => ({
   nama_lengkap: form.nama,
   nomor_telpon: form.telp,
@@ -54,6 +59,8 @@ const mapFormToApi = (form) => ({
   kategori: form.kategori,
 });
 
+// Halaman kelola Mustahik (penerima zakat): tabel + tambah/edit/hapus via modal,
+// dengan pencarian dan pagination.
 export default function KelolaMustahik() {
   // ─── States ───
   const [mustahikList, setMustahikList] = useState([]);
@@ -69,6 +76,7 @@ export default function KelolaMustahik() {
   const [editingId, setEditingId] = useState(null);
 
   // State form input (Disesuaikan dengan kolom Mustahik)
+  // Mengembalikan objek form kosong (nilai default) — dipakai saat tambah/reset.
   const getEmptyFormData = () => ({
     nama: "",
     telp: "",
@@ -82,6 +90,7 @@ export default function KelolaMustahik() {
 
   const [formData, setFormData] = useState(getEmptyFormData);
 
+  // Ambil semua data mustahik dari server lalu ubah ke format baris tabel.
   const loadData = async () => {
     setIsLoading(true);
     setErrorMsg("");
@@ -104,11 +113,13 @@ export default function KelolaMustahik() {
     }
   };
 
+  // Muat data mustahik saat halaman pertama dibuka.
   useEffect(() => {
     loadData();
   }, []);
 
   // ─── Filter Pencarian ───
+  // Saring daftar mustahik sesuai kata kunci (nama, ID, atau kategori).
   const filteredMustahik = useMemo(() => {
     const q = searchQuery.toLowerCase();
     return mustahikList.filter(
@@ -127,17 +138,20 @@ export default function KelolaMustahik() {
   }, [filteredMustahik, safePage]);
 
   // ─── Handlers ───
+  // Update field form saat user mengetik.
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Buka modal mode TAMBAH: kosongkan form.
   const handleTambahClick = () => {
     setEditingId(null);
     setFormData(getEmptyFormData());
     setIsModalOpen(true);
   };
 
+  // Buka modal mode EDIT: isi form dengan data baris yang dipilih.
   const handleEditClick = (item) => {
     setEditingId(item.id);
     setFormData({
@@ -153,6 +167,7 @@ export default function KelolaMustahik() {
     setIsModalOpen(true);
   };
 
+  // Hapus data mustahik setelah konfirmasi, lalu muat ulang tabel.
   const handleDeleteClick = async (id) => {
     const result = await Swal.fire({
       title: "Hapus Data?",
@@ -191,6 +206,7 @@ export default function KelolaMustahik() {
     }
   };
 
+  // Validasi isian form (nama, telp, kategori, NIK 16 digit, tanggal lahir, dll).
   const validateForm = () => {
     let newErrors = {};
 
@@ -237,6 +253,7 @@ export default function KelolaMustahik() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Simpan form: validasi, lalu update (edit) atau buat baru (tambah).
   const handleSubmit = async (e) => {
     console.log("Submitting form with data:", formData);
     e.preventDefault();
@@ -279,6 +296,7 @@ export default function KelolaMustahik() {
       });
     }
   };
+  // Tutup modal dengan konfirmasi & kosongkan form.
   const handleCloseModal = () => {
     Swal.fire({
       title: "Tutup Form?",

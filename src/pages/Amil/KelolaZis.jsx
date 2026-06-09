@@ -12,11 +12,7 @@ import pengeluaranZISService, {
   addPengeluaranZIS,
 } from "../../services/pengeluaranZIS.service";
 import { formatRupiah } from "../../utils/formatRupiah";
-import { formattedDate } from "../../utils/formattedDate";
 import totalZISService from "../../services/totalZIS.service";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import logoDasawisma from "../../assets/logo.png";
 import BottomSummaryCards from "../../components/shared/BottomSummarycards";
 import { exportZISPdf } from "../../utils/exportZISPdf";
 import {
@@ -24,15 +20,17 @@ import {
   parseThousandsToNumber,
 } from "../../utils/formatThousands";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 5; // jumlah baris transaksi per halaman
 
+// Halaman Kelola ZIS (Amil): catat pemasukan/pengeluaran ZIS via modal, lihat
+// ringkasan total, daftar transaksi dengan filter/pencarian/pagination, unduh PDF.
 export default function KelolaZis() {
   // ─── States ───
   const [transactions, setTransactions] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [, setErrorMsg] = useState("");
   const [page, setPage] = useState(1);
   const [muzakkiList, setMuzakkiList] = useState([]);
   const [mustahikList, setMustahikList] = useState([]);
@@ -60,6 +58,7 @@ export default function KelolaZis() {
   const [saldoUpdatedAt, setSaldoUpdatedAt] = useState("");
   const [totalZIS, setTotalZIS] = useState([]);
 
+  // Ubah nama kategori dari format server → format tampilan (UI).
   const toUiKategori = (kategoriApi) => {
     const k = (kategoriApi || "").toString().trim().toLowerCase();
     if (!k) return "-";
@@ -71,6 +70,7 @@ export default function KelolaZis() {
     return kategoriApi;
   };
 
+  // Kebalikan toUiKategori: format UI → format server (sebelum dikirim ke API).
   const toApiKategori = (kategoriUi) => {
     const k = (kategoriUi || "").toString().trim().toLowerCase();
     if (k === "zakat maal" || k === "zakat mal") return "zakat mal";
@@ -81,6 +81,7 @@ export default function KelolaZis() {
     return "infaq";
   };
 
+  // Ubah string tanggal menjadi objek Date secara aman (null bila tidak valid).
   const parseDateSafe = (dateLike) => {
     if (!dateLike) return null;
     const safe = String(dateLike).trim();
@@ -90,6 +91,7 @@ export default function KelolaZis() {
     return Number.isNaN(d.getTime()) ? null : d;
   };
 
+  // Format nilai saldo: KG untuk zakat fitrah beras, Rupiah untuk lainnya.
   const formatSaldoValue = (kategoriLike, value) => {
     const k = (kategoriLike || "").toString().toLowerCase();
     const n = Number(value);
@@ -102,6 +104,7 @@ export default function KelolaZis() {
     return formatRupiah(n);
   };
 
+  // Amankan teks agar tidak ditafsirkan sebagai HTML (cegah XSS) di dialog HTML.
   const escapeHtml = (value) => {
     return String(value ?? "")
       .replaceAll("&", "&amp;")
@@ -111,6 +114,8 @@ export default function KelolaZis() {
       .replaceAll("'", "&#39;");
   };
 
+  // Susun detail (kategori & saldo tersedia) dari error server, mis. saat
+  // penyaluran melebihi saldo — untuk ditampilkan di dialog error.
   const saldoErrorDetails = (err) => {
     const data = err?.response?.data;
     const saldo = data?.saldo_tersedia;
@@ -139,12 +144,14 @@ export default function KelolaZis() {
     return { html };
   };
 
+  // Pastikan hasil dari API selalu berbentuk array.
   const normalizeArray = (value) => {
     if (Array.isArray(value)) return value;
     if (Array.isArray(value?.data)) return value.data;
     return [];
   };
 
+  // Ubah daftar muzakki menjadi opsi dropdown untuk react-select.
   const muzakkiOptions = useMemo(() => {
     return (muzakkiList || []).map((m) => ({
       value: m?.id,
@@ -159,12 +166,14 @@ export default function KelolaZis() {
     }));
   }, [mustahikList]);
 
+  // Batasi opsi dropdown: 3 teratas bila belum mengetik, atau hasil pencarian.
   const limitedOptions = (options, query) => {
     const q = (query || "").toString().trim().toLowerCase();
     if (!q) return options.slice(0, 3);
     return options.filter((opt) => opt.label.toLowerCase().includes(q));
   };
 
+  // Cari opsi dropdown yang cocok berdasarkan id; jika tidak ada, cocokkan nama.
   const findOptionByIdOrName = (options, id, name) => {
     if (!Array.isArray(options) || options.length === 0) return null;
 
@@ -187,6 +196,8 @@ export default function KelolaZis() {
     return null;
   };
 
+  // Muat semua data ZIS (muzakki, mustahik, pemasukan, pengeluaran) sekaligus,
+  // lalu gabungkan jadi 1 daftar transaksi terurut tanggal.
   const loadData = async () => {
     setIsLoading(true);
     setErrorMsg("");
@@ -214,9 +225,6 @@ export default function KelolaZis() {
 
       const muzakkiSafe = Array.isArray(muzakkiArr) ? muzakkiArr : [];
       const mustahikSafe = Array.isArray(mustahikArr) ? mustahikArr : [];
-      const mustahikNameById = new Map(
-        mustahikSafe.map((m) => [String(m?.id), m?.nama_lengkap || "-"]),
-      );
 
       const pemasukanRows = (
         Array.isArray(pemasukanArr) ? pemasukanArr : []
@@ -289,6 +297,7 @@ export default function KelolaZis() {
     }
   };
 
+  // Muat rekap total ZIS per kategori dan total saldo ZIS dari server.
   const loadTotalZIS = async () => {
     try {
       const res = await totalZISService.getTotalZISbyKategori();
@@ -305,6 +314,7 @@ export default function KelolaZis() {
   };
 
   // ─── Perhitungan Otomatis (Real-time) ───
+  // Total penerimaan = jumlah semua pemasukan (kecuali zakat fitrah beras/KG).
   const totalPenerimaan = transactions
     .filter(
       (item) =>
@@ -321,16 +331,8 @@ export default function KelolaZis() {
     )
     .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
 
-  const saldoTotal = totalPenerimaan - totalPenyaluran;
-
-  // Fungsi hitung per kategori (Hanya menghitung Pemasukan)
-  const calcTotalKategori = (kategori) => {
-    return transactions
-      .filter((t) => t.kategori === kategori && t.tipe === "Pemasukan")
-      .reduce((acc, curr) => acc + curr.nominal, 0);
-  };
-
   // ─── Filter & Search Logic ───
+  // Saring transaksi sesuai pencarian + filter (kategori, tipe, bulan, tahun).
   const filteredTransactions = useMemo(() => {
     const q = searchQuery.toLowerCase();
 
@@ -393,6 +395,7 @@ export default function KelolaZis() {
   }, [filteredTransactions, safePage]);
 
   // ─── Handlers ───
+  // Update field form; khusus nominal (selain beras) diformat ribuan saat diketik.
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
@@ -407,6 +410,7 @@ export default function KelolaZis() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Buka modal dalam mode tertentu (PEMASUKAN/PENGELUARAN) & reset isian form.
   const openModal = (mode) => {
     setModalMode(mode);
     setErrorMsg("");
@@ -423,6 +427,7 @@ export default function KelolaZis() {
     });
   };
 
+  // Tutup modal dengan konfirmasi & kosongkan form.
   const handleCloseModal = () => {
     Swal.fire({
       title: "Tutup Form?",
@@ -446,6 +451,8 @@ export default function KelolaZis() {
     });
   };
 
+  // Simpan transaksi ZIS: validasi nominal/tanggal/penerima, lalu kirim ke
+  // endpoint pemasukan (muzakki) atau pengeluaran (mustahik) sesuai mode modal.
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -538,6 +545,7 @@ export default function KelolaZis() {
     }
   };
 
+  // Ambil nilai total satu kategori dari hasil rekap server.
   const getTotalByKategori = (kategori) => {
     const found = totalZIS.find(
       (item) => item.kategori.toLowerCase() === kategori.toLowerCase(),
@@ -546,12 +554,15 @@ export default function KelolaZis() {
     return found ? Number(found.jumlah_keseluruhan) : 0;
   };
 
+  // Unduh data transaksi yang sedang tampil ke PDF.
   const handleDownloadPDF = () => {
     exportZISPdf({ historyData: filteredTransactions });
   };
 
+  // Penanda apakah kategori terpilih adalah zakat fitrah beras (satuan KG).
   const isBeras = formData.kategori === "Zakat Fitrah Beras";
 
+  // Saat halaman pertama dibuka, muat rekap total & seluruh data transaksi.
   useEffect(() => {
     loadTotalZIS();
     loadData();
@@ -568,6 +579,7 @@ export default function KelolaZis() {
     nama: "",
   });
 
+  // Buka modal edit: isi form edit + pilih ulang muzakki/mustahik sesuai transaksi.
   const handleEdit = (trx) => {
     setSelectedZIS(trx);
 
@@ -604,6 +616,7 @@ export default function KelolaZis() {
     setIsEditModalOpen(true);
   };
 
+  // Tutup modal edit & kosongkan form edit beserta pilihan muzakki/mustahik.
   const handleCloseEditModal = () => {
     setIsEditModalOpen(false);
     setSelectedZIS(null);
@@ -623,6 +636,7 @@ export default function KelolaZis() {
     });
   };
 
+  // Simpan hasil edit transaksi ZIS: validasi, lalu update ke server.
   const handleSaveEdit = async () => {
     try {
       if (!selectedZIS) return;

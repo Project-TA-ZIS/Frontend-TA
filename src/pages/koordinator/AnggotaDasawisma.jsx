@@ -5,18 +5,20 @@ import dasawismaService from "../../services/dasawisma.service";
 import Swal from "sweetalert2";
 import { formattedDate } from "../../utils/formattedDate";
 
+// Halaman kelola Kader Dasawisma (koordinator): tabel + tambah/edit/hapus/detail
+// via modal, dengan pencarian dan pagination.
 export default function AnggotaDasawisma() {
   // ─── States ───
   const [anggotaList, setAnggotaList] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [, setErrorMsg] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
   const [errors, setErrors] = useState({});
   const [selectedUser, setSelectedUser] = useState(null);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
-  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [, setIsLoadingDetail] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
@@ -29,6 +31,7 @@ export default function AnggotaDasawisma() {
     password: "",
   });
 
+  // Ubah label role dari format UI → format server (sebelum dikirim ke API).
   const roleUiToApi = (roleUi) => {
     if (roleUi === "Penanggung Jawab Dasawisma")
       return "penanggung jawab dasawisma";
@@ -36,6 +39,7 @@ export default function AnggotaDasawisma() {
     return null;
   };
 
+  // Kebalikan roleUiToApi: ubah role dari server → label rapi untuk ditampilkan.
   const roleApiToUi = (roleApi) => {
     if (roleApi === "penanggung jawab dasawisma")
       return "Penanggung Jawab Dasawisma";
@@ -44,6 +48,7 @@ export default function AnggotaDasawisma() {
     return roleApi || "-";
   };
 
+  // Ubah satu data anggota dari format server menjadi format baris tabel.
   const mapApiToRow = (item) => ({
     id: String(item?.id ?? ""),
     nama: item?.nama_lengkap ?? "",
@@ -52,6 +57,7 @@ export default function AnggotaDasawisma() {
     telp: item?.nomor_telpon ?? "",
   });
 
+  // Validasi isian form; password hanya wajib saat menambah data baru.
   const validateForm = () => {
     let newErrors = {};
     if (!(formData.nama || "").trim())
@@ -80,6 +86,7 @@ export default function AnggotaDasawisma() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Ambil semua data anggota dari server lalu ubah ke format baris tabel.
   const loadData = async () => {
     setIsLoading(true);
     setErrorMsg("");
@@ -102,10 +109,12 @@ export default function AnggotaDasawisma() {
     }
   };
 
+  // Muat data anggota saat halaman pertama dibuka.
   useEffect(() => {
     loadData();
   }, []);
 
+  // Saring data sesuai kata kunci pencarian (nama atau ID).
   const filteredAnggota = useMemo(() => {
     const q = searchQuery.toLowerCase();
     return anggotaList.filter(
@@ -115,18 +124,21 @@ export default function AnggotaDasawisma() {
     );
   }, [anggotaList, searchQuery]);
 
+  // Hitung total halaman & ambil potongan data untuk halaman aktif (pagination).
   const totalPages = Math.ceil(filteredAnggota.length / itemsPerPage);
   const paginatedAnggota = filteredAnggota.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage,
   );
 
+  // Update field form saat user mengetik & bersihkan error field tsb.
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
+  // Buka modal mode TAMBAH: kosongkan form.
   const handleTambahClick = () => {
     setEditingId(null);
     setErrors({});
@@ -140,6 +152,7 @@ export default function AnggotaDasawisma() {
     setIsModalOpen(true);
   };
 
+  // Hapus data anggota setelah konfirmasi, lalu muat ulang tabel.
   const handleDeleteClick = async (id) => {
     const result = await Swal.fire({
       title: "Hapus Data?",
@@ -174,6 +187,7 @@ export default function AnggotaDasawisma() {
     }
   };
 
+  // Buka modal mode EDIT: isi form dengan data baris yang dipilih.
   const handleEditClick = (anggota) => {
     setEditingId(anggota.id);
     setErrors({});
@@ -187,6 +201,7 @@ export default function AnggotaDasawisma() {
     setIsModalOpen(true);
   };
 
+  // Simpan form: validasi + konversi role, lalu update (edit) atau buat baru (tambah).
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
@@ -262,6 +277,7 @@ export default function AnggotaDasawisma() {
     }
   };
 
+  // Tutup modal form dengan konfirmasi (data belum disimpan akan hilang).
   const handleCloseModal = async () => {
     const result = await Swal.fire({
       title: "Tutup form?",
@@ -288,6 +304,7 @@ export default function AnggotaDasawisma() {
     }
   };
 
+  // Ambil detail satu anggota dari server lalu tampilkan di modal detail.
   const handleInfoClick = async (id) => {
     try {
       setIsLoadingDetail(true);

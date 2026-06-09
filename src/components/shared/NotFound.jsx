@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Home, AlertCircle } from "lucide-react";
 import PageTransition from "./PageTransition"; // Karena berada dalam satu folder yang sama (shared)
 
+// Halaman 404: ditampilkan saat user membuka URL yang tidak terdaftar.
 export default function NotFound() {
   const navigate = useNavigate();
 

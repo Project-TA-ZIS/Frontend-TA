@@ -1,22 +1,32 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { ArrowUpDown, ChevronDown, ChevronUp, Edit } from "lucide-react";
 import { formatRupiah } from "../../utils/formatRupiah";
 import { formattedDate } from "../../utils/formattedDate";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 10; // jumlah baris per halaman
 
+// Tabel transaksi kas yang dapat diurutkan (sort) per kolom dan dibagi halaman
+// (pagination). Props: data = daftar transaksi, onEdit = aksi tombol edit,
+// showAction = tampilkan kolom aksi atau tidak.
 export default function KasTable({ data = [], onEdit, showAction = true }) {
   const [page, setPage] = useState(1);
 
+  // Konfigurasi pengurutan: kolom (key) & arah (asc/desc).
   const [sortConfig, setSortConfig] = useState({
     key: "tanggal",
     direction: "desc",
   });
 
-  useEffect(() => {
+  // Kembali ke halaman 1 setiap kali data berubah. Memakai pola "sesuaikan
+  // state saat render" (bandingkan data sebelumnya) yang lebih disarankan
+  // React daripada memanggil setState di dalam useEffect.
+  const [prevData, setPrevData] = useState(data);
+  if (prevData !== data) {
+    setPrevData(data);
     setPage(1);
-  }, [data]);
+  }
 
+  // Atur pengurutan saat header kolom diklik. Siklusnya: asc → desc → tanpa urut.
   const handleSort = (key) => {
     if (sortConfig.key !== key) {
       setSortConfig({
@@ -42,6 +52,8 @@ export default function KasTable({ data = [], onEdit, showAction = true }) {
     }
   };
 
+  // Data hasil pengurutan sesuai sortConfig (tanggal & nominal diurut numerik,
+  // teks diurut alfabet). Dihitung ulang saat data atau konfigurasi berubah.
   const sortedData = useMemo(() => {
     if (!sortConfig.key) {
       return [...data];
@@ -83,6 +95,7 @@ export default function KasTable({ data = [], onEdit, showAction = true }) {
     });
   }, [data, sortConfig]);
 
+  // Pilih ikon panah pada header kolom sesuai status pengurutan kolom tsb.
   const renderSortIcon = (key) => {
     if (sortConfig.key !== key) {
       return <ArrowUpDown size={14} />;
@@ -99,10 +112,12 @@ export default function KasTable({ data = [], onEdit, showAction = true }) {
     return <ArrowUpDown size={14} />;
   };
 
+  // Hitung total halaman & pastikan halaman aktif tidak melebihi batas.
   const totalPages = Math.max(1, Math.ceil(sortedData.length / PAGE_SIZE));
 
   const safePage = Math.min(page, totalPages);
 
+  // Ambil potongan data untuk halaman yang sedang ditampilkan saja.
   const paginatedData = useMemo(() => {
     const start = (safePage - 1) * PAGE_SIZE;
 

@@ -13,6 +13,7 @@ import {
 const MONTH_LABELS = ["JAN", "FEB", "MAR", "APR", "MEI", "JUN", "JUL", "AGT", "SEP", "OKT", "NOV", "DES"];
 const KATEGORI_ZIS = ["Zakat Maal", "Zakat Fitrah Beras", "Zakat Fitrah Uang", "Infaq", "Sedekah"];
 
+// Mengubah berbagai bentuk input tanggal menjadi objek Date secara aman.
 const parseDateSafe = (dateLike) => {
   if (!dateLike) return null;
   if (dateLike instanceof Date) return Number.isNaN(dateLike.getTime()) ? null : dateLike;
@@ -23,6 +24,7 @@ const parseDateSafe = (dateLike) => {
   return !Number.isNaN(d.getTime()) ? d : new Date(safe);
 };
 
+// Cari tahun terbaru dari sekumpulan data (untuk menentukan tahun aktif grafik).
 const getMaxYearFromItems = (items, dateKey) => {
   let maxYear = null;
   (items || []).forEach((item) => {
@@ -34,6 +36,8 @@ const getMaxYearFromItems = (items, dateKey) => {
   return maxYear;
 };
 
+// Samakan penulisan kategori dari server menjadi label baku yang dipakai UI
+// (mis. "zakat mal" → "Zakat Maal", "shodaqoh"/"sedekah" → "Sedekah").
 const toUiZisKategori = (kategori) => {
   const k = (kategori || "").toString().trim().toLowerCase().replace(/[_-]/g, " ");
   if (!k) return null;
@@ -45,6 +49,8 @@ const toUiZisKategori = (kategori) => {
   return null;
 };
 
+// Grafik tren ZIS yang bisa difilter per kategori (maal/fitrah/infaq/sedekah)
+// dan per periode (Bulanan/Tahunan).
 export default function ChartZis({ pemasukanItems, pengeluaranItems, themeColors, customTooltipFormatter }) {
   const [kategori, setKategori] = useState("Zakat Maal");
   const [waktu, setWaktu] = useState("Bulanan");
@@ -55,10 +61,12 @@ export default function ChartZis({ pemasukanItems, pengeluaranItems, themeColors
     danger: "#EF4444"
   };
 
+  // Olah data transaksi menjadi data grafik untuk kategori terpilih:
+  // jumlahkan nominal per bulan/tahun. Dihitung ulang saat data/filter berubah.
   const chartData = useMemo(() => {
     const nowYear = new Date().getFullYear();
     const isTahunan = waktu === "Tahunan";
-    
+
     const result = isTahunan
       ? Array.from({ length: 7 }, (_, i) => ({ label: String(nowYear - 6 + i), pemasukan: 0, pengeluaran: 0 }))
       : MONTH_LABELS.map((m) => ({ label: m, pemasukan: 0, pengeluaran: 0 }));

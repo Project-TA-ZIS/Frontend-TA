@@ -1,8 +1,11 @@
 import React, { useMemo, useState } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
+// Label nama bulan untuk sumbu X grafik.
 const MONTH_LABELS = ["JAN", "FEB", "MAR", "APR", "MEI", "JUN", "JUL", "AGT", "SEP", "OKT", "NOV", "DES"];
 
+// Mengubah berbagai bentuk input tanggal menjadi objek Date secara aman
+// (mengembalikan null bila tidak valid).
 const parseDateSafe = (dateLike) => {
   if (!dateLike) return null;
   if (dateLike instanceof Date) return Number.isNaN(dateLike.getTime()) ? null : dateLike;
@@ -13,6 +16,8 @@ const parseDateSafe = (dateLike) => {
   return !Number.isNaN(d.getTime()) ? d : new Date(safe);
 };
 
+// Cari tahun terbaru dari sekumpulan data (dipakai untuk menentukan tahun aktif
+// yang ditampilkan di grafik bulanan).
 const getMaxYearFromItems = (items, dateKey) => {
   let maxYear = null;
   (items || []).forEach((item) => {
@@ -24,9 +29,12 @@ const getMaxYearFromItems = (items, dateKey) => {
   return maxYear;
 };
 
+// Grafik tren pemasukan vs pengeluaran kas dasawisma (bisa tampilan Bulanan/Tahunan).
 export default function ChartKas({ pemasukanItems, pengeluaranItems, themeColors, customTooltipFormatter }) {
   const [waktu, setWaktu] = useState("Bulanan");
 
+  // Olah data mentah transaksi menjadi data grafik: jumlahkan nominal per
+  // bulan/tahun untuk pemasukan & pengeluaran. Dihitung ulang saat data/filter berubah.
   const chartData = useMemo(() => {
     const nowYear = new Date().getFullYear();
     const isTahunan = waktu === "Tahunan";

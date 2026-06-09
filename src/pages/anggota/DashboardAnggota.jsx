@@ -33,6 +33,7 @@ const CLR = {
 };
 
 // ─── Sub-Komponen KpiCard Lokal ───
+// Kartu indikator (ikon + label + angka) untuk menampilkan jumlah data.
 const KpiCard = ({ icon: IconComponent, label, value }) => (
   <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col justify-between" style={{ minHeight: 140 }}>
     <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: CLR.primaryBg }}>
@@ -45,6 +46,8 @@ const KpiCard = ({ icon: IconComponent, label, value }) => (
   </div>
 );
 
+// Halaman Dashboard anggota: menampilkan kartu jumlah (muzakki, mustahik, amil,
+// anggota) dan dua grafik tren (ZIS & Kas).
 export default function DashboardAnggota() {
   const navigate = useNavigate();
   const [errorMsg, setErrorMsg] = useState("");
@@ -56,9 +59,12 @@ export default function DashboardAnggota() {
   const [kasPemasukanItems, setKasPemasukanItems] = useState([]);
   const [kasPengeluaranItems, setKasPengeluaranItems] = useState([]);
 
+  // Saat halaman dibuka: muat 8 sumber data sekaligus untuk kartu KPI & grafik.
   useEffect(() => {
-    let cancelled = false;
+    let cancelled = false; // cegah update state setelah komponen unmount
+    // Pastikan hasil API selalu array.
     const unwrapToArray = (v) => Array.isArray(v) ? v : (Array.isArray(v?.data) ? v.data : []);
+    // Anggap 404 sebagai data kosong.
     const is404 = (err) => err?.response?.status === 404;
 
     const load = async () => {
@@ -116,8 +122,10 @@ export default function DashboardAnggota() {
     return () => { cancelled = true; };
   }, []);
 
+  // Gabungkan template KPI dengan angka hasil hitung untuk dirender jadi kartu.
   const kpiCards = useMemo(() => KPI_TEMPLATE.map((t) => ({ ...t, value: kpiCounts[t.key] ?? 0 })), [kpiCounts]);
 
+  // Cek kelengkapan profil user; jika belum lengkap, arahkan ke halaman pengaturan.
   const checkProfileCompletion = async () => {
     try {
       const updatedUser = await authService.getMe();
@@ -138,9 +146,11 @@ export default function DashboardAnggota() {
     } catch (e) { console.log(e); }
   };
 
+  // Jalankan pengecekan kelengkapan profil sekali saat halaman dibuka.
   useEffect(() => { checkProfileCompletion(); }, []);
 
   // Shared Formatter untuk Tooltip Grafik agar hemat memori
+  // Membuat isi tooltip grafik (label + nilai diformat Rupiah atau KG untuk beras).
   const customTooltipFormatter = (kategori) => ({ active, payload, label }) => {
     if (!active || !payload?.length) return null;
     const fmt = (n) => {

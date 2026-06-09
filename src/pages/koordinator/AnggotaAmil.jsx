@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import amilService from "../../services/amil.service";
 import Swal from "sweetalert2";
-import { formattedDate } from "../../utils/formattedDate";
 import PageTransition from "../../components/shared/PageTransition";
 import { Edit, Info, Plus, Search, Trash2, X } from "lucide-react";
 
+// Ubah satu data amil dari format server menjadi format baris tabel yang dipakai UI.
 const mapApiAmilToRowData = (amil) => ({
   id: amil.id || "",
   nama: amil.nama_lengkap || "",
@@ -13,6 +13,8 @@ const mapApiAmilToRowData = (amil) => ({
   alamat: amil.alamat || "",
 });
 
+// Halaman kelola data Amil (koordinator): tabel + tambah/edit/hapus via modal,
+// dengan pencarian dan pagination.
 export default function AnggotaAmil() {
   // ─── States ───
   const [anggotaList, setAnggotaList] = useState([]);
@@ -31,11 +33,9 @@ export default function AnggotaAmil() {
     password: "",
   });
   const [errors, setErrors] = useState({});
-  const [errorMsg, setErrorMsg] = useState("");
-  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
-  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [, setErrorMsg] = useState("");
 
+  // Ambil semua data amil dari server lalu ubah ke format baris tabel.
   const loadAmilData = async () => {
     try {
       const data = await amilService.getAllAmil();
@@ -52,6 +52,7 @@ export default function AnggotaAmil() {
     }
   };
 
+  // Muat data amil saat halaman pertama dibuka.
   useEffect(() => {
     let cancelled = false;
     Promise.resolve().then(() => {
@@ -62,6 +63,7 @@ export default function AnggotaAmil() {
     };
   }, []);
 
+  // Saring data amil sesuai kata kunci pencarian (nama/email/telp/alamat).
   const filteredAnggota = useMemo(() => {
     const q = searchQuery.toLowerCase();
     return anggotaList.filter(
@@ -73,6 +75,7 @@ export default function AnggotaAmil() {
     );
   }, [anggotaList, searchQuery]);
 
+  // Hitung total halaman & ambil potongan data untuk halaman aktif (pagination).
   const totalPages = Math.max(1, Math.ceil(filteredAnggota.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
   const paginatedAnggota = useMemo(() => {
@@ -80,11 +83,13 @@ export default function AnggotaAmil() {
     return filteredAnggota.slice(start, start + PAGE_SIZE);
   }, [filteredAnggota, safePage]);
 
+  // Update field form saat user mengetik.
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Hapus data amil setelah konfirmasi, lalu muat ulang tabel.
   const handleDeleteClick = async (id) => {
     const result = await Swal.fire({
       title: "Hapus Data?",
@@ -121,12 +126,14 @@ export default function AnggotaAmil() {
     }
   };
 
+  // Buka modal dalam mode TAMBAH: kosongkan form.
   const handleTambahClick = () => {
     setEditingId(null);
     setFormData({ nama: "", email: "", telp: "", alamat: "", password: "" });
     setIsModalOpen(true);
   };
 
+  // Buka modal dalam mode EDIT: isi form dengan data baris yang dipilih.
   const handleEditClick = (anggota) => {
     setEditingId(anggota.id);
     setFormData({
@@ -139,6 +146,7 @@ export default function AnggotaAmil() {
     setIsModalOpen(true);
   };
 
+  // Validasi isian form; password hanya wajib saat menambah data baru.
   const validateForm = () => {
     let newErrors = {};
 
@@ -172,6 +180,7 @@ export default function AnggotaAmil() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Simpan form: validasi dulu, lalu update (jika edit) atau buat baru (jika tambah).
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -232,6 +241,7 @@ export default function AnggotaAmil() {
     }
   };
 
+  // Tutup modal dengan konfirmasi (data yang belum disimpan akan hilang).
   const handleCloseModal = async () => {
     const result = await Swal.fire({
       title: "Tutup form?",

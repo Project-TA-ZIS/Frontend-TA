@@ -5,12 +5,14 @@ import AmilSidebar from "./AmilSidebar";
 import useAuthStore from "../../store/useAuthStore";
 import Swal from "sweetalert2";
 
+// Ambil kata pertama dari sebuah teks (mis. nama lengkap → nama depan saja).
 const firstWord = (value) => {
   const safe = (value || "").trim();
   if (!safe) return "";
   return safe.split(/\s+/)[0] || "";
 };
 
+// Buat inisial dari nama untuk ditampilkan di avatar (mis. "Budi Santoso" → "BS").
 const getInitials = (name) => {
   const safe = (name || "").trim();
   if (!safe) return "U";
@@ -19,6 +21,7 @@ const getInitials = (name) => {
   return `${parts[0][0] || ""}${parts[1][0] || ""}`.toUpperCase();
 };
 
+// Ubah kode role menjadi label yang ditampilkan ke user.
 const roleToLabel = (role) => {
   if (!role) return "";
   if (role === "penanggung jawab dasawisma") return "penanggung jawab dasawisma";
@@ -30,10 +33,12 @@ const roleToLabel = (role) => {
     .join(" ");
 };
 
+// Kerangka halaman untuk peran AMIL ZAKAT: sidebar (bisa buka/tutup di mobile)
+// + header (profil & logout) + area konten {children}.
 export default function AmilLayout({ children }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   // KUNCI 1: State untuk Sidebar Mobile
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -52,6 +57,7 @@ export default function AmilLayout({ children }) {
   const displayRole = roleToLabel(role);
   const initials = getInitials(rawDisplayName);
 
+  // Tutup dropdown profil saat user mengklik di luar area dropdown.
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -62,6 +68,7 @@ export default function AmilLayout({ children }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Proses logout: minta konfirmasi, lalu hapus sesi & arahkan ke login.
   const handleLogout = async () => {
     const result = await Swal.fire({
       title: "Apakah Anda yakin ingin keluar?",

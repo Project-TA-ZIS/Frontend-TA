@@ -10,10 +10,13 @@ import {
 } from "lucide-react";
 import LogoDasawisma from "../../assets/Logo.svg";
 
+// Sidebar navigasi untuk peran AMIL ZAKAT. Status buka/tutup (isOpen) dikontrol
+// dari komponen induk (AmilLayout) lewat props.
 export default function AmilSidebar({ isOpen, setIsOpen }) {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Daftar menu amil: nama, ikon, dan tujuan rute.
   const menuItems = [
     { name: "DASHBOARD", icon: LayoutDashboard, path: "/amil/dashboard" },
     { name: "KELOLA ZIS", icon: Wallet, path: "/amil/kelola-zis" },

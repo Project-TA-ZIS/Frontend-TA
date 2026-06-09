@@ -33,6 +33,7 @@ const CLR = {
 };
 
 // ─── Sub-Komponen KpiCard Lokal ───
+// Kartu indikator (label + angka + ikon) untuk menampilkan jumlah data.
 const KpiCard = ({ icon: IconComponent, label, value }) => (
   <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-center hover:shadow-md transition-shadow duration-200">
     <div className="flex items-center justify-between mb-1 md:mb-2">
@@ -49,6 +50,8 @@ const KpiCard = ({ icon: IconComponent, label, value }) => (
   </div>
 );
 
+// Halaman Dashboard utama koordinator: kartu jumlah (muzakki, mustahik, amil,
+// anggota) + grafik tren ZIS & Kas.
 export default function DashboardUtama() {
   const navigate = useNavigate();
   const [errorMsg, setErrorMsg] = useState("");
@@ -59,8 +62,9 @@ export default function DashboardUtama() {
   const [kasPemasukanItems, setKasPemasukanItems] = useState([]);
   const [kasPengeluaranItems, setKasPengeluaranItems] = useState([]);
 
+  // Saat halaman dibuka: muat 8 sumber data sekaligus untuk kartu KPI & grafik.
   useEffect(() => {
-    let cancelled = false;
+    let cancelled = false; // cegah update state setelah komponen unmount
     const unwrapToArray = (v) => Array.isArray(v) ? v : (Array.isArray(v?.data) ? v.data : []);
     const is404 = (err) => err?.response?.status === 404;
 
@@ -110,8 +114,10 @@ export default function DashboardUtama() {
     return () => { cancelled = true; };
   }, []);
 
+  // Gabungkan template KPI dengan angka hasil hitung untuk dirender jadi kartu.
   const kpiCards = useMemo(() => KPI_TEMPLATE.map((t) => ({ ...t, value: kpiCounts[t.key] ?? 0 })), [kpiCounts]);
 
+  // Cek kelengkapan profil; jika belum lengkap, arahkan ke halaman pengaturan.
   const checkProfileCompletion = async () => {
     try {
       const updatedUser = await authService.getMe();
@@ -132,8 +138,10 @@ export default function DashboardUtama() {
     } catch (e) { console.log(e); }
   };
 
+  // Jalankan pengecekan kelengkapan profil sekali saat halaman dibuka.
   useEffect(() => { checkProfileCompletion(); }, []);
 
+  // Membuat isi tooltip grafik (label + nilai diformat Rupiah atau KG untuk beras).
   const customTooltipFormatter = (kategori) => ({ active, payload, label }) => {
     if (!active || !payload?.length) return null;
     const fmt = (n) => {

@@ -12,12 +12,15 @@ import {
 } from "lucide-react";
 import LogoDasawisma from "../../assets/Logo.svg";
 
+// Sidebar navigasi untuk peran KOORDINATOR. Menyorot menu yang sedang aktif
+// dan bisa dibuka/tutup (slide) di tampilan mobile.
 export default function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   // State untuk mengontrol buka/tutup sidebar di mobile
   const [isOpen, setIsOpen] = useState(false);
 
+  // Daftar menu koordinator: nama, ikon, dan tujuan rute.
   const menuItems = [
     { name: "DASHBOARD", icon: LayoutDashboard, path: "/dashboard" },
     { name: "KELOLA KAS", icon: Wallet, path: "/kelola-kas" },

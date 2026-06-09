@@ -13,15 +13,11 @@ import {
 import PageTransition from "../../components/shared/PageTransition";
 import Swal from "sweetalert2";
 import Select from "react-select";
-import { formattedDate } from "../../utils/formattedDate";
 import { formatRupiah } from "../../utils/formatRupiah";
 import pengeluaranService from "../../services/pengeluaranDasawisma.service";
 import pemasukanDasawismaService from "../../services/pemasukanDasawisma.service";
 import dasawismaService from "../../services/dasawisma.service";
 import totalKasDasawismaService from "../../services/totalKasDasawisma.service";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import logoDasawisma from "../../assets/logo.png";
 import KasSummaryCards from "../../components/shared/KasSummaryCards";
 import { exportKasDasawismaPdf } from "../../utils/exportKasDasawismaPdf";
 import {
@@ -30,9 +26,11 @@ import {
 } from "../../utils/formatThousands";
 import KasTable from "../../components/shared/kasTable";
 
+// Halaman Kelola Kas (koordinator): catat/edit transaksi kas (pemasukan &
+// pengeluaran), lihat ringkasan saldo, filter, dan unduh PDF.
 export default function KelolaKas() {
   const [anggotaList, setAnggotaList] = useState([]);
-  const [searchAnggota, setSearchAnggota] = useState("");
+  const [searchAnggota] = useState("");
   const [saldoUpdatedAt, setSaldoUpdatedAt] = useState("");
   const [saldoKasDasawisma, setSaldoKasDasawisma] = useState(0);
   const [errors, setErrors] = useState({});
@@ -66,6 +64,7 @@ export default function KelolaKas() {
   const [filterBulan, setFilterBulan] = useState("");
   const [filterTahun, setFilterTahun] = useState("");
 
+  // Validasi form catat transaksi; anggota wajib dipilih khusus pemasukan iuran.
   const validateForm = () => {
     const newErrors = {};
 
@@ -94,6 +93,8 @@ export default function KelolaKas() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Amankan teks agar tidak ditafsirkan sebagai HTML (cegah XSS) saat
+  // ditampilkan di dalam dialog SweetAlert berformat HTML.
   const escapeHtml = (value) => {
     return String(value ?? "")
       .replaceAll("&", "&amp;")
@@ -103,6 +104,8 @@ export default function KelolaKas() {
       .replaceAll("'", "&#39;");
   };
 
+  // Susun detail tambahan (kategori & saldo tersedia) dari error server, mis.
+  // saat pengeluaran melebihi saldo — untuk ditampilkan di dialog error.
   const kasSaldoErrorDetails = (err) => {
     const data = err?.response?.data;
     const saldo = data?.saldo_tersedia;
@@ -123,6 +126,7 @@ export default function KelolaKas() {
     return { html: parts.join("") };
   };
 
+  // Ambil daftar anggota (untuk dropdown pemilihan anggota saat iuran).
   const loadAnggotaDasawisma = async () => {
     try {
       const res = await dasawismaService.getAllAnggotaDasawisma();
@@ -132,11 +136,13 @@ export default function KelolaKas() {
       console.log(error);
     }
   };
+  // Ubah daftar anggota menjadi opsi dropdown {value, label}.
   const anggotaOptions = anggotaList.map((anggota) => ({
     value: anggota.id,
     label: anggota.nama_lengkap,
   }));
 
+  // Update field form; khusus nominal, otomatis diformat ribuan saat diketik.
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
@@ -160,6 +166,7 @@ export default function KelolaKas() {
     }));
   };
 
+  // Saring transaksi sesuai filter jenis, bulan, dan tahun.
   const filteredTransactions = useMemo(() => {
     return transactions.filter((trx) => {
       const matchesJenis =
@@ -180,6 +187,8 @@ export default function KelolaKas() {
   }, [transactions, filterJenis, filterBulan, filterTahun]);
 
   // ─── Load Data ───
+  // Muat data kas: ambil pemasukan & pengeluaran, seragamkan bentuknya, gabung +
+  // urutkan dari terbaru, lalu hitung ringkasan (masuk/keluar/saldo).
   const loadKasData = async () => {
     try {
       let pemasukanData = [];
@@ -198,7 +207,7 @@ export default function KelolaKas() {
           jenis: "Pemasukan",
           nominal: Number(item.jumlah),
         }));
-      } catch (error) {
+      } catch {
         console.log("Pemasukan kosong");
       }
 
@@ -212,7 +221,7 @@ export default function KelolaKas() {
           jenis: "Pengeluaran",
           nominal: Number(item.jumlah),
         }));
-      } catch (error) {
+      } catch {
         console.log("Pengeluaran kosong");
       }
 
@@ -253,16 +262,19 @@ export default function KelolaKas() {
     }
   };
 
+  // Ambil saldo total kas dasawisma + waktu terakhir diperbarui dari server.
   const loadTotalKasDasawisma = async () => {
     try {
       const res = await totalKasDasawismaService.getTotalKasDasawisma();
       setSaldoKasDasawisma(Number(res.data?.jumlah_keseluruhan || 0));
       setSaldoUpdatedAt(res.data?.updated_at || "");
-    } catch (error) {
+    } catch {
       console.log("Gagal memuat total kas dasawisma");
     }
   };
 
+  // Simpan transaksi baru: validasi, kirim ke endpoint pemasukan/pengeluaran
+  // sesuai jenis, lalu muat ulang data & saldo.
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -331,6 +343,7 @@ export default function KelolaKas() {
     }
   };
 
+  // Buka modal edit: isi form edit dengan data transaksi yang dipilih.
   const handleEdit = (trx) => {
     setSelectedTransaction(trx);
 
@@ -346,6 +359,7 @@ export default function KelolaKas() {
     setIsEditModalOpen(true);
   };
 
+  // Simpan hasil edit transaksi setelah konfirmasi, lalu muat ulang data & saldo.
   const handleSaveEdit = async () => {
     const result = await Swal.fire({
       title: "Simpan perubahan?",
@@ -411,6 +425,7 @@ export default function KelolaKas() {
     }
   };
 
+  // Tutup modal catat transaksi dengan konfirmasi & kosongkan form.
   const handleCloseModal = async () => {
     const result = await Swal.fire({
       title: "Tutup form?",
@@ -437,6 +452,7 @@ export default function KelolaKas() {
     }
   };
 
+  // Tutup modal edit dengan konfirmasi & kembalikan isi form ke data semula.
   const handleCloseEditModal = async () => {
     const result = await Swal.fire({
       title: "Tutup form?",
@@ -463,15 +479,17 @@ export default function KelolaKas() {
     }
   };
 
-  const handleDownloadPDF = () => {
-    exportKasDasawismaPdf({ historyData: filteredTransactions });
-  };
-
   // ─── useEffect ───
+  // Saat halaman dibuka: muat data kas, daftar anggota, dan total saldo.
+  // Dibungkus fungsi async di dalam effect agar pemanggilan loader (yang
+  // memperbarui state) berjalan asinkron, bukan sinkron saat render.
   useEffect(() => {
-    loadKasData();
-    loadAnggotaDasawisma();
-    loadTotalKasDasawisma();
+    const init = async () => {
+      await loadKasData();
+      await loadAnggotaDasawisma();
+      await loadTotalKasDasawisma();
+    };
+    init();
   }, []);
 
   return (
@@ -508,10 +526,7 @@ export default function KelolaKas() {
             <select
               className="col-span-2 md:col-span-1 bg-white border border-gray-200 text-gray-700 text-sm md:text-sm rounded-lg focus:ring-[#10B981] focus:border-[#10B981] px-3 py-2 font-semibold shadow-sm outline-none w-full md:w-auto"
               value={filterJenis}
-              onChange={(e) => {
-                setFilterJenis(e.target.value);
-                setPage(1);
-              }}
+              onChange={(e) => setFilterJenis(e.target.value)}
             >
               <option value="Semua">Jenis Kas (Semua)</option>
               <option value="Pemasukan">Kas Pemasukan</option>
@@ -521,10 +536,7 @@ export default function KelolaKas() {
             <select
               className="bg-white border border-gray-200 text-gray-700 text-sm md:text-sm rounded-lg focus:ring-[#10B981] focus:border-[#10B981] px-3 py-2 font-semibold shadow-sm outline-none w-full md:w-28"
               value={filterBulan}
-              onChange={(e) => {
-                setFilterBulan(e.target.value);
-                setPage(1);
-              }}
+              onChange={(e) => setFilterBulan(e.target.value)}
             >
               <option value="">Bulan</option>
               <option value="April">April</option>
@@ -534,10 +546,7 @@ export default function KelolaKas() {
             <select
               className="bg-white border border-gray-200 text-gray-700 text-sm md:text-sm rounded-lg focus:ring-[#10B981] focus:border-[#10B981] px-3 py-2 font-semibold shadow-sm outline-none w-full md:w-28"
               value={filterTahun}
-              onChange={(e) => {
-                setFilterTahun(e.target.value);
-                setPage(1);
-              }}
+              onChange={(e) => setFilterTahun(e.target.value)}
             >
               <option value="">Tahun</option>
               <option value="2026">2026</option>
@@ -667,7 +676,7 @@ export default function KelolaKas() {
                               ? anggotaOptions.filter((item) =>
                                   item.label
                                     .toLowerCase()
-                                    .includes(searchQuery.toLowerCase()),
+                                    .includes(searchAnggota.toLowerCase()),
                                 )
                               : anggotaOptions.slice(0, 3)
                           }

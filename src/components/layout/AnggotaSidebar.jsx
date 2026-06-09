@@ -18,6 +18,7 @@ export default function Sidebar() {
   // State untuk mengontrol buka/tutup sidebar di mobile
   const [isOpen, setIsOpen] = useState(false);
 
+  // Daftar menu anggota: nama, ikon, dan tujuan rute.
   const menuItems = [
     { name: "DASHBOARD", icon: LayoutDashboard, path: "/anggota/dashboard" },
     { name: "LAPORAN KAS", icon: FileText, path: "/anggota/laporan-kas" },
