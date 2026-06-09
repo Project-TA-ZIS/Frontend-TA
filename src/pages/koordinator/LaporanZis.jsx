@@ -3,35 +3,25 @@ import PageTransition from "../../components/shared/PageTransition";
 import { Download, Plus, Search, X } from "lucide-react";
 import Swal from "sweetalert2";
 import Select from "react-select";
-import muzakkiService from "../../services/muzakki.service";
-import mustahikService from "../../services/mustahik.service";
-import pemasukanZISService, {
-  addPemasukanZIS,
-} from "../../services/pemasukanZIS.service";
-import pengeluaranZISService, {
-  addPengeluaranZIS,
-} from "../../services/pengeluaranZIS.service";
+import pemasukanZISService from "../../services/pemasukanZIS.service";
+import pengeluaranZISService from "../../services/pengeluaranZIS.service";
 import { formatRupiah } from "../../utils/formatRupiah";
-import { formattedDate } from "../../utils/formattedDate";
 import totalZISService from "../../services/totalZIS.service";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import logoDasawisma from "../../assets/logo.png";
 import BottomSummaryCards from "../../components/shared/BottomSummarycards";
 import { exportZISPdf } from "../../utils/exportZISPdf";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 5; // jumlah baris transaksi per halaman
 
+// Halaman Laporan/Manajemen ZIS untuk koordinator: ringkasan total, daftar
+// transaksi (pemasukan & pengeluaran) dengan filter, pencarian, pagination,
+// serta unduh PDF.
 export default function KelolaZis() {
   // ─── States ───
   const [transactions, setTransactions] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [, setErrorMsg] = useState("");
   const [page, setPage] = useState(1);
-  const [muzakkiList, setMuzakkiList] = useState([]);
-  const [mustahikList, setMustahikList] = useState([]);
 
   // States Filter
   const [filterKategori, setFilterKategori] = useState("");
@@ -39,23 +29,11 @@ export default function KelolaZis() {
   const [filterTahun, setFilterTahun] = useState("");
   const [filterTipe, setFilterTipe] = useState("");
 
-  // States Modal Pop-up
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState("PEMASUKAN"); // PEMASUKAN | PENGELUARAN
-  const [searchMuzakki, setSearchMuzakki] = useState("");
-  const [searchMustahik, setSearchMustahik] = useState("");
-  const [selectedMuzakki, setSelectedMuzakki] = useState(null);
-  const [selectedMustahik, setSelectedMustahik] = useState(null);
-  const [formData, setFormData] = useState({
-    tanggal: "",
-    kategori: "Zakat Maal",
-    deskripsi: "",
-    nominal: "",
-  });
   const [saldoZIS, setSaldoZIS] = useState(0);
   const [saldoUpdatedAt, setSaldoUpdatedAt] = useState("");
   const [totalZIS, setTotalZIS] = useState([]);
 
+  // Ubah nama kategori dari format server → format tampilan (UI).
   const toUiKategori = (kategoriApi) => {
     const k = (kategoriApi || "").toString().trim().toLowerCase();
     if (!k) return "-";
@@ -67,16 +45,7 @@ export default function KelolaZis() {
     return kategoriApi;
   };
 
-  const toApiKategori = (kategoriUi) => {
-    const k = (kategoriUi || "").toString().trim().toLowerCase();
-    if (k === "zakat maal" || k === "zakat mal") return "zakat mal";
-    if (k === "zakat fitrah uang") return "zakat fitrah uang";
-    if (k === "zakat fitrah beras") return "zakat fitrah beras";
-    if (k === "infaq") return "infaq";
-    if (k === "sedekah" || k === "shodaqoh") return "shodaqoh";
-    return "infaq";
-  };
-
+  // Ubah string tanggal menjadi objek Date secara aman (null bila tidak valid).
   const parseDateSafe = (dateLike) => {
     if (!dateLike) return null;
     const safe = String(dateLike).trim();
@@ -86,39 +55,20 @@ export default function KelolaZis() {
     return Number.isNaN(d.getTime()) ? null : d;
   };
 
+  // Pastikan hasil dari API selalu berbentuk array.
   const normalizeArray = (value) => {
     if (Array.isArray(value)) return value;
     if (Array.isArray(value?.data)) return value.data;
     return [];
   };
 
-  const muzakkiOptions = useMemo(() => {
-    return (muzakkiList || []).map((m) => ({
-      value: m?.id,
-      label: `${m?.nama_lengkap ?? "-"}`,
-    }));
-  }, [muzakkiList]);
-
-  const mustahikOptions = useMemo(() => {
-    return (mustahikList || []).map((m) => ({
-      value: m?.id,
-      label: `${m?.nama_lengkap ?? "-"}`,
-    }));
-  }, [mustahikList]);
-
-  const limitedOptions = (options, query) => {
-    const q = (query || "").toString().trim().toLowerCase();
-    if (!q) return options.slice(0, 3);
-    return options.filter((opt) => opt.label.toLowerCase().includes(q));
-  };
-
+  // Muat data ZIS (pemasukan & pengeluaran) lalu gabungkan jadi 1 daftar
+  // transaksi terurut tanggal.
   const loadData = async () => {
     setIsLoading(true);
     setErrorMsg("");
     try {
       const settled = await Promise.allSettled([
-        muzakkiService.getAllMuzakki(),
-        mustahikService.getAllMustahik(),
         pemasukanZISService.getAllPemasukanZIS(),
         pengeluaranZISService.getAllPengeluaranZIS(),
       ]);
@@ -132,16 +82,8 @@ export default function KelolaZis() {
         return null;
       };
 
-      const muzakkiArr = pickArr(0);
-      const mustahikArr = pickArr(1);
-      const pemasukanArr = pickArr(2);
-      const pengeluaranArr = pickArr(3);
-
-      const muzakkiSafe = Array.isArray(muzakkiArr) ? muzakkiArr : [];
-      const mustahikSafe = Array.isArray(mustahikArr) ? mustahikArr : [];
-      const mustahikNameById = new Map(
-        mustahikSafe.map((m) => [String(m?.id), m?.nama_lengkap || "-"]),
-      );
+      const pemasukanArr = pickArr(0);
+      const pengeluaranArr = pickArr(1);
 
       const pemasukanRows = (
         Array.isArray(pemasukanArr) ? pemasukanArr : []
@@ -173,8 +115,6 @@ export default function KelolaZis() {
         return db - da;
       });
 
-      setMuzakkiList(muzakkiSafe);
-      setMustahikList(mustahikSafe);
       setTransactions(combined);
 
       const firstError = settled.find(
@@ -200,6 +140,7 @@ export default function KelolaZis() {
     }
   };
 
+  // Muat rekap total ZIS per kategori dan total saldo ZIS dari server.
   const loadTotalZIS = async () => {
     try {
       const res = await totalZISService.getTotalZISbyKategori();
@@ -216,6 +157,7 @@ export default function KelolaZis() {
   };
 
   // ─── Perhitungan Otomatis (Real-time) ───
+  // Total penerimaan = jumlah semua pemasukan (kecuali zakat fitrah beras/KG).
   const totalPenerimaan = transactions
     .filter(
       (item) =>
@@ -224,22 +166,15 @@ export default function KelolaZis() {
     )
     .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
 
+  // Total penyaluran = jumlah semua pengeluaran (kecuali zakat fitrah beras/KG).
   const totalPenyaluran = transactions
     .filter(
       (t) => t.tipe === "Pengeluaran" && t.kategori !== "Zakat Fitrah Beras",
     )
     .reduce((acc, curr) => acc + curr.nominal, 0);
 
-  const saldoTotal = totalPenerimaan - totalPenyaluran;
-
-  // Fungsi hitung per kategori (Hanya menghitung Pemasukan)
-  const calcTotalKategori = (kategori) => {
-    return transactions
-      .filter((t) => t.kategori === kategori && t.tipe === "Pemasukan")
-      .reduce((acc, curr) => acc + curr.nominal, 0);
-  };
-
   // ─── Filter & Search Logic ───
+  // Saring transaksi sesuai pencarian + filter (kategori, tipe, bulan, tahun).
   const filteredTransactions = useMemo(() => {
     const q = searchQuery.toLowerCase();
 
@@ -287,10 +222,12 @@ export default function KelolaZis() {
     filterTahun,
   ]);
 
+  // Kembali ke halaman 1 setiap filter/pencarian berubah.
   useEffect(() => {
     setPage(1);
   }, [searchQuery, filterKategori, filterBulan, filterTahun, filterTipe]);
 
+  // Hitung total halaman & ambil potongan data untuk halaman aktif (pagination).
   const totalPages = Math.max(
     1,
     Math.ceil(filteredTransactions.length / PAGE_SIZE),
@@ -301,12 +238,7 @@ export default function KelolaZis() {
     return filteredTransactions.slice(start, start + PAGE_SIZE);
   }, [filteredTransactions, safePage]);
 
-  // ─── Handlers ───
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
+  // Ambil nilai total satu kategori dari hasil rekap server.
   const getTotalByKategori = (kategori) => {
     const found = totalZIS.find(
       (item) => item.kategori.toLowerCase() === kategori.toLowerCase(),
@@ -315,8 +247,7 @@ export default function KelolaZis() {
     return found ? Number(found.jumlah_keseluruhan) : 0;
   };
 
-  const isBeras = formData.kategori === "Zakat Fitrah Beras";
-
+  // Saat halaman pertama dibuka, muat rekap total & seluruh data transaksi.
   useEffect(() => {
     loadTotalZIS();
     loadData();

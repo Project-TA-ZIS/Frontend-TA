@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Coins, Users, HandHeart } from "lucide-react";
 import PageTransition from "../../components/shared/PageTransition";
 import Footer from "../../components/layout/Footer";
@@ -19,6 +19,7 @@ const CLR = {
   danger: "#EF4444",
 };
 
+// Dashboard publik (tanpa login): kartu jumlah muzakki/mustahik + grafik tren ZIS.
 export default function Dashboard() {
   const [errorMsg, setErrorMsg] = useState("");
   const [kpiCounts, setKpiCounts] = useState({
@@ -30,8 +31,9 @@ export default function Dashboard() {
   const [zisPemasukanItems, setZisPemasukanItems] = useState([]);
   const [zisPengeluaranItems, setZisPengeluaranItems] = useState([]);
 
+  // Saat halaman dibuka: muat data muzakki, mustahik, dan transaksi ZIS.
   useEffect(() => {
-    let cancelled = false;
+    let cancelled = false; // cegah update state setelah komponen unmount
     const unwrapToArray = (v) =>
       Array.isArray(v) ? v : Array.isArray(v?.data) ? v.data : [];
     const is404 = (err) => err?.response?.status === 404;
@@ -89,6 +91,7 @@ export default function Dashboard() {
   }, []);
 
   // Shared Formatter untuk Tooltip Grafik agar hemat memori
+  // Membuat isi tooltip grafik (nilai diformat Rupiah atau KG untuk beras).
   const customTooltipFormatter = (kategori) => ({ active, payload, label }) => {
     if (!active || !payload?.length) return null;
     const fmt = (n) => {

@@ -4,6 +4,8 @@ import { Mail, Lock, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import Swal from "sweetalert2";
 import authService from "../../services/auth.service";
 
+// Halaman Reset Password: dibuka dari link di email. Token diambil dari URL,
+// divalidasi dulu; jika valid, user bisa memasukkan password baru.
 export default function LupaPassword() {
   const navigate = useNavigate();
 
@@ -21,6 +23,7 @@ export default function LupaPassword() {
   const { token } = useParams();
   const [isValidating, setIsValidating] = useState(true);
 
+  // Proses simpan password baru: validasi input dulu, lalu kirim ke server.
   const handleResetSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
@@ -68,11 +71,13 @@ export default function LupaPassword() {
     }
   };
 
+  // Saat halaman dibuka: cek token dari URL. Jika tidak valid/kadaluarsa,
+  // langsung alihkan ke halaman 404.
   useEffect(() => {
     const validateToken = async () => {
       try {
         await authService.validateResetToken(token);
-      } catch (error) {
+      } catch {
         navigate("/404", { replace: true });
       } finally {
         setIsValidating(false);

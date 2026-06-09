@@ -7,7 +7,12 @@ import { formatRupiah } from "./formatRupiah";
 import { formattedDate } from "./formattedDate";
 import LogoDasawismaPNG from "../assets/Logo.png";
 
+// Membuat & mengunduh laporan riwayat ZIS dalam format PDF.
+// Alur: tampilkan dialog konfirmasi → jika setuju, susun PDF (header berlogo,
+// tabel transaksi, lalu tabel ringkasan total) → simpan file.
+// Parameter historyData = daftar transaksi ZIS yang akan dicetak.
 export const exportZISPdf = ({ historyData = [] }) => {
+  // Tampilkan dialog konfirmasi sebelum mengunduh.
   Swal.fire({
     title: "Unduh Riwayat ZIS",
     text: "Apakah Anda ingin mengunduh riwayat ZIS dalam format PDF?",
@@ -17,6 +22,7 @@ export const exportZISPdf = ({ historyData = [] }) => {
     cancelButtonText: "Batal",
     confirmButtonColor: "#10B981",
   }).then((result) => {
+    // Hanya lanjut membuat PDF jika user menekan "Ya, Unduh PDF".
     if (result.isConfirmed) {
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
@@ -84,9 +90,11 @@ export const exportZISPdf = ({ historyData = [] }) => {
         },
       });
 
-      // TOTAL
       // ================= TOTAL =================
+      // Hitung ringkasan total. Uang dan zakat fitrah beras (satuan KG)
+      // dipisah agar tidak tercampur dalam satu penjumlahan.
 
+      // Total pemasukan dalam bentuk uang (selain zakat fitrah beras).
       const totalPemasukanUang = historyData
         .filter(
           (item) =>

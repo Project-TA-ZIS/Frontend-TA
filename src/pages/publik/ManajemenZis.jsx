@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Download, Search, AlertCircle, CheckCircle2, X } from "lucide-react";
 import PageTransition from "../../components/shared/PageTransition";
 import LogoDasawisma from "../../assets/Logo.svg";
@@ -10,15 +10,14 @@ import { formattedDate } from "../../utils/formattedDate";
 import pemasukanZISService from "../../services/pemasukanZIS.service";
 import totalZISService from "../../services/totalZIS.service";
 import Swal from "sweetalert2";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import NavbarUmum from "../../components/shared/NavbarUmum";
 import BottomSummaryCards from "../../components/shared/BottomSummarycards";
 import pengeluaranZISService from "../../services/pengeluaranZIS.service";
 import { exportZISPdf } from "../../utils/exportZISPdf";
 
+// Halaman ZIS publik (tanpa login): ringkasan total ZIS + fitur cek riwayat
+// transaksi pribadi dengan verifikasi NIK + 4 digit terakhir nomor HP.
 export default function ManajemenZis() {
-  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [phoneDigits, setPhoneDigits] = useState("");
   const [alertMessage, setAlertMessage] = useState(null);
@@ -37,6 +36,7 @@ export default function ManajemenZis() {
   const [showTable, setShowTable] = useState(false);
   const [transactions, setTransactions] = useState([]);
 
+  // Muat rekap total ZIS per kategori dan total saldo ZIS dari server.
   const loadTotalZIS = async () => {
     try {
       const res = await totalZISService.getTotalZISbyKategori();
@@ -50,12 +50,14 @@ export default function ManajemenZis() {
     }
   };
 
+  // Pastikan hasil dari API selalu berbentuk array.
   const normalizeArray = (value) => {
     if (Array.isArray(value)) return value;
     if (Array.isArray(value?.data)) return value.data;
     return [];
   };
 
+  // Muat semua transaksi ZIS (untuk perhitungan total penerimaan/penyaluran).
   const loadData = async () => {
     try {
       const [pemasukanRes, pengeluaranRes] = await Promise.all([
@@ -81,11 +83,13 @@ export default function ManajemenZis() {
     }
   };
 
+  // Saat halaman pertama dibuka, muat rekap total & seluruh data transaksi.
   useEffect(() => {
     loadTotalZIS();
     loadData();
   }, []);
 
+  // Ambil nilai total satu kategori dari hasil rekap server.
   const getTotalByKategori = (kategori) => {
     const found = totalZIS.find(
       (item) => item.kategori.toLowerCase() === kategori.toLowerCase(),
@@ -94,6 +98,7 @@ export default function ManajemenZis() {
   };
 
   // ─── Perhitungan Otomatis (Real-time) ───
+  // Total penerimaan = jumlah semua pemasukan (kecuali zakat fitrah beras/KG).
   const totalPenerimaan = transactions
     .filter((item) => {
       const kategori = item.kategori?.trim().toLowerCase();
@@ -116,9 +121,8 @@ export default function ManajemenZis() {
     })
     .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
 
-  const saldoTotal = totalPenerimaan - totalPenyaluran;
-
   // ─── TAHAP 1: Klik "Cari Data" (Validasi NIK & Buka Modal) ───
+  // Validasi NIK terisi, lalu buka modal verifikasi nomor HP.
   const handleSearchClick = (e) => {
     e.preventDefault();
     setAlertMessage(null);
@@ -138,6 +142,7 @@ export default function ManajemenZis() {
   };
 
   // ─── TAHAP 2: Klik "Verifikasi" di dalam Modal (Eksekusi API) ───
+  // Verifikasi 4 digit terakhir HP, lalu ambil riwayat transaksi berdasarkan NIK.
   const handleVerifyPhone = async (e) => {
     e.preventDefault();
     setModalError("");
@@ -214,10 +219,12 @@ export default function ManajemenZis() {
     }
   };
 
+  // Unduh riwayat transaksi yang ditemukan ke PDF.
   const handleDownloadPDF = () => {
     exportZISPdf({ historyData });
   };
 
+  // Hitung total halaman & ambil potongan data untuk halaman aktif (pagination).
   const totalPages = Math.max(1, Math.ceil(historyData.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
   const paginatedHistoryData = useMemo(() => {

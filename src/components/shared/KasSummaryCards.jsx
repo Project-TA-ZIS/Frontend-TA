@@ -2,6 +2,7 @@ import React from "react";
 import { formatRupiah } from "../../utils/formatRupiah";
 import { formattedDate } from "../../utils/formattedDate";
 
+// Kartu kecil penampil satu angka ringkasan kas (dipakai berulang di bawah).
 const KasSummaryCard = ({
   label,
   value,
@@ -22,6 +23,8 @@ const KasSummaryCard = ({
   );
 };
 
+// Tiga kartu ringkasan kas dasawisma: total masuk, total keluar, dan saldo.
+// Nilai diterima dari komponen induk lewat props.
 const KasSummaryCards = ({
   pemasukan,
   pengeluaran,

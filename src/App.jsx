@@ -29,24 +29,30 @@ import LupaPassword from "./pages/auth/LupaPassword";
 import Footer from "./components/layout/Footer";
 import NotFound from "./components/shared/NotFound";
 
+// Daftar nama peran (role) sesuai data dari backend. Dipakai untuk membatasi
+// akses tiap rute lewat <ProtectedRoute allowedRoles={[...]}>.
 const ROLE = {
   KOORDINATOR: "penanggung jawab dasawisma",
   ANGGOTA: "kader dasawisma",
   AMIL: "amil zakat",
 };
 
+// Komponen pembungkus yang menjaga sesi login tetap valid selama aplikasi dibuka.
+// Saat ada token: memuat data user, lalu memvalidasi sesi secara berkala.
 function AuthBootstrapper({ children }) {
   const token = useAuthStore((s) => s.token);
   const setUser = useAuthStore((s) => s.setUser);
   const setBootstrapping = useAuthStore((s) => s.setBootstrapping);
 
+  // EFEK 1: saat pertama buka / token berubah → ambil data user dari server.
   useEffect(() => {
+    // Penanda agar update state dibatalkan bila komponen sudah unmount.
     let cancelled = false;
 
     async function bootstrap() {
-      if (!token) return;
+      if (!token) return; // tidak login → tidak perlu ambil data
 
-      setBootstrapping(true);
+      setBootstrapping(true); // tandai sedang memuat (dipakai ProtectedRoute)
 
       try {
         const me = await getMe();
@@ -54,7 +60,7 @@ function AuthBootstrapper({ children }) {
           setUser(me?.user || null);
         }
       } catch {
-        // handled by interceptor
+        // Error (mis. token invalid) sudah ditangani interceptor di api.js
       } finally {
         if (!cancelled) {
           setBootstrapping(false);
@@ -64,15 +70,18 @@ function AuthBootstrapper({ children }) {
 
     bootstrap();
 
+    // Cleanup: tandai dibatalkan jika komponen unmount sebelum selesai.
     return () => {
       cancelled = true;
     };
   }, [token, setUser, setBootstrapping]);
 
+  // EFEK 2: validasi sesi secara berkala selama user login.
   useEffect(() => {
     if (!token) return;
 
     let cancelled = false;
+    // Ambil ulang data user untuk memastikan token masih berlaku.
     const validate = async () => {
       try {
         const me = await getMe();
@@ -80,16 +89,19 @@ function AuthBootstrapper({ children }) {
           setUser(me?.user || null);
         }
       } catch {
-        // Biarkan interceptor yang handle
+        // Biarkan interceptor yang handle (auto-logout bila 401/403).
       }
     };
 
+    // Validasi otomatis tiap 60 detik.
     const intervalId = window.setInterval(validate, 60_000);
+    // Validasi juga setiap user kembali membuka tab aplikasi.
     const onVisibility = () => {
       if (document.visibilityState === "visible") validate();
     };
     document.addEventListener("visibilitychange", onVisibility);
 
+    // Cleanup: hentikan interval & lepas event listener saat unmount.
     return () => {
       cancelled = true;
       window.clearInterval(intervalId);
@@ -100,6 +112,8 @@ function AuthBootstrapper({ children }) {
   return children;
 }
 
+// Komponen utama aplikasi: mendefinisikan seluruh rute (routing) dan
+// mengelompokkannya per peran (koordinator, anggota, amil, publik).
 function App() {
   return (
     <Router>

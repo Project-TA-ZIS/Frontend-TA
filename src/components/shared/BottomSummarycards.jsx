@@ -2,6 +2,8 @@ import React from "react";
 import { formatRupiah } from "../../utils/formatRupiah";
 import { formattedDate } from "../../utils/formattedDate";
 
+// Kartu kecil penampil satu angka ringkasan (label di atas, nilai besar,
+// teks kecil opsional di bawah). Dipakai berulang oleh BottomSummaryCards.
 export const TopSummaryCard = ({
   label,
   value,
@@ -20,6 +22,8 @@ export const TopSummaryCard = ({
   );
 };
 
+// Kumpulan kartu ringkasan ZIS: penerimaan, penyaluran, saldo, serta rincian
+// per kategori (zakat fitrah, maal, infaq, sedekah). Nilai diterima via props.
 const BottomSummaryCards = ({
   totalPenerimaan,
   totalPenyaluran,

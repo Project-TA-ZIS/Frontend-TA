@@ -5,12 +5,14 @@ import useAuthStore from "../../store/useAuthStore";
 import Sidebar from "./Sidebar";
 import Swal from "sweetalert2";
 
+// Ambil kata pertama dari sebuah teks (mis. nama lengkap → nama depan saja).
 const firstWord = (value) => {
   const safe = (value || "").trim();
   if (!safe) return "";
   return safe.split(/\s+/)[0] || "";
 };
 
+// Buat inisial dari nama untuk ditampilkan di avatar (mis. "Budi Santoso" → "BS").
 const getInitials = (name) => {
   const safe = (name || "").trim();
   if (!safe) return "U";
@@ -19,17 +21,21 @@ const getInitials = (name) => {
   return `${parts[0][0] || ""}${parts[1][0] || ""}`.toUpperCase();
 };
 
+// Ubah kode role menjadi label yang rapi untuk ditampilkan ke user.
 const roleToLabel = (role) => {
   if (!role) return "";
   if (role === "koordinator dasawisma") return "Koordinator Dasawisma";
   if (role === "anggota dasawisma") return "Anggota Dasawisma";
   if (role === "amil zakat") return "Amil Zakat";
+  // Default: kapitalkan tiap kata.
   return role
     .split(/\s+/)
     .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
     .join(" ");
 };
 
+// Kerangka halaman untuk peran KOORDINATOR: sidebar + header (profil & logout)
+// + area konten {children}.
 export default function DashboardLayout({ children }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -49,6 +55,7 @@ export default function DashboardLayout({ children }) {
   const displayRole = roleToLabel(role);
   const initials = getInitials(rawDisplayName);
 
+  // Tutup dropdown profil saat user mengklik di luar area dropdown.
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -59,6 +66,7 @@ export default function DashboardLayout({ children }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Proses logout: minta konfirmasi, lalu hapus sesi & arahkan ke login.
   const handleLogout = async () => {
     const result = await Swal.fire({
       title: "Apakah Anda yakin ingin keluar?",

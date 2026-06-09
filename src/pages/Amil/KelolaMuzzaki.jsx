@@ -9,12 +9,14 @@ import {
 } from "../../services/muzakki.service";
 import Swal from "sweetalert2";
 
+// Halaman kelola Muzzaki (pemberi zakat): tabel + tambah/edit/hapus via modal,
+// dengan pencarian dan pagination.
 export default function KelolaMuzzaki() {
   // ─── States ───
   const [muzzakiList, setMuzzakiList] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [, setErrorMsg] = useState("");
   const [errors, setErrors] = useState({});
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 5;
@@ -37,12 +39,14 @@ export default function KelolaMuzzaki() {
     pekerjaan: "",
   });
 
+  // Ubah kode jenis kelamin menjadi label tampilan.
   const toGenderLabel = (value) => {
     if (value === "laki-laki") return "Laki-laki";
     if (value === "perempuan") return "Perempuan";
     return value ?? "-";
   };
 
+  // Ambil bagian tanggal saja (yyyy-mm-dd) dari string tanggal/ISO.
   const toDateOnly = (value) => {
     if (!value) return "";
     const raw = String(value);
@@ -51,6 +55,7 @@ export default function KelolaMuzzaki() {
     return raw;
   };
 
+  // Ubah satu data muzakki dari format server → format baris tabel/form.
   const mapApiToRow = (item) => ({
     id: String(item?.id ?? ""),
     nama: item?.nama_lengkap ?? "-",
@@ -65,6 +70,7 @@ export default function KelolaMuzzaki() {
     pekerjaan: item?.pekerjaan ?? "",
   });
 
+  // Kebalikan mapApiToRow: ubah isi form → format yang dikirim ke server.
   const mapFormToApi = (form) => ({
     nama_lengkap: form.nama,
     email: form.email,
@@ -78,6 +84,7 @@ export default function KelolaMuzzaki() {
     pekerjaan: form.pekerjaan,
   });
 
+  // Ambil semua data muzakki dari server lalu ubah ke format baris tabel.
   const loadData = async () => {
     setIsLoading(true);
     setErrorMsg("");
@@ -101,11 +108,13 @@ export default function KelolaMuzzaki() {
     }
   };
 
+  // Muat data muzakki saat halaman pertama dibuka.
   useEffect(() => {
     loadData();
   }, []);
 
   // ─── Filter Pencarian ───
+  // Saring daftar muzakki sesuai kata kunci (nama atau ID).
   const filteredMuzzaki = useMemo(() => {
     const q = searchQuery.toLowerCase();
     return muzzakiList.filter(
@@ -123,11 +132,13 @@ export default function KelolaMuzzaki() {
   }, [filteredMuzzaki, safePage]);
 
   // ─── Handlers ───
+  // Update field form saat user mengetik.
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Buka modal mode TAMBAH: kosongkan form.
   const handleTambahClick = () => {
     setEditingId(null);
     setFormData({
@@ -145,6 +156,7 @@ export default function KelolaMuzzaki() {
     setIsModalOpen(true);
   };
 
+  // Buka modal mode EDIT: isi form dengan data baris yang dipilih.
   const handleEditClick = (item) => {
     setEditingId(item.id);
     setFormData({
@@ -162,6 +174,7 @@ export default function KelolaMuzzaki() {
     setIsModalOpen(true);
   };
 
+  // Hapus data muzakki setelah konfirmasi, lalu muat ulang tabel.
   const handleDeleteClick = async (id) => {
     const result = await Swal.fire({
       title: "Hapus Data?",
@@ -193,6 +206,7 @@ export default function KelolaMuzzaki() {
     }
   };
 
+  // Validasi isian form (nama, email, telp, NIK 16 digit, dll).
   const validateForm = () => {
     let newErrors = {};
 
@@ -239,6 +253,7 @@ export default function KelolaMuzzaki() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Simpan form: validasi, lalu update (edit) atau buat baru (tambah).
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -327,6 +342,7 @@ export default function KelolaMuzzaki() {
     }
   };
 
+  // Tutup modal dengan konfirmasi & kosongkan form.
   const handleCloseModal = () => {
     Swal.fire({
       title: "Tutup Form?",

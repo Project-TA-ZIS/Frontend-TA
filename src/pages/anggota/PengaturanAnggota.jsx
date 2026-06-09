@@ -12,16 +12,16 @@ import {
 } from "lucide-react";
 import PageTransition from "../../components/shared/PageTransition";
 import useAuthStore from "../../store/useAuthStore";
-import { formattedDate, formatDateInput } from "../../utils/formattedDate";
+import { formatDateInput } from "../../utils/formattedDate";
 import dasawismaService from "../../services/dasawisma.service";
 import Swal from "sweetalert2";
 import authService from "../../services/auth.service";
 
+// Halaman Pengaturan profil anggota: edit data diri + ganti password (via modal).
 export default function PengaturanKoordinator() {
   const user = useAuthStore((s) => s.user) || {};
-  const role = useAuthStore((s) => s.role);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isUserLoaded, setIsUserLoaded] = useState(false);
+  const [, setIsSubmitting] = useState(false);
+  const [, setIsUserLoaded] = useState(false);
 
   const [formData, setFormData] = useState({
     nama: "",
@@ -34,6 +34,7 @@ export default function PengaturanKoordinator() {
     alamat: "",
   });
 
+  // Ambil data user terbaru dari server lalu isi ke form.
   const loadUser = async () => {
     try {
       const updatedUser = await authService.getMe();
@@ -66,6 +67,7 @@ export default function PengaturanKoordinator() {
   const [errors, setErrors] = useState({});
   const [isSuccess, setIsSuccess] = useState(false);
 
+  // Update field form saat user mengetik & bersihkan pesan error field tsb.
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -73,6 +75,7 @@ export default function PengaturanKoordinator() {
     setIsSuccess(false);
   };
 
+  // Validasi seluruh isian form; kumpulkan pesan error per field.
   const validateForm = () => {
     let newErrors = {};
     if (!formData.nama.trim()) newErrors.nama = "Nama lengkap wajib diisi!";
@@ -103,6 +106,7 @@ export default function PengaturanKoordinator() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Simpan perubahan profil: validasi dulu, lalu kirim ke server.
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -159,6 +163,7 @@ export default function PengaturanKoordinator() {
     }
   };
 
+  // Buat inisial nama untuk avatar (mis. "Budi Santoso" → "BS").
   const getInitials = (name) => {
     const safe = (name || "").trim();
     if (!safe) return "U";
@@ -171,6 +176,7 @@ export default function PengaturanKoordinator() {
   const [passwordData, setPasswordData] = useState({ passwordLama: "", passwordBaru: "" });
   const [passwordErrors, setPasswordErrors] = useState({});
 
+  // Update field form ganti password saat diketik.
   const handlePasswordChange = async (e) => {
     const { name, value } = e.target;
     setPasswordData((prev) => ({ ...prev, [name]: value }));
@@ -179,6 +185,7 @@ export default function PengaturanKoordinator() {
     }
   };
 
+  // Simpan password baru: validasi (wajib isi, min 6 karakter) lalu kirim ke server.
   const handleSubmitPassword = async (e) => {
     e.preventDefault();
     let errors = {};
@@ -223,6 +230,7 @@ export default function PengaturanKoordinator() {
     setPasswordData({ passwordLama: "", passwordBaru: "" });
   };
 
+  // Muat data user saat halaman pertama dibuka.
   useEffect(() => {
     loadUser();
   }, []);

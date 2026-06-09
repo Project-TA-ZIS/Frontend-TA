@@ -7,10 +7,16 @@ import { formatRupiah } from "./formatRupiah";
 import { formattedDate } from "./formattedDate";
 import LogoDasawismaPNG from "../assets/Logo.png";
 
+// Membuat & mengunduh laporan riwayat kas Dasawisma dalam format PDF.
+// Alur: dialog konfirmasi → susun PDF (header, tabel transaksi, ringkasan total)
+// → simpan file.
+// - historyData      : daftar transaksi kas yang dicetak.
+// - totalKasDaswisma : saldo total kas saat ini (ditampilkan di ringkasan).
 export const exportKasDasawismaPdf = ({
   historyData = [],
   totalKasDaswisma,
 }) => {
+  // Tampilkan dialog konfirmasi sebelum mengunduh.
   Swal.fire({
     title: "Unduh Riwayat Kas",
     text: "Apakah Anda ingin mengunduh riwayat kas dalam format PDF?",
@@ -95,10 +101,12 @@ export const exportKasDasawismaPdf = ({
         },
       });
 
+      // Jumlahkan seluruh transaksi bertipe "Pemasukan".
       const totalPemasukan = historyData
         .filter((item) => item.jenis === "Pemasukan")
         .reduce((sum, item) => sum + Number(item.nominal || 0), 0);
 
+      // Jumlahkan seluruh transaksi bertipe "Pengeluaran".
       const totalPengeluaran = historyData
         .filter((item) => item.jenis === "Pengeluaran")
         .reduce((sum, item) => sum + Number(item.nominal || 0), 0);

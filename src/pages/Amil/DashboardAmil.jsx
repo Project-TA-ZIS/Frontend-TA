@@ -26,6 +26,7 @@ const MONTH_LABELS = [
   "JAN", "FEB", "MAR", "APR", "MEI", "JUN", "JUL", "AGT", "SEP", "OKT", "NOV", "DES",
 ];
 
+// Ubah berbagai bentuk input tanggal menjadi objek Date secara aman.
 const parseDateSafe = (dateLike) => {
   if (!dateLike) return null;
   if (dateLike instanceof Date)
@@ -37,6 +38,7 @@ const parseDateSafe = (dateLike) => {
   return !Number.isNaN(d.getTime()) ? d : new Date(safe);
 };
 
+// Cari tahun terbaru dari sekumpulan data (untuk menentukan tahun aktif grafik).
 const getMaxYearFromItems = (items, dateKey) => {
   let maxYear = null;
   (items || []).forEach((item) => {
@@ -48,6 +50,7 @@ const getMaxYearFromItems = (items, dateKey) => {
   return maxYear;
 };
 
+// Samakan penulisan kategori dari server menjadi label baku yang dipakai UI.
 const toUiZisKategori = (kategori) => {
   const k = (kategori || "").toString().trim().toLowerCase();
   if (!k) return null;
@@ -59,6 +62,7 @@ const toUiZisKategori = (kategori) => {
   return null;
 };
 
+// Buat kerangka data grafik berisi nol: 12 bulan (Bulanan) atau 7 tahun (Tahunan).
 const buildEmptySeries = (mode, now = new Date()) => {
   const currentYear = now.getFullYear();
   if (mode === "Tahunan") {
@@ -70,6 +74,8 @@ const buildEmptySeries = (mode, now = new Date()) => {
   return MONTH_LABELS.map((m) => ({ label: m, pemasukan: 0, pengeluaran: 0 }));
 };
 
+// Susun data grafik ZIS untuk kategori terpilih: jumlahkan nominal pemasukan &
+// pengeluaran per bulan/tahun.
 const buildZisSeries = ({
   pemasukanItems,
   pengeluaranItems,
@@ -135,6 +141,7 @@ const buildZisSeries = ({
   }));
 };
 
+// Komponen isi tooltip grafik (nilai diformat Rupiah atau KG untuk beras).
 const CustomTooltip = ({ active, payload, label, kategori }) => {
   if (!active || !payload?.length) return null;
   const fmt = (n, kat) => {
@@ -164,6 +171,7 @@ const CustomTooltip = ({ active, payload, label, kategori }) => {
   );
 };
 
+// Kelompok tombol pilihan (mis. kategori atau Bulanan/Tahunan); menyorot yang aktif.
 const ToggleBtnGroup = ({ options, active, onSelect }) => (
   <div className="inline-flex items-center gap-1 bg-gray-50 p-1 border border-gray-100 rounded-lg min-w-max">
     {options.map((opt) => (
@@ -182,6 +190,7 @@ const ToggleBtnGroup = ({ options, active, onSelect }) => (
   </div>
 );
 
+// Komponen kartu grafik area lengkap dengan judul + filter kategori & periode.
 const ChartArea = ({
   title,
   subtitle,
@@ -269,6 +278,7 @@ const ChartArea = ({
   </div>
 );
 
+// Halaman Dashboard Amil: kartu jumlah muzakki & mustahik + grafik tren ZIS.
 export default function DashboardAmil() {
   const [zisKategori, setZisKategori] = useState("Zakat Maal");
   const [zisWaktu, setZisWaktu] = useState("Bulanan");
@@ -277,6 +287,7 @@ export default function DashboardAmil() {
   const [zisPengeluaranItems, setZisPengeluaranItems] = useState([]);
   const [errorMsg, setErrorMsg] = useState("");
 
+  // Saat halaman dibuka: muat data muzakki, mustahik, dan transaksi ZIS.
   useEffect(() => {
     let cancelled = false;
     const normalizeArray = (v) =>
@@ -319,11 +330,13 @@ export default function DashboardAmil() {
     };
   }, []);
 
+  // Gabungkan template KPI dengan angka hasil hitung untuk dirender jadi kartu.
   const kpiCards = useMemo(
     () => KPI_TEMPLATE.map((t) => ({ ...t, value: kpiCounts[t.key] ?? 0 })),
     [kpiCounts],
   );
 
+  // Susun data grafik ZIS sesuai kategori & periode yang dipilih.
   const zisChartData = useMemo(() => {
     return buildZisSeries({
       pemasukanItems: zisPemasukanItems,

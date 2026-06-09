@@ -1,15 +1,14 @@
 import React from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import PageTransition from "../../components/shared/PageTransition";
 import LogoDasawisma from "../../assets/Logo.svg";
 import fotoDasawisma from "../../assets/foto_dasawisma.png";
 import Footer from "../../components/layout/Footer";
 import NavbarUmum from "../../components/shared/NavbarUmum";
 
+// Halaman beranda publik (tanpa login): navbar, penjelasan program Dasawisma &
+// ZIS, lalu footer. Murni tampilan informasi.
 export default function Home() {
-  const navigate = useNavigate();
-  const location = useLocation();
-
   return (
     <PageTransition>
       <div className="min-h-screen bg-gray-50 font-['Manrope'] flex flex-col">

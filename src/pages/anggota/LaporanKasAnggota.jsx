@@ -2,41 +2,20 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Download, Plus, X } from "lucide-react";
 import PageTransition from "../../components/shared/PageTransition";
 import Swal from "sweetalert2";
-import Select from "react-select";
-import { formattedDate } from "../../utils/formattedDate";
-import { formatRupiah } from "../../utils/formatRupiah";
 import pengeluaranService from "../../services/pengeluaranDasawisma.service";
 import pemasukanDasawismaService from "../../services/pemasukanDasawisma.service";
-import dasawismaService from "../../services/dasawisma.service";
 import totalKasDasawismaService from "../../services/totalKasDasawisma.service";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import logoDasawisma from "../../assets/logo.png";
 import KasSummaryCards from "../../components/shared/KasSummaryCards";
 import { exportKasDasawismaPdf } from "../../utils/exportKasDasawismaPdf";
 import KasTable from "../../components/shared/kasTable";
 
+// Halaman Laporan/Manajemen Kas Dasawisma untuk anggota: ringkasan saldo,
+// daftar transaksi kas (pemasukan & pengeluaran) dengan filter, dan unduh PDF.
 export default function LaporanKasAnggota() {
-  const [anggotaList, setAnggotaList] = useState([]);
-  const [searchAnggota, setSearchAnggota] = useState("");
   const [saldoUpdatedAt, setSaldoUpdatedAt] = useState("");
   const [saldoKasDasawisma, setSaldoKasDasawisma] = useState(0);
 
-  const loadAnggotaDasawisma = async () => {
-    try {
-      const res = await dasawismaService.getAllAnggotaDasawisma();
-
-      setAnggotaList(res.data || []);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-  const anggotaOptions = anggotaList.map((anggota) => ({
-    value: anggota.id,
-    label: anggota.nama_lengkap,
-  }));
-
-  // ─── States Data & Modal ───
+  // ─── States Data ───
   const [transactions, setTransactions] = useState([]);
 
   const [summary, setSummary] = useState({
@@ -45,30 +24,12 @@ export default function LaporanKasAnggota() {
     saldo: 0,
   });
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const [formData, setFormData] = useState({
-    tanggal: "",
-    deskripsi: "",
-    jenis: "Pemasukan",
-    nominal: "",
-    tipePemasukan: "IURAN",
-    anggota_dasawisma_id: "",
-  });
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
   const [filterJenis, setFilterJenis] = useState("");
   const [filterBulan, setFilterBulan] = useState("");
   const [filterTahun, setFilterTahun] = useState("");
 
+  // Saring transaksi sesuai filter jenis, bulan, dan tahun. Dihitung ulang
+  // hanya saat data atau filter berubah.
   const filteredTransactions = useMemo(() => {
     return transactions.filter((trx) => {
       const matchesJenis =
@@ -89,6 +50,8 @@ export default function LaporanKasAnggota() {
   }, [transactions, filterJenis, filterBulan, filterTahun]);
 
   // ─── Load Data ───
+  // Muat data kas: ambil pemasukan & pengeluaran, ubah ke bentuk seragam,
+  // gabung + urutkan dari terbaru, lalu hitung ringkasan (masuk/keluar/saldo).
   const loadKasData = async () => {
     try {
       let pemasukanData = [];
@@ -107,7 +70,7 @@ export default function LaporanKasAnggota() {
           jenis: "Pemasukan",
           nominal: Number(item.jumlah),
         }));
-      } catch (error) {
+      } catch {
         console.log("Pemasukan kosong");
       }
 
@@ -121,7 +84,7 @@ export default function LaporanKasAnggota() {
           jenis: "Pengeluaran",
           nominal: Number(item.jumlah),
         }));
-      } catch (error) {
+      } catch {
         console.log("Pengeluaran kosong");
       }
 
@@ -162,21 +125,27 @@ export default function LaporanKasAnggota() {
     }
   };
 
+  // Ambil saldo total kas dasawisma + waktu terakhir diperbarui dari server.
   const loadTotalKasDasawisma = async () => {
     try {
       const res = await totalKasDasawismaService.getTotalKasDasawisma();
       setSaldoKasDasawisma(Number(res.data?.jumlah_keseluruhan || 0));
       setSaldoUpdatedAt(res.data?.updated_at || "");
-    } catch (error) {
+    } catch {
       console.log("Gagal memuat total kas dasawisma");
     }
   };
 
   // ─── useEffect ───
+  // Saat halaman dibuka: muat data kas, daftar anggota, dan total saldo.
+  // Dibungkus fungsi async di dalam effect agar pemanggilan loader (yang
+  // memperbarui state) berjalan asinkron, bukan sinkron saat render.
   useEffect(() => {
-    loadKasData();
-    loadAnggotaDasawisma();
-    loadTotalKasDasawisma();
+    const init = async () => {
+      await loadKasData();
+      await loadTotalKasDasawisma();
+    };
+    init();
   }, []);
 
   return (
@@ -213,10 +182,7 @@ export default function LaporanKasAnggota() {
             <select
               className="col-span-2 md:col-span-1 bg-white border border-gray-200 text-gray-700 text-xs md:text-sm rounded-lg focus:ring-[#10B981] focus:border-[#10B981] block px-3 md:px-4 py-2 md:py-2.5 font-semibold shadow-sm outline-none w-full md:w-auto cursor-pointer transition-all"
               value={filterJenis}
-              onChange={(e) => {
-                setFilterJenis(e.target.value);
-                setPage(1);
-              }}
+              onChange={(e) => setFilterJenis(e.target.value)}
             >
               <option value="Semua">Jenis Kas (Semua)</option>
               <option value="Pemasukan">Kas Pemasukan</option>
@@ -226,10 +192,7 @@ export default function LaporanKasAnggota() {
             <select
               className="bg-white border border-gray-200 text-gray-700 text-xs md:text-sm rounded-lg focus:ring-[#10B981] focus:border-[#10B981] block px-3 md:px-4 py-2 md:py-2.5 font-semibold shadow-sm outline-none w-full md:w-28 cursor-pointer transition-all"
               value={filterBulan}
-              onChange={(e) => {
-                setFilterBulan(e.target.value);
-                setPage(1);
-              }}
+              onChange={(e) => setFilterBulan(e.target.value)}
             >
               <option value="">Bulan</option>
               <option value="April">April</option>
@@ -239,10 +202,7 @@ export default function LaporanKasAnggota() {
             <select
               className="bg-white border border-gray-200 text-gray-700 text-xs md:text-sm rounded-lg focus:ring-[#10B981] focus:border-[#10B981] block px-3 md:px-4 py-2 md:py-2.5 font-semibold shadow-sm outline-none w-full md:w-28 cursor-pointer transition-all"
               value={filterTahun}
-              onChange={(e) => {
-                setFilterTahun(e.target.value);
-                setPage(1);
-              }}
+              onChange={(e) => setFilterTahun(e.target.value)}
             >
               <option value="">Tahun</option>
               <option value="2026">2026</option>
