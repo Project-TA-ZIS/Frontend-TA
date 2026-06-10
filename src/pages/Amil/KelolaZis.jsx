@@ -19,8 +19,10 @@ import {
   formatThousands,
   parseThousandsToNumber,
 } from "../../utils/formatThousands";
-
-const PAGE_SIZE = 5; // jumlah baris transaksi per halaman
+import { formatDateInput, formattedDate } from "../../utils/formattedDate";
+import ModalsEditZIS from "../../components/shared/ZIS/ModalsEditZIS";
+import ModalsNewDataZIS from "../../components/shared/ZIS/ModalsNewDataZIS";
+import ZisTable from "../../components/shared/ZIS/ZISTable";
 
 // Halaman Kelola ZIS (Amil): catat pemasukan/pengeluaran ZIS via modal, lihat
 // ringkasan total, daftar transaksi dengan filter/pencarian/pagination, unduh PDF.
@@ -31,7 +33,6 @@ export default function KelolaZis() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [, setErrorMsg] = useState("");
-  const [page, setPage] = useState(1);
   const [muzakkiList, setMuzakkiList] = useState([]);
   const [mustahikList, setMustahikList] = useState([]);
 
@@ -265,8 +266,9 @@ export default function KelolaZis() {
       }));
 
       const combined = [...pemasukanRows, ...pengeluaranRows].sort((a, b) => {
-        const da = parseDateSafe(a?.tanggal)?.getTime() ?? 0;
-        const db = parseDateSafe(b?.tanggal)?.getTime() ?? 0;
+        const da = new Date(a?.tanggal || 0).getTime();
+        const db = new Date(b?.tanggal || 0).getTime();
+
         return db - da;
       });
 
@@ -341,7 +343,7 @@ export default function KelolaZis() {
       const id = (trx?.id || "").toString().toLowerCase();
       const kategori = (trx?.kategori || "").toString().toLowerCase();
       const tipe = (trx?.tipe || "").toString().toLowerCase();
-      const d = parseDateSafe(trx?.tanggal);
+      const d = formatDateInput(trx?.tanggal);
 
       const matchesSearch =
         !q ||
@@ -379,21 +381,6 @@ export default function KelolaZis() {
     filterBulan,
     filterTahun,
   ]);
-
-  useEffect(() => {
-    setPage(1);
-  }, [searchQuery, filterKategori, filterBulan, filterTahun, filterTipe]);
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredTransactions.length / PAGE_SIZE),
-  );
-  const safePage = Math.min(page, totalPages);
-  const paginatedTransactions = useMemo(() => {
-    const start = (safePage - 1) * PAGE_SIZE;
-    return filteredTransactions.slice(start, start + PAGE_SIZE);
-  }, [filteredTransactions, safePage]);
-
   // ─── Handlers ───
   // Update field form; khusus nominal (selain beras) diformat ribuan saat diketik.
   const handleInputChange = (e) => {
@@ -779,7 +766,7 @@ export default function KelolaZis() {
   return (
     <PageTransition>
       <div className="min-h-screen bg-gray-50 p-6 md:p-10 font-['Manrope']">
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
+        
 
         {/* ─── Header ─── */}
         <div className="mb-8">
@@ -889,460 +876,55 @@ export default function KelolaZis() {
         </div>
 
         {/* ─── Table ─── */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-8">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/50">
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    NO
-                  </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    TANGGAL
-                  </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    NAMA
-                  </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    KATEGORI
-                  </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    DESKRIPSI
-                  </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    NOMINAL (RP)
-                  </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    TIPE
-                  </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    Aksi
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {isLoading ? (
-                  <tr>
-                    <td
-                      colSpan="6"
-                      className="px-6 py-8 text-center text-sm font-medium text-gray-500"
-                    >
-                      Memuat data...
-                    </td>
-                  </tr>
-                ) : paginatedTransactions.length > 0 ? (
-                  paginatedTransactions.map((trx, index) => (
-                    <tr
-                      key={trx.uniqueKey}
-                      className="hover:bg-emerald-50/30 transition-colors"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#0F766E] text-center">
-                        {index + 1 + (safePage - 1) * PAGE_SIZE}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600 text-center">
-                        {trx.tanggal
-                          ? new Date(trx.tanggal).toLocaleDateString("id-ID", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })
-                          : "-"}
-                      </td>
-                      <td className="px-6 py-4 text-sm font-bold text-gray-900 text-center">
-                        {trx.nama}
-                      </td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-600 text-center">
-                        {trx.kategori}
-                      </td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-600 text-center">
-                        {trx.deskripsi}
-                      </td>
-                      <td
-                        className={`px-6 py-4 whitespace-nowrap text-sm font-bold text-center ${trx.tipe === "Pemasukan" ? "text-[#10B981]" : "text-[#EF4444]"}`}
-                      >
-                        {trx.kategori === "Zakat Fitrah Beras"
-                          ? `${trx.nominal} KG`
-                          : formatRupiah(trx.nominal).replace("Rp", "").trim()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <span
-                            className={`w-2 h-2 rounded-full ${trx.tipe === "Pemasukan" ? "bg-[#10B981]" : "bg-[#EF4444]"}`}
-                          ></span>
-                          <span
-                            className={`text-xs font-bold ${trx.tipe === "Pemasukan" ? "text-[#10B981]" : "text-[#EF4444]"}`}
-                          >
-                            {trx.tipe}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => handleEdit(trx)}
-                            className="text-amber-600 bg-amber-50 hover:bg-amber-500 hover:text-white p-2 rounded-xl transition-all shadow-sm"
-                            title="Edit"
-                          >
-                            <Edit size={15} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    {searchQuery ? (
-                      <td
-                        colSpan="6"
-                        className="px-6 py-8 text-center text-sm font-medium text-gray-500"
-                      >
-                        Tidak ada data yang cocok dengan pencarian "
-                        {searchQuery}"
-                      </td>
-                    ) : (
-                      <td
-                        colSpan="6"
-                        className="px-6 py-8 text-center text-sm font-medium text-gray-500"
-                      >
-                        Data ZIS belum tersedia. Klik tombol "Pemasukan" atau
-                        "Pengeluaran" untuk menambahkan data pertama Anda.
-                      </td>
-                    )}
-                  </tr>
-                )}
-              </tbody>
-            </table>
-
-            {/* Pagination */}
-            <div className="flex items-center justify-between m-6">
-              <p className="text-xs text-gray-400 font-bold">
-                Halaman {safePage} dari {totalPages}
-              </p>
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  disabled={safePage <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                    safePage <= 1
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-gray-200 hover:bg-gray-300 text-gray-700"
-                  }`}
-                >
-                  Sebelumnya
-                </button>
-                <button
-                  type="button"
-                  disabled={safePage >= totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                    safePage >= totalPages
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-[#10B981] hover:bg-[#059669] text-white"
-                  }`}
-                >
-                  Selanjutnya
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ─── MODAL POP-UP CATAT ZIS ─── */}
-        {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-              <div className="bg-[#0F766E] px-6 py-4 flex items-center justify-between">
-                <h2 className="text-lg font-bold text-white">
-                  {modalMode === "PEMASUKAN"
-                    ? "Catat Pemasukan ZIS"
-                    : "Catat Pengeluaran ZIS"}
-                </h2>
-                <button
-                  onClick={handleCloseModal}
-                  className="text-emerald-200 hover:text-white transition-colors"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    {modalMode === "PEMASUKAN"
-                      ? "Tanggal Penghimpunan"
-                      : "Tanggal Penyaluran"}
-                    <span className="text-red-500"> *</span>
-                  </label>
-                  <input
-                    type="date"
-                    name="tanggal"
-                    required
-                    value={formData.tanggal}
-                    onChange={handleInputChange}
-                    className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    {modalMode === "PEMASUKAN" ? "Muzakki" : "Mustahik"}
-                    <span className="text-red-500"> *</span>
-                  </label>
-
-                  {modalMode === "PEMASUKAN" ? (
-                    <Select
-                      options={limitedOptions(muzakkiOptions, searchMuzakki)}
-                      placeholder="Cari muzakki..."
-                      onInputChange={(value) => setSearchMuzakki(value)}
-                      value={selectedMuzakki}
-                      onChange={(opt) => setSelectedMuzakki(opt)}
-                      isClearable
-                      className="text-sm"
-                    />
-                  ) : (
-                    <Select
-                      options={limitedOptions(mustahikOptions, searchMustahik)}
-                      placeholder="Cari mustahik..."
-                      onInputChange={(value) => setSearchMustahik(value)}
-                      value={selectedMustahik}
-                      onChange={(opt) => setSelectedMustahik(opt)}
-                      isClearable
-                      className="text-sm"
-                    />
-                  )}
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    Kategori
-                    <span className="text-red-500"> *</span>
-                  </label>
-                  <select
-                    name="kategori"
-                    value={formData.kategori}
-                    onChange={handleInputChange}
-                    className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
-                  >
-                    <option value="Zakat Maal">Zakat Maal</option>
-                    <option value="Zakat Fitrah Uang">Zakat Fitrah Uang</option>
-                    <option value="Zakat Fitrah Beras">
-                      Zakat Fitrah Beras
-                    </option>
-                    <option value="Infaq">Infaq</option>
-                    <option value="Sedekah">Sedekah</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    Deskripsi
-                    <span className="text-red-500"> *</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="deskripsi"
-                    value={formData.deskripsi}
-                    onChange={handleInputChange}
-                    placeholder="Masukkan deskripsi..."
-                    className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                    {isBeras ? "Jumlah Beras (KG)" : "Jumlah (Rp)"}
-                    <span className="text-red-500"> *</span>
-                  </label>
-
-                  <input
-                    type={isBeras ? "number" : "text"}
-                    name="nominal"
-                    required
-                    step={isBeras ? "0.1" : undefined}
-                    inputMode={isBeras ? undefined : "numeric"}
-                    pattern={isBeras ? undefined : "[0-9.]*"}
-                    value={formData.nominal}
-                    onChange={handleInputChange}
-                    placeholder={isBeras ? "Contoh: 2.5" : "0"}
-                    className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
-                  />
-                </div>
-                <div className="flex justify-end gap-3 pt-4 border-t mt-6">
-                  <button
-                    type="button"
-                    onClick={handleCloseModal}
-                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#10B981] hover:bg-[#059669] disabled:opacity-70 disabled:cursor-not-allowed"
-                  >
-                    {isSubmitting ? "Menyimpan..." : "Simpan Transaksi"}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+        <ZisTable
+          data={filteredTransactions}
+          isLoading={isLoading}
+          searchQuery={searchQuery}
+          onEdit={handleEdit}
+          showActions={true}
+        />
       </div>
 
-      {isEditModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
-            <div className="bg-[#0F766E] p-4 flex justify-between items-center">
-              <h2 className="text-white font-bold text-lg">
-                Detail Transaksi Kas
-              </h2>
+      <ModalsNewDataZIS
+        isOpen={isModalOpen}
+        modalMode={modalMode}
+        formData={formData}
+        handleInputChange={handleInputChange}
+        handleSubmit={handleSubmit}
+        handleCloseModal={handleCloseModal}
+        isSubmitting={isSubmitting}
+        isBeras={isBeras}
+        selectedMuzakki={selectedMuzakki}
+        setSelectedMuzakki={setSelectedMuzakki}
+        selectedMustahik={selectedMustahik}
+        setSelectedMustahik={setSelectedMustahik}
+        muzakkiOptions={muzakkiOptions}
+        mustahikOptions={mustahikOptions}
+        searchMuzakki={searchMuzakki}
+        setSearchMuzakki={setSearchMuzakki}
+        searchMustahik={searchMustahik}
+        setSearchMustahik={setSearchMustahik}
+        limitedOptions={limitedOptions}
+      />
 
-              <button
-                onClick={() => handleCloseEditModal()}
-                className="text-white"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="p-5 space-y-4">
-              <div>
-                <label className="text-xs font-bold text-gray-500">
-                  Jenis Transaksi
-                </label>
-                <input
-                  disabled
-                  value={editForm.jenis}
-                  className="w-full mt-1 bg-gray-100 border rounded-xl px-4 py-2"
-                />
-              </div>
-
-              <div>
-                <div>
-                  <label className="text-xs font-bold text-gray-500">
-                    {editForm.jenis === "Pemasukan" ? "Muzakki" : "Mustahik"}
-                    <span className="text-red-500"> *</span>
-                  </label>
-
-                  {editForm.jenis === "Pemasukan" ? (
-                    <Select
-                      options={limitedOptions(muzakkiOptions, searchMuzakki)}
-                      placeholder="Cari muzakki..."
-                      onInputChange={(value) => setSearchMuzakki(value)}
-                      value={selectedMuzakki}
-                      onChange={(opt) => setSelectedMuzakki(opt)}
-                      isClearable
-                      className="text-sm"
-                    />
-                  ) : (
-                    <Select
-                      options={limitedOptions(mustahikOptions, searchMustahik)}
-                      placeholder="Cari mustahik..."
-                      onInputChange={(value) => setSearchMustahik(value)}
-                      value={selectedMustahik}
-                      onChange={(opt) => setSelectedMustahik(opt)}
-                      isClearable
-                      className="text-sm"
-                    />
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-gray-500">
-                  Sumber
-                  <span className="text-red-500"> *</span>
-                </label>
-                <select
-                  value={editForm.sumber}
-                  onChange={(e) =>
-                    setEditForm({
-                      ...editForm,
-                      sumber: e.target.value,
-                    })
-                  }
-                  className="w-full mt-1 bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-2 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
-                >
-                  <option value="Zakat Maal">Zakat Maal</option>
-                  <option value="Zakat Fitrah Uang">Zakat Fitrah Uang</option>
-                  <option value="Zakat Fitrah Beras">Zakat Fitrah Beras</option>
-                  <option value="Infaq">Infaq</option>
-                  <option value="Sedekah">Sedekah</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-gray-500">
-                  Tanggal
-                  <span className="text-red-500"> *</span>
-                </label>
-                <input
-                  type="date"
-                  value={
-                    editForm.tanggal
-                      ? new Date(editForm.tanggal).toISOString().split("T")[0]
-                      : ""
-                  }
-                  onChange={(e) =>
-                    setEditForm({
-                      ...editForm,
-                      tanggal: e.target.value,
-                    })
-                  }
-                  className="w-full mt-1 border rounded-xl px-4 py-2"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-gray-500">
-                  Deskripsi
-                  <span className="text-red-500"> *</span>
-                </label>
-                <input
-                  value={editForm.deskripsi}
-                  onChange={(e) =>
-                    setEditForm({
-                      ...editForm,
-                      deskripsi: e.target.value,
-                    })
-                  }
-                  className="w-full mt-1 border rounded-xl px-4 py-2"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-gray-500">
-                  Nominal
-                  <span className="text-red-500"> *</span>
-                </label>
-                <input
-                  value={editForm.nominal}
-                  onChange={(e) =>
-                    setEditForm({
-                      ...editForm,
-                      nominal: formatThousands(e.target.value),
-                    })
-                  }
-                  className="w-full mt-1 border rounded-xl px-4 py-2"
-                />
-              </div>
-            </div>
-
-            <div className="border-t p-4 flex justify-end gap-2">
-              <button
-                onClick={() => handleCloseEditModal()}
-                className="px-5 py-2 rounded-xl bg-gray-100 font-bold"
-              >
-                Batal
-              </button>
-
-              <button
-                onClick={handleSaveEdit}
-                className="px-5 py-2 rounded-xl bg-[#10B981] text-white font-bold"
-              >
-                Simpan Perubahan
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ModalsEditZIS
+        isOpen={isEditModalOpen}
+        editForm={editForm}
+        setEditForm={setEditForm}
+        selectedMuzakki={selectedMuzakki}
+        setSelectedMuzakki={setSelectedMuzakki}
+        selectedMustahik={selectedMustahik}
+        setSelectedMustahik={setSelectedMustahik}
+        muzakkiOptions={muzakkiOptions}
+        mustahikOptions={mustahikOptions}
+        searchMuzakki={searchMuzakki}
+        setSearchMuzakki={setSearchMuzakki}
+        searchMustahik={searchMustahik}
+        setSearchMustahik={setSearchMustahik}
+        limitedOptions={limitedOptions}
+        onClose={handleCloseEditModal}
+        onSave={handleSaveEdit}
+      />
     </PageTransition>
   );
 }

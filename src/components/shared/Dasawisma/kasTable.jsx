@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from "react";
 import { ArrowUpDown, ChevronDown, ChevronUp, Edit } from "lucide-react";
-import { formatRupiah } from "../../utils/formatRupiah";
-import { formattedDate } from "../../utils/formattedDate";
+import { formatRupiah } from "../../../utils/formatRupiah";
+import { formattedDate } from "../../../utils/formattedDate";
 
-const PAGE_SIZE = 10; // jumlah baris per halaman
+const PAGE_SIZE = 5; // jumlah baris per halaman
 
 // Tabel transaksi kas yang dapat diurutkan (sort) per kolom dan dibagi halaman
 // (pagination). Props: data = daftar transaksi, onEdit = aksi tombol edit,

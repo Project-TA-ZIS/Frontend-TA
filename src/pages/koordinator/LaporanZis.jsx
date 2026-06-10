@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import PageTransition from "../../components/shared/PageTransition";
-import { Download, Plus, Search, X } from "lucide-react";
+import { Download, Plus, Search, X, Zap } from "lucide-react";
 import Swal from "sweetalert2";
 import Select from "react-select";
 import pemasukanZISService from "../../services/pemasukanZIS.service";
@@ -9,8 +9,7 @@ import { formatRupiah } from "../../utils/formatRupiah";
 import totalZISService from "../../services/totalZIS.service";
 import BottomSummaryCards from "../../components/shared/BottomSummarycards";
 import { exportZISPdf } from "../../utils/exportZISPdf";
-
-const PAGE_SIZE = 5; // jumlah baris transaksi per halaman
+import ZisTable from "../../components/shared/ZIS/ZISTable";
 
 // Halaman Laporan/Manajemen ZIS untuk koordinator: ringkasan total, daftar
 // transaksi (pemasukan & pengeluaran) dengan filter, pencarian, pagination,
@@ -20,7 +19,7 @@ export default function KelolaZis() {
   const [transactions, setTransactions] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [, setErrorMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
   const [page, setPage] = useState(1);
 
   // States Filter
@@ -222,22 +221,6 @@ export default function KelolaZis() {
     filterTahun,
   ]);
 
-  // Kembali ke halaman 1 setiap filter/pencarian berubah.
-  useEffect(() => {
-    setPage(1);
-  }, [searchQuery, filterKategori, filterBulan, filterTahun, filterTipe]);
-
-  // Hitung total halaman & ambil potongan data untuk halaman aktif (pagination).
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredTransactions.length / PAGE_SIZE),
-  );
-  const safePage = Math.min(page, totalPages);
-  const paginatedTransactions = useMemo(() => {
-    const start = (safePage - 1) * PAGE_SIZE;
-    return filteredTransactions.slice(start, start + PAGE_SIZE);
-  }, [filteredTransactions, safePage]);
-
   // Ambil nilai total satu kategori dari hasil rekap server.
   const getTotalByKategori = (kategori) => {
     const found = totalZIS.find(
@@ -256,7 +239,7 @@ export default function KelolaZis() {
   return (
     <PageTransition>
       <div className="min-h-screen bg-gray-50 p-6 md:p-10 font-['Manrope']">
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
+        
 
         {/* ─── Header ─── */}
         <div className="mb-8">
@@ -348,144 +331,12 @@ export default function KelolaZis() {
         </div>
 
         {/* ─── Table ─── */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-8">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/50">
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-                    NO
-                  </th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">
-                    TANGGAL
-                  </th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">
-                    NAMA
-                  </th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">
-                    KATEGORI
-                  </th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">
-                    NOMINAL (RP)
-                  </th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">
-                    TIPE
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {isLoading ? (
-                  <tr>
-                    <td
-                      colSpan="6"
-                      className="px-6 py-8 text-center text-sm font-medium text-gray-500"
-                    >
-                      Memuat data...
-                    </td>
-                  </tr>
-                ) : paginatedTransactions.length > 0 ? (
-                  paginatedTransactions.map((trx, index) => (
-                    <tr
-                      key={`${trx.tipe}-${trx.id}`}
-                      className="hover:bg-emerald-50/30 transition-colors"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#0F766E]">
-                        {index + 1 + (safePage - 1) * PAGE_SIZE}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600 text-center">
-                        {trx.tanggal
-                          ? new Date(trx.tanggal).toLocaleDateString("id-ID", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })
-                          : "-"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-[12px] font-bold text-gray-900 text-center">
-                        {trx.nama}
-                      </td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-600 text-center">
-                        {trx.kategori}
-                      </td>
-                      <td
-                        className={`px-6 py-4 whitespace-nowrap text-sm font-bold text-center ${trx.tipe === "Pemasukan" ? "text-[#10B981]" : "text-[#EF4444]"}`}
-                      >
-                        {trx.kategori === "Zakat Fitrah Beras"
-                          ? `${trx.nominal} KG`
-                          : `Rp ${formatRupiah(trx.nominal).replace("Rp", "").trim()}`}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <span
-                            className={`w-2 h-2 rounded-full ${trx.tipe === "Pemasukan" ? "bg-[#10B981]" : "bg-[#EF4444]"}`}
-                          ></span>
-                          <span
-                            className={`text-xs font-bold ${trx.tipe === "Pemasukan" ? "text-[#10B981]" : "text-[#EF4444]"}`}
-                          >
-                            {trx.tipe}
-                          </span>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    {searchQuery ? (
-                      <td
-                        colSpan="6"
-                        className="px-6 py-8 text-center text-sm font-medium text-gray-500"
-                      >
-                        Tidak ada data yang cocok dengan pencarian "
-                        {searchQuery}"
-                      </td>
-                    ) : (
-                      <td
-                        colSpan="6"
-                        className="px-6 py-8 text-center text-sm font-medium text-gray-500"
-                      >
-                        Data ZIS belum tersedia. Klik tombol "Pemasukan" atau
-                        "Pengeluaran" untuk menambahkan data pertama Anda.
-                      </td>
-                    )}
-                  </tr>
-                )}
-              </tbody>
-            </table>
-
-            {/* Pagination */}
-            <div className="flex items-center justify-between m-6">
-              <p className="text-xs text-gray-400 font-bold">
-                Halaman {safePage} dari {totalPages}
-              </p>
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  disabled={safePage <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                    safePage <= 1
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-gray-200 hover:bg-gray-300 text-gray-700"
-                  }`}
-                >
-                  Sebelumnya
-                </button>
-                <button
-                  type="button"
-                  disabled={safePage >= totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                    safePage >= totalPages
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-[#10B981] hover:bg-[#059669] text-white"
-                  }`}
-                >
-                  Selanjutnya
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ZisTable
+          data={filteredTransactions}
+          isLoading={isLoading}
+          searchQuery={searchQuery}
+          showActions={false}
+        />
       </div>
     </PageTransition>
   );

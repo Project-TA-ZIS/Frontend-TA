@@ -1,33 +1,55 @@
-import React, { useEffect } from "react";
+import React, { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Login from "./pages/auth/Login";
+
+// Functional imports
+import { getMe } from "./services/auth.service";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import useAuthStore from "./store/useAuthStore";
-import { getMe } from "./services/auth.service";
-import DashboardLayout from "./components/layout/DashboardLayout";
-import DashboardUtama from "./pages/koordinator/DashboardUtama";
-import LaporanZIS from "./pages/koordinator/LaporanZIS";
-import AnggotaDasawisma from "./pages/koordinator/AnggotaDasawisma";
-import AnggotaAmil from "./pages/koordinator/AnggotaAmil";
-import AnggotaLayout from "./components/layout/AnggotaLayout";
-import DashboardAnggota from "./pages/anggota/DashboardAnggota";
-import LaporanKasAnggota from "./pages/anggota/LaporanKasAnggota";
-import LaporanZisAnggota from "./pages/anggota/LaporanZisAnggota";
-import AmilLayout from "./components/layout/AmilLayout";
-import DashboardAmil from "./pages/Amil/DashboardAmil";
-import KelolaZis from "./pages/Amil/KelolaZis";
-import KelolaMuzzaki from "./pages/Amil/KelolaMuzzaki";
-import KelolaMustahik from "./pages/Amil/KelolaMustahik";
-import PengaturanAmil from "./pages/Amil/PengaturanAmil";
-import PengaturanKoordinator from "./pages/koordinator/PengaturanKoordinator";
-import PengaturanAnggota from "./pages/anggota/PengaturanAnggota";
-import KelolaKas from "./pages/koordinator/KelolaKas";
-import Home from "./pages/publik/Home";
-import Dashboard from "./pages/publik/Dashboard";
-import ManajemenZis from "./pages/publik/ManajemenZis";
-import LupaPassword from "./pages/auth/LupaPassword";
+
+// Page components
+const Login = lazy(() => import("./pages/auth/Login"));
+const DashboardUtama = lazy(() => import("./pages/koordinator/DashboardUtama"));
+const LaporanZIS = lazy(() => import("./pages/koordinator/LaporanZIS"));
+const AnggotaDasawisma = lazy(
+  () => import("./pages/koordinator/AnggotaDasawisma"),
+);
+const AnggotaAmil = lazy(() => import("./pages/koordinator/AnggotaAmil"));
+const DashboardAnggota = lazy(() => import("./pages/anggota/DashboardAnggota"));
+const LaporanKasAnggota = lazy(
+  () => import("./pages/anggota/LaporanKasAnggota"),
+);
+const LaporanZisAnggota = lazy(
+  () => import("./pages/anggota/LaporanZisAnggota"),
+);
+const DashboardAmil = lazy(() => import("./pages/Amil/DashboardAmil"));
+const KelolaZis = lazy(() => import("./pages/Amil/KelolaZis"));
+const KelolaMuzzaki = lazy(() => import("./pages/Amil/KelolaMuzzaki"));
+const KelolaMustahik = lazy(() => import("./pages/Amil/KelolaMustahik"));
+const PengaturanAmil = lazy(() => import("./pages/Amil/PengaturanAmil"));
+const PengaturanKoordinator = lazy(
+  () => import("./pages/koordinator/PengaturanKoordinator"),
+);
+const PengaturanAnggota = lazy(
+  () => import("./pages/anggota/PengaturanAnggota"),
+);
+const KelolaKas = lazy(() => import("./pages/koordinator/KelolaKas"));
+// const Home = lazy(() => import("./pages/publik/Home"));
+const Dashboard = lazy(() => import("./pages/publik/Dashboard"));
+const ManajemenZis = lazy(() => import("./pages/publik/ManajemenZis"));
+const LupaPassword = lazy(() => import("./pages/auth/LupaPassword"));
+
+// Layouts Components
 import Footer from "./components/layout/Footer";
+import DashboardLayout from "./components/layout/DashboardLayout";
+import AmilLayout from "./components/layout/AmilLayout";
 import NotFound from "./components/shared/NotFound";
+import AnggotaLayout from "./components/layout/AnggotaLayout";
+import Loader from "./components/shared/Loader";
+
+// BUAT TEST LOADINGGGG
+// const DashboardUtama = lazy(() => new Promise((resolve) => setTimeout(() => resolve(import("./pages/koordinator/DashboardUtama")), 8000)));
+const Home = lazy(() => new Promise((resolve) => setTimeout(() => resolve(import("./pages/publik/Home")), 8000)));
+
 
 // Daftar nama peran (role) sesuai data dari backend. Dipakai untuk membatasi
 // akses tiap rute lewat <ProtectedRoute allowedRoles={[...]}>.
@@ -118,190 +140,193 @@ function App() {
   return (
     <Router>
       <AuthBootstrapper>
-        <Routes>
-          {/* RUTE AUTENTIKASI */}
-          <Route path="/login" element={<Login />} />
+        <Suspense fallback={<Loader />}>
+          <Routes>
+            {/* RUTE AUTENTIKASI */}
+            <Route path="/login" element={<Login />} />
 
-          {/* === RUTE INTERNAL KOORDINATOR === */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute allowedRoles={[ROLE.KOORDINATOR]}>
-                <DashboardLayout>
-                  <DashboardUtama />
-                </DashboardLayout>
-              </ProtectedRoute>
-            }
-          />
+            {/* === RUTE INTERNAL KOORDINATOR === */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute allowedRoles={[ROLE.KOORDINATOR]}>
+                  <DashboardLayout>
+                    <DashboardUtama />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/kelola-kas"
-            element={
-              <ProtectedRoute allowedRoles={[ROLE.KOORDINATOR]}>
-                <DashboardLayout>
-                  <KelolaKas />
-                </DashboardLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/kelola-kas"
+              element={
+                <ProtectedRoute allowedRoles={[ROLE.KOORDINATOR]}>
+                  <DashboardLayout>
+                    <KelolaKas />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/laporan-zis"
-            element={
-              <ProtectedRoute allowedRoles={[ROLE.KOORDINATOR]}>
-                <DashboardLayout>
-                  <LaporanZIS />
-                </DashboardLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/laporan-zis"
+              element={
+                <ProtectedRoute allowedRoles={[ROLE.KOORDINATOR]}>
+                  <DashboardLayout>
+                    <LaporanZIS />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/anggota-dasawisma"
-            element={
-              <ProtectedRoute allowedRoles={[ROLE.KOORDINATOR]}>
-                <DashboardLayout>
-                  <AnggotaDasawisma />
-                </DashboardLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/anggota-dasawisma"
+              element={
+                <ProtectedRoute allowedRoles={[ROLE.KOORDINATOR]}>
+                  <DashboardLayout>
+                    <AnggotaDasawisma />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/anggota-amil"
-            element={
-              <ProtectedRoute allowedRoles={[ROLE.KOORDINATOR]}>
-                <DashboardLayout>
-                  <AnggotaAmil />
-                </DashboardLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/anggota-amil"
+              element={
+                <ProtectedRoute allowedRoles={[ROLE.KOORDINATOR]}>
+                  <DashboardLayout>
+                    <AnggotaAmil />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/pengaturan"
-            element={
-              <ProtectedRoute allowedRoles={[ROLE.KOORDINATOR]}>
-                <DashboardLayout>
-                  <PengaturanKoordinator />
-                </DashboardLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/pengaturan"
+              element={
+                <ProtectedRoute allowedRoles={[ROLE.KOORDINATOR]}>
+                  <DashboardLayout>
+                    <PengaturanKoordinator />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          {/* === RUTE INTERNAL ANGGOTA === */}
-          <Route
-            path="/anggota/dashboard"
-            element={
-              <ProtectedRoute allowedRoles={[ROLE.ANGGOTA]}>
-                <AnggotaLayout>
-                  <DashboardAnggota />
-                </AnggotaLayout>
-              </ProtectedRoute>
-            }
-          />
+            {/* === RUTE INTERNAL ANGGOTA === */}
+            <Route
+              path="/anggota/dashboard"
+              element={
+                <ProtectedRoute allowedRoles={[ROLE.ANGGOTA]}>
+                  <AnggotaLayout>
+                    <DashboardAnggota />
+                  </AnggotaLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/anggota/laporan-kas"
-            element={
-              <ProtectedRoute allowedRoles={[ROLE.ANGGOTA]}>
-                <AnggotaLayout>
-                  <LaporanKasAnggota />
-                </AnggotaLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/anggota/laporan-kas"
+              element={
+                <ProtectedRoute allowedRoles={[ROLE.ANGGOTA]}>
+                  <AnggotaLayout>
+                    <LaporanKasAnggota />
+                  </AnggotaLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/anggota/laporan-zis"
-            element={
-              <ProtectedRoute allowedRoles={[ROLE.ANGGOTA]}>
-                <AnggotaLayout>
-                  <LaporanZisAnggota />
-                </AnggotaLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/anggota/laporan-zis"
+              element={
+                <ProtectedRoute allowedRoles={[ROLE.ANGGOTA]}>
+                  <AnggotaLayout>
+                    <LaporanZisAnggota />
+                  </AnggotaLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/anggota/pengaturan"
-            element={
-              <ProtectedRoute allowedRoles={[ROLE.ANGGOTA]}>
-                <AnggotaLayout>
-                  <PengaturanAnggota />
-                </AnggotaLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/anggota/pengaturan"
+              element={
+                <ProtectedRoute allowedRoles={[ROLE.ANGGOTA]}>
+                  <AnggotaLayout>
+                    <PengaturanAnggota />
+                  </AnggotaLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          {/* === RUTE INTERNAL AMIL === */}
-          <Route
-            path="/amil/dashboard"
-            element={
-              <ProtectedRoute allowedRoles={[ROLE.AMIL]}>
-                <AmilLayout>
-                  <DashboardAmil />
-                </AmilLayout>
-              </ProtectedRoute>
-            }
-          />
+            {/* === RUTE INTERNAL AMIL === */}
+            <Route
+              path="/amil/dashboard"
+              element={
+                <ProtectedRoute allowedRoles={[ROLE.AMIL]}>
+                  <AmilLayout>
+                    <DashboardAmil />
+                  </AmilLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/amil/kelola-zis"
-            element={
-              <ProtectedRoute allowedRoles={[ROLE.AMIL]}>
-                <AmilLayout>
-                  <KelolaZis />
-                </AmilLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/amil/kelola-zis"
+              element={
+                <ProtectedRoute allowedRoles={[ROLE.AMIL]}>
+                  <AmilLayout>
+                    <KelolaZis />
+                  </AmilLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/amil/kelola-muzzaki"
-            element={
-              <ProtectedRoute allowedRoles={[ROLE.AMIL]}>
-                <AmilLayout>
-                  <KelolaMuzzaki />
-                </AmilLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/amil/kelola-muzzaki"
+              element={
+                <ProtectedRoute allowedRoles={[ROLE.AMIL]}>
+                  <AmilLayout>
+                    <KelolaMuzzaki />
+                  </AmilLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/amil/kelola-mustahik"
-            element={
-              <ProtectedRoute allowedRoles={[ROLE.AMIL]}>
-                <AmilLayout>
-                  <KelolaMustahik />
-                </AmilLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/amil/kelola-mustahik"
+              element={
+                <ProtectedRoute allowedRoles={[ROLE.AMIL]}>
+                  <AmilLayout>
+                    <KelolaMustahik />
+                  </AmilLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/amil/pengaturan"
-            element={
-              <ProtectedRoute allowedRoles={[ROLE.AMIL]}>
-                <AmilLayout>
-                  <PengaturanAmil />
-                </AmilLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/amil/pengaturan"
+              element={
+                <ProtectedRoute allowedRoles={[ROLE.AMIL]}>
+                  <AmilLayout>
+                    <PengaturanAmil />
+                  </AmilLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          {/* === RUTE PUBLIK DEVELOPMENT === */}
-          <Route path="/" element={<Home />} />
-          <Route path="/dashboard-publik" element={<Dashboard />} />
-          <Route path="/zis-publik" element={<ManajemenZis />} />
+            {/* === RUTE PUBLIK DEVELOPMENT === */}
+            <Route path="/" element={<Home />} />
+            <Route path="/dashboard-publik" element={<Dashboard />} />
+            <Route path="/zis-publik" element={<ManajemenZis />} />
 
-          {/* RESET PASSWORD */}
-          <Route path="/resetPassword/:token" element={<LupaPassword />} />
+            {/* RESET PASSWORD */}
+            <Route path="/resetPassword/:token" element={<LupaPassword />} />
 
-          {/* 404 Not Found */}
-          <Route path="/404" element={<NotFound />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            {/* 404 Not Found */}
+            <Route path="/404" element={<NotFound />} />
+            <Route path="*" element={<NotFound />} />
+            {/* <Routes path="/lodingjing" element={<Loader />} /> */}
+          </Routes>
+        </Suspense>
       </AuthBootstrapper>
     </Router>
   );

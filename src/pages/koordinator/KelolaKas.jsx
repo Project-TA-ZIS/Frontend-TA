@@ -24,7 +24,11 @@ import {
   formatThousands,
   parseThousandsToNumber,
 } from "../../utils/formatThousands";
-import KasTable from "../../components/shared/kasTable";
+import KasTable from "../../components/shared/Dasawisma/kasTable";
+import { formatDateInput } from "../../utils/formattedDate";
+import EditTransactionModal from "../../components/shared/Dasawisma/EditModals";
+import CreateDataModal from "../../components/shared/Dasawisma/CreateDataModal";
+import useAuthStore from "../../store/useAuthStore";
 
 // Halaman Kelola Kas (koordinator): catat/edit transaksi kas (pemasukan &
 // pengeluaran), lihat ringkasan saldo, filter, dan unduh PDF.
@@ -42,6 +46,7 @@ export default function KelolaKas() {
     nominal: "",
     jenis: "",
     sumber: "",
+    anggota_dasawisma_id: "",
     namaAnggota: "",
   });
   // ─── States Data & Modal ───
@@ -59,10 +64,12 @@ export default function KelolaKas() {
     nominal: "",
     tipePemasukan: "IURAN",
     anggota_dasawisma_id: "",
+    namaAnggota: "",
   });
   const [filterJenis, setFilterJenis] = useState("");
   const [filterBulan, setFilterBulan] = useState("");
   const [filterTahun, setFilterTahun] = useState("");
+  const user = useAuthStore((s) => s.user) || {};
 
   // Validasi form catat transaksi; anggota wajib dipilih khusus pemasukan iuran.
   const validateForm = () => {
@@ -84,6 +91,34 @@ export default function KelolaKas() {
       formData.jenis === "Pemasukan" &&
       formData.tipePemasukan === "IURAN" &&
       !formData.anggota_dasawisma_id
+    ) {
+      newErrors.anggota_dasawisma_id = "Silakan pilih anggota Dasawisma";
+    }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateEditForm = () => {
+    const newErrors = {};
+
+    if (!editForm.tanggal) {
+      newErrors.tanggal = "Tanggal transaksi wajib diisi";
+    }
+
+    if (!editForm.deskripsi?.trim()) {
+      newErrors.deskripsi = "Deskripsi kegiatan wajib diisi";
+    }
+
+    if (!editForm.nominal) {
+      newErrors.nominal = "Nominal wajib diisi";
+    }
+
+    if (
+      editForm.jenis === "Pemasukan" &&
+      editForm.sumber === "IURAN" &&
+      !editForm.anggota_dasawisma_id
     ) {
       newErrors.anggota_dasawisma_id = "Silakan pilih anggota Dasawisma";
     }
@@ -142,7 +177,6 @@ export default function KelolaKas() {
     label: anggota.nama_lengkap,
   }));
 
-  // Update field form; khusus nominal, otomatis diformat ribuan saat diketik.
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
@@ -164,6 +198,24 @@ export default function KelolaKas() {
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleEditInputChange = (e) => {
+    const { name, value } = e.target;
+
+    setEditForm((prev) => {
+      const updated = {
+        ...prev,
+        [name]: value,
+      };
+
+      if (name === "sumber" && value === "LAINNYA") {
+        updated.anggota_dasawisma_id = "";
+        updated.namaAnggota = "";
+      }
+
+      return updated;
+    });
   };
 
   // Saring transaksi sesuai filter jenis, bulan, dan tahun.
@@ -206,6 +258,7 @@ export default function KelolaKas() {
           sumber: item.sumber,
           jenis: "Pemasukan",
           nominal: Number(item.jumlah),
+          anggota_dasawisma_id: item.anggota_dasawisma_id,
         }));
       } catch {
         console.log("Pemasukan kosong");
@@ -219,7 +272,9 @@ export default function KelolaKas() {
           tanggal: item.tanggal_penyaluran,
           deskripsi: item.deskripsi,
           jenis: "Pengeluaran",
+          sumber: "Uang Kas Dasawisma",
           nominal: Number(item.jumlah),
+          namaAnggota: item.nama_anggota,
         }));
       } catch {
         console.log("Pengeluaran kosong");
@@ -302,6 +357,7 @@ export default function KelolaKas() {
           jumlah: nominal,
           deskripsi: formData.deskripsi,
           tanggal_penyaluran: formData.tanggal,
+           nama_anggota: user.nama_lengkap,
         });
       }
 
@@ -324,6 +380,7 @@ export default function KelolaKas() {
         nominal: "",
         tipePemasukan: "IURAN",
         anggota_dasawisma_id: "",
+        namaAnggota: "",
       });
     } catch (error) {
       console.log(error);
@@ -354,6 +411,7 @@ export default function KelolaKas() {
       jenis: trx.jenis || "",
       sumber: trx.sumber || "",
       namaAnggota: trx.namaAnggota || "",
+      anggota_dasawisma_id: trx.anggota_dasawisma_id || "",
     });
 
     setIsEditModalOpen(true);
@@ -361,6 +419,18 @@ export default function KelolaKas() {
 
   // Simpan hasil edit transaksi setelah konfirmasi, lalu muat ulang data & saldo.
   const handleSaveEdit = async () => {
+    if (!validateEditForm()) {
+      return;
+    }
+    if (
+      editForm.jenis === "Pemasukan" &&
+      editForm.sumber === "IURAN" &&
+      !editForm.anggota_dasawisma_id
+    ) {
+      toast.error("Silahkan pilih anggota dasawisma");
+      return;
+    }
+
     const result = await Swal.fire({
       title: "Simpan perubahan?",
       text: "Data transaksi akan diperbarui.",
@@ -377,8 +447,10 @@ export default function KelolaKas() {
       if (selectedTransaction.jenis === "Pemasukan") {
         const payload = {
           jumlah: parseThousandsToNumber(editForm.nominal),
+          sumber: editForm.sumber,
           deskripsi: editForm.deskripsi,
           tanggal_penghimpunan: editForm.tanggal,
+          anggota_dasawisma_id: editForm.anggota_dasawisma_id,
         };
 
         await pemasukanDasawismaService.updatePemasukanKas(
@@ -388,8 +460,10 @@ export default function KelolaKas() {
       } else {
         const payload = {
           jumlah: parseThousandsToNumber(editForm.nominal),
+          sumber: editForm.sumber,
           deskripsi: editForm.deskripsi,
           tanggal_penyaluran: editForm.tanggal,
+          anggota_dasawisma_id: editForm.anggota_dasawisma_id,
         };
         await pengeluaranService.updatePengeluaran(
           selectedTransaction.id,
@@ -448,6 +522,7 @@ export default function KelolaKas() {
         nominal: "",
         tipePemasukan: "IURAN",
         anggota_dasawisma_id: "",
+        namaAnggota: "",
       });
     }
   };
@@ -475,6 +550,7 @@ export default function KelolaKas() {
         jenis: selectedTransaction.jenis || "",
         sumber: selectedTransaction.sumber || "",
         namaAnggota: selectedTransaction.namaAnggota || "",
+        anggota_dasawisma_id: selectedTransaction.anggota_dasawisma_id || "",
       });
     }
   };
@@ -498,7 +574,7 @@ export default function KelolaKas() {
         className="min-h-screen bg-gray-50 p-6 md:p-10"
         style={{ fontFamily: "Manrope, sans-serif" }}
       >
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
+        
 
         {/* Header */}
         <div className="mb-8">
@@ -584,304 +660,29 @@ export default function KelolaKas() {
         </div>
 
         {/* ─── MODAL POP-UP CATAT TRANSAKSI ─── */}
-        {isModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-            {/* Menggunakan max-h-[90vh] agar modal tetap bisa di-scroll jika layar kecil */}
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
-              {/* Header Modal - Dikecilkan padding-nya */}
-              <div className="bg-[#0F766E] px-5 py-4 flex items-center justify-between flex-shrink-0">
-                <h2 className="text-base md:text-lg font-bold text-white">
-                  Catat Transaksi Kas
-                </h2>
-                <button
-                  onClick={handleCloseModal}
-                  className="text-emerald-100 hover:text-white transition-colors"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              {/* Form Body - Menggunakan space-y-3 (rapat) untuk mobile */}
-              <form
-                onSubmit={handleSubmit}
-                className="flex flex-col flex-1 overflow-hidden"
-              >
-                <div className="p-5 space-y-3 overflow-y-auto flex-1">
-                  <div>
-                    <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                      Tanggal Transaksi
-                      <span className="text-red-500"> *</span>
-                    </label>
-                    <input
-                      type="date"
-                      name="tanggal"
-                      // required
-                      value={formData.tanggal}
-                      onChange={handleInputChange}
-                      className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-2.5 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
-                    />
-                    {errors.tanggal && (
-                      <p className="mt-1 text-xs text-red-500">
-                        {errors.tanggal}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                      Jenis Transaksi
-                      <span className="text-red-500"> *</span>
-                    </label>
-                    <select
-                      name="jenis"
-                      value={formData.jenis}
-                      onChange={handleInputChange}
-                      className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-2.5 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
-                    >
-                      <option value="Pemasukan">KAS MASUK (PEMASUKAN)</option>
-                      <option value="Pengeluaran">
-                        KAS KELUAR (PENGELUARAN)
-                      </option>
-                    </select>
-                  </div>
-
-                  {formData.jenis === "Pemasukan" && (
-                    <div>
-                      <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                        Tipe Pemasukan
-                        <span className="text-red-500"> *</span>
-                      </label>
-                      <select
-                        name="tipePemasukan"
-                        value={formData.tipePemasukan}
-                        onChange={handleInputChange}
-                        className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-2.5 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
-                      >
-                        <option value="IURAN">Iuran Anggota</option>
-                        <option value="LAINNYA">Lainnya</option>
-                      </select>
-                    </div>
-                  )}
-
-                  {formData.jenis === "Pemasukan" &&
-                    formData.tipePemasukan === "IURAN" && (
-                      <div>
-                        <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                          Cari Anggota Dasawisma
-                          <span className="text-red-500"> *</span>
-                        </label>
-                        <Select
-                          options={
-                            searchAnggota
-                              ? anggotaOptions.filter((item) =>
-                                  item.label
-                                    .toLowerCase()
-                                    .includes(searchAnggota.toLowerCase()),
-                                )
-                              : anggotaOptions.slice(0, 3)
-                          }
-                          placeholder="Cari nama anggota..."
-                          onChange={(selectedOption) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              anggota_dasawisma_id: selectedOption?.value || "",
-                            }))
-                          }
-                          className="text-sm"
-                        />
-                        {errors.anggota_dasawisma_id && (
-                          <p className="mt-1 text-xs text-red-500">
-                            {errors.anggota_dasawisma_id}
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                  <div>
-                    <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                      Deskripsi Kegiatan
-                      <span className="text-red-500"> *</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="deskripsi"
-                      //required
-                      value={formData.deskripsi}
-                      onChange={handleInputChange}
-                      className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-2.5 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
-                      placeholder="Contoh: Pembelian Sapu..."
-                    />
-                    {errors.deskripsi && (
-                      <p className="mt-1 text-xs text-red-500">
-                        {errors.deskripsi}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                      Nominal (Rp)
-                      <span className="text-red-500"> *</span>
-                    </label>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9.]*"
-                      name="nominal"
-                      // required
-                      value={formData.nominal}
-                      onChange={handleInputChange}
-                      className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-2.5 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
-                      placeholder="0"
-                    />
-                    {errors.nominal && (
-                      <p className="mt-1 text-xs text-red-500">
-                        {errors.nominal}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Footer Tombol - Dikecilkan padding-nya */}
-                <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-2 bg-gray-50 flex-shrink-0">
-                  <button
-                    type="button"
-                    onClick={handleCloseModal}
-                    className="px-5 py-2 rounded-xl text-sm font-bold text-gray-600 bg-white border border-gray-200 hover:bg-gray-100 transition-colors"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2 rounded-xl text-sm font-bold text-white bg-[#10B981] hover:bg-[#059669] transition-colors"
-                  >
-                    Simpan
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+        <CreateDataModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          formData={formData}
+          setFormData={setFormData}
+          errors={errors}
+          anggotaOptions={anggotaOptions}
+          onSave={handleSubmit}
+          handleInputChange={handleInputChange}
+          userData={user}
+        />
       </div>
 
-      {isEditModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
-            <div className="bg-[#0F766E] p-4 flex justify-between items-center">
-              <h2 className="text-white font-bold text-lg">
-                Detail Transaksi Kas
-              </h2>
-
-              <button
-                onClick={() => handleCloseEditModal()}
-                className="text-white"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="p-5 space-y-4">
-              <div>
-                <label className="text-xs font-bold text-gray-500">
-                  Jenis Transaksi
-                </label>
-                <input
-                  disabled
-                  value={editForm.jenis}
-                  className="w-full mt-1 bg-gray-100 border rounded-xl px-4 py-2"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-gray-500">
-                  Nama Anggota
-                </label>
-                <input
-                  disabled
-                  value={editForm.namaAnggota}
-                  className="w-full mt-1 bg-gray-100 border rounded-xl px-4 py-2"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-gray-500">
-                  Sumber
-                </label>
-                <input
-                  disabled
-                  value={editForm.sumber}
-                  className="w-full mt-1 bg-gray-100 border rounded-xl px-4 py-2"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-gray-500">
-                  Tanggal
-                </label>
-                <input
-                  type="date"
-                  value={editForm.tanggal?.split("T")[0]}
-                  onChange={(e) =>
-                    setEditForm({
-                      ...editForm,
-                      tanggal: e.target.value,
-                    })
-                  }
-                  className="w-full mt-1 border rounded-xl px-4 py-2"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-gray-500">
-                  Deskripsi
-                </label>
-                <input
-                  value={editForm.deskripsi}
-                  onChange={(e) =>
-                    setEditForm({
-                      ...editForm,
-                      deskripsi: e.target.value,
-                    })
-                  }
-                  className="w-full mt-1 border rounded-xl px-4 py-2"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-gray-500">
-                  Nominal
-                </label>
-                <input
-                  value={editForm.nominal}
-                  onChange={(e) =>
-                    setEditForm({
-                      ...editForm,
-                      nominal: formatThousands(e.target.value),
-                    })
-                  }
-                  className="w-full mt-1 border rounded-xl px-4 py-2"
-                />
-              </div>
-            </div>
-
-            <div className="border-t p-4 flex justify-end gap-2">
-              <button
-                onClick={() => handleCloseEditModal()}
-                className="px-5 py-2 rounded-xl bg-gray-100 font-bold"
-              >
-                Batal
-              </button>
-
-              <button
-                onClick={handleSaveEdit}
-                className="px-5 py-2 rounded-xl bg-[#10B981] text-white font-bold"
-              >
-                Simpan Perubahan
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <EditTransactionModal
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEditModal}
+        editForm={editForm}
+        setEditForm={setEditForm}
+        errors={errors}
+        anggotaOptions={anggotaOptions}
+        onSave={handleSaveEdit}
+        handleEditInputChange={handleEditInputChange}
+      />
     </PageTransition>
   );
 }

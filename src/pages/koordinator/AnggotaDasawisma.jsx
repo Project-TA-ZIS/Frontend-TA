@@ -4,6 +4,7 @@ import PageTransition from "../../components/shared/PageTransition";
 import dasawismaService from "../../services/dasawisma.service";
 import Swal from "sweetalert2";
 import { formattedDate } from "../../utils/formattedDate";
+import AnggotaTable from "../../components/shared/Dasawisma/AnggotaTable";
 
 // Halaman kelola Kader Dasawisma (koordinator): tabel + tambah/edit/hapus/detail
 // via modal, dengan pencarian dan pagination.
@@ -226,7 +227,7 @@ export default function AnggotaDasawisma() {
           text: "Data anggota berhasil diperbarui",
           confirmButtonColor: "#10B981",
         });
-        await dasawismaService.updateAnggotaDasawisma(editingId, {
+        await dasawismaService.updateAnggotaByPJ(editingId, {
           nama_lengkap: formData.nama,
           email: formData.email,
           nomor_telpon: formData.telp,
@@ -237,7 +238,6 @@ export default function AnggotaDasawisma() {
           nama_lengkap: formData.nama,
           email: formData.email,
           nomor_telpon: formData.telp,
-
           password: formData.password,
           roles: roleApi,
         });
@@ -339,7 +339,6 @@ export default function AnggotaDasawisma() {
         className="min-h-screen bg-gray-50 p-6 md:p-10 relative"
         style={{ fontFamily: "Manrope, sans-serif" }}
       >
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
 
         {/* ─── Header ─── */}
         <div className="mb-6">
@@ -377,144 +376,17 @@ export default function AnggotaDasawisma() {
         </div>
 
         {/* ─── Table ─── */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/50">
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center w-20">
-                    NO
-                  </th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">
-                    Nama Lengkap
-                  </th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">
-                    Role
-                  </th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">
-                    Email
-                  </th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">
-                    No. Telp
-                  </th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center w-36">
-                    Aksi
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {isLoading ? (
-                  <tr>
-                    <td
-                      colSpan="6"
-                      className="px-6 py-8 text-center text-xs font-bold text-gray-400"
-                    >
-                      Memuat data...
-                    </td>
-                  </tr>
-                ) : filteredAnggota.length > 0 ? (
-                  paginatedAnggota.map((item, index) => (
-                    <tr
-                      key={index}
-                      className="hover:bg-emerald-50/20 transition-colors"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap text-xs font-bold text-[#10B981] text-center">
-                        {(currentPage - 1) * itemsPerPage + index + 1}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-[12px] font-bold text-gray-900 text-center">
-                        {item.nama}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide ${
-                            item.role.toLowerCase() ===
-                              "penanggung jawab dasawisma" ||
-                            item.role === "Amil Zakat"
-                              ? "bg-emerald-50 text-emerald-700"
-                              : "bg-gray-100 text-gray-600"
-                          }`}
-                        >
-                          {item.role}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-[12px] font-bold text-gray-900 text-center">
-                        {item.email}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-gray-500 text-center">
-                        {item.telp || "-"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => handleInfoClick(item.id)}
-                            className="text-[#0F766E] bg-emerald-50 hover:bg-[#0F766E] hover:text-white p-2 rounded-xl transition-all shadow-sm"
-                            title="Detail"
-                          >
-                            <Info size={15} />
-                          </button>
-                          <button
-                            onClick={() => handleEditClick(item)}
-                            className="text-amber-600 bg-amber-50 hover:bg-amber-500 hover:text-white p-2 rounded-xl transition-all shadow-sm"
-                            title="Edit"
-                          >
-                            <Edit size={15} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteClick(item.id)}
-                            className="text-red-500 bg-red-50 hover:bg-red-500 hover:text-white p-2 rounded-xl transition-all shadow-sm"
-                            title="Hapus"
-                          >
-                            <Trash2 size={15} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan="6"
-                      className="px-6 py-8 text-center text-xs font-medium text-gray-400"
-                    >
-                      Tidak ada data yang cocok dengan pencarian "{searchQuery}"
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-
-            {/* Pagination */}
-            <div className="flex items-center justify-between m-6">
-              <p className="text-xs text-gray-400 font-bold">
-                Halaman {currentPage} dari {totalPages}
-              </p>
-              <div className="flex items-center gap-1.5">
-                <button
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage((prev) => prev - 1)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                    currentPage === 1
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-gray-200 hover:bg-gray-300 text-gray-700"
-                  }`}
-                >
-                  Sebelumnya
-                </button>
-                <button
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage((prev) => prev + 1)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                    currentPage === totalPages
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-[#10B981] hover:bg-[#059669] text-white"
-                  }`}
-                >
-                  Selanjutnya
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <AnggotaTable
+          data={filteredAnggota}
+          isLoading={isLoading}
+          searchQuery={searchQuery}
+          onInfo={handleInfoClick}
+          onEdit={handleEditClick}
+          onDelete={handleDeleteClick}
+          canView
+          canEdit
+          canDelete
+        />
 
         {/* ─── MODAL FORM: TAMBAH / EDIT DATA ─── */}
         {isModalOpen && (
@@ -637,7 +509,8 @@ export default function AnggotaDasawisma() {
                       {editingId && (
                         <div>
                           <label className={labelClass}>
-                            Nomor Telepon<span className="text-red-500"> *</span>
+                            Nomor Telepon
+                            <span className="text-red-500"> *</span>
                           </label>
                           <input
                             type="text"

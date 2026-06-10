@@ -349,7 +349,7 @@ export default function DashboardAmil() {
   return (
     <PageTransition>
       <div className="min-h-screen bg-gray-50 p-4 md:p-10 font-['Manrope']">
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
+        
 
         {/* Header */}
         <div className="mb-6 md:mb-8">
