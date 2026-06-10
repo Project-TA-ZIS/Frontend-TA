@@ -120,7 +120,7 @@ export default function Login() {
       style={{ fontFamily: "Manrope, sans-serif" }}
     >
       {/* Import Font Manrope langsung dari Google Fonts */}
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
+      
 
       {/* ─── SISI KIRI: Branding & Informasi (Hanya tampil di layar besar) ─── */}
       <div className="hidden lg:flex lg:w-1/2 bg-[#0F766E] p-12 flex-col justify-between relative overflow-hidden">

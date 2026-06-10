@@ -135,7 +135,7 @@ export default function PengaturanKoordinator() {
         tempat_lahir: formData.tempat_lahir,
         tanggal_lahir: formData.tanggal_lahir,
       };
-      await dasawismaService.updateAnggotaDasawisma(user?.id, payload);
+      await dasawismaService.updateProfile(user?.id, payload);
       setIsSuccess(true);
 
       Swal.fire({
@@ -265,7 +265,7 @@ export default function PengaturanKoordinator() {
   return (
     <PageTransition>
       <div className="min-h-screen bg-gray-50 p-6 md:p-10 font-['Manrope']">
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
+        
 
         {/* ─── Header ─── */}
         <div className="mb-8">

@@ -7,7 +7,7 @@ import pemasukanDasawismaService from "../../services/pemasukanDasawisma.service
 import totalKasDasawismaService from "../../services/totalKasDasawisma.service";
 import KasSummaryCards from "../../components/shared/KasSummaryCards";
 import { exportKasDasawismaPdf } from "../../utils/exportKasDasawismaPdf";
-import KasTable from "../../components/shared/kasTable";
+import KasTable from "../../components/shared/Dasawisma/kasTable";
 
 // Halaman Laporan/Manajemen Kas Dasawisma untuk anggota: ringkasan saldo,
 // daftar transaksi kas (pemasukan & pengeluaran) dengan filter, dan unduh PDF.
@@ -69,6 +69,7 @@ export default function LaporanKasAnggota() {
           sumber: item.sumber,
           jenis: "Pemasukan",
           nominal: Number(item.jumlah),
+          anggota_dasawisma_id: item.anggota_dasawisma_id,
         }));
       } catch {
         console.log("Pemasukan kosong");
@@ -82,7 +83,9 @@ export default function LaporanKasAnggota() {
           tanggal: item.tanggal_penyaluran,
           deskripsi: item.deskripsi,
           jenis: "Pengeluaran",
+          sumber: "Uang Kas Dasawisma",
           nominal: Number(item.jumlah),
+          namaAnggota: item.nama_anggota,
         }));
       } catch {
         console.log("Pengeluaran kosong");
@@ -154,7 +157,7 @@ export default function LaporanKasAnggota() {
         className="min-h-screen bg-gray-50 p-6 md:p-10"
         style={{ fontFamily: "Manrope, sans-serif" }}
       >
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
+        
 
         {/* Header */}
         <div className="mb-8">

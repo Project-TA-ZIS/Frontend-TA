@@ -9,13 +9,7 @@ export default function NotFound() {
 
   return (
     <PageTransition>
-      <div
-        className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 font-['Manrope'] relative overflow-hidden"
-        style={{ fontFamily: "Manrope, sans-serif" }}
-      >
-        {/* Import Font Manrope */}
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
-
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 relative overflow-hidden">
         {/* Ornamen Latar Belakang Estetik */}
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-emerald-100/40 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-teal-100/40 rounded-full blur-3xl pointer-events-none"></div>

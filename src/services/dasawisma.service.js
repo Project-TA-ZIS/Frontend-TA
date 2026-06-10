@@ -19,8 +19,16 @@ async function createAnggotaDasawisma(payload) {
 }
 
 // Ubah data anggota dasawisma berdasarkan id.
-async function updateAnggotaDasawisma(id, payload) {
-  const res = await api.put(`/dasawisma/update/updateAnggota/${id}`, payload);
+async function updateProfile(id, payload) {
+  const res = await api.put(`/dasawisma/update/updateProfile/${id}`, payload);
+  return res.data;
+}
+
+async function updateAnggotaByPJ(id, payload) {
+  const res = await api.put(
+    `/dasawisma/update/updateAnggotaByPJ/${id}`,
+    payload,
+  );
   return res.data;
 }
 
@@ -45,7 +53,8 @@ const dasawismaService = {
   getAllAnggotaDasawisma,
   getAnggotaDasawismaById,
   createAnggotaDasawisma,
-  updateAnggotaDasawisma,
+  updateProfile,
+  updateAnggotaByPJ,
   deleteAnggotaDasawisma,
   updatePassword,
 };

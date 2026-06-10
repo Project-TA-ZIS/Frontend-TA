@@ -8,6 +8,7 @@ import {
   updateMuzakki,
 } from "../../services/muzakki.service";
 import Swal from "sweetalert2";
+import { formatDateInput } from "../../utils/formattedDate";
 
 // Halaman kelola Muzzaki (pemberi zakat): tabel + tambah/edit/hapus via modal,
 // dengan pencarian dan pagination.
@@ -46,15 +47,6 @@ export default function KelolaMuzzaki() {
     return value ?? "-";
   };
 
-  // Ambil bagian tanggal saja (yyyy-mm-dd) dari string tanggal/ISO.
-  const toDateOnly = (value) => {
-    if (!value) return "";
-    const raw = String(value);
-    // jika ISO string, ambil yyyy-mm-dd
-    if (raw.includes("T")) return raw.slice(0, 10);
-    return raw;
-  };
-
   // Ubah satu data muzakki dari format server → format baris tabel/form.
   const mapApiToRow = (item) => ({
     id: String(item?.id ?? ""),
@@ -65,7 +57,7 @@ export default function KelolaMuzzaki() {
     npwp: item?.npwp ?? "",
     nik: item?.nik ?? "",
     tempatLahir: item?.tempat_lahir ?? "",
-    tanggalLahir: toDateOnly(item?.tanggal_lahir),
+    tanggalLahir: formatDateInput(item?.tanggal_lahir),
     jenisKelamin: item?.jenis_kelamin ?? "laki-laki",
     pekerjaan: item?.pekerjaan ?? "",
   });
@@ -167,7 +159,7 @@ export default function KelolaMuzzaki() {
       npwp: item.npwp,
       nik: item.nik,
       tempatLahir: item.tempatLahir,
-      tanggalLahir: item.tanggalLahir,
+      tanggalLahir: formatDateInput(item.tanggalLahir),
       jenisKelamin: item.jenisKelamin,
       pekerjaan: item.pekerjaan,
     });
@@ -376,7 +368,7 @@ export default function KelolaMuzzaki() {
   return (
     <PageTransition>
       <div className="min-h-screen bg-gray-50 p-6 md:p-10 font-['Manrope']">
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
+        
 
         {/* ─── Header ─── */}
         <div className="mb-6">
@@ -459,7 +451,7 @@ export default function KelolaMuzzaki() {
                       className="hover:bg-emerald-50/30 transition-colors"
                     >
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#0F766E] text-center">
-                        {item.id}
+                        {index + 1 + (safePage - 1) * PAGE_SIZE}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-center">
                         {item.nama}
@@ -777,7 +769,7 @@ export default function KelolaMuzzaki() {
                         <input
                           type="date"
                           name="tanggalLahir"
-                          value={formData.tanggalLahir}
+                          value={formatDateInput(formData.tanggalLahir)}
                           onChange={handleInputChange}
                           className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
                         />

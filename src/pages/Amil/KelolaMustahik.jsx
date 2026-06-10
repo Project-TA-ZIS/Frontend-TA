@@ -8,6 +8,7 @@ import {
   updateMustahik,
 } from "../../services/mustahik.service";
 import Swal from "sweetalert2";
+import { formatDateInput } from "../../utils/formattedDate";
 
 // Ubah kode jenis kelamin menjadi label tampilan.
 const toGenderLabel = (value) => {
@@ -26,14 +27,6 @@ const toKategoriLabel = (value) => {
   return v.charAt(0).toUpperCase() + v.slice(1);
 };
 
-// Ambil bagian tanggal saja (yyyy-mm-dd) dari string tanggal/ISO.
-const toDateOnly = (value) => {
-  if (!value) return "";
-  const raw = String(value);
-  if (raw.includes("T")) return raw.slice(0, 10);
-  return raw;
-};
-
 // Ubah satu data mustahik dari format server → format baris tabel/form.
 const mapApiToRow = (item) => ({
   id: String(item?.id ?? ""),
@@ -42,7 +35,7 @@ const mapApiToRow = (item) => ({
   alamat: item?.alamat ?? "",
   nik: item?.nik ?? "",
   tempatLahir: item?.tempat_lahir ?? "",
-  tanggalLahir: toDateOnly(item?.tanggal_lahir),
+  tanggalLahir: formatDateInput(item?.tanggal_lahir),
   kategori: item?.kategori ?? "fakir",
   jenisKelamin: item?.jenis_kelamin ?? "laki-laki",
 });
@@ -130,7 +123,10 @@ export default function KelolaMustahik() {
     );
   }, [mustahikList, searchQuery]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredMustahik.length / PAGE_SIZE));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredMustahik.length / PAGE_SIZE),
+  );
   const safePage = Math.min(page, totalPages);
   const paginatedMustahik = useMemo(() => {
     const start = (safePage - 1) * PAGE_SIZE;
@@ -328,7 +324,7 @@ export default function KelolaMustahik() {
   return (
     <PageTransition>
       <div className="min-h-screen bg-gray-50 p-6 md:p-10 font-['Manrope']">
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');`}</style>
+        
 
         {/* ─── Header ─── */}
         <div className="mb-6">
@@ -417,7 +413,7 @@ export default function KelolaMustahik() {
                       className="hover:bg-emerald-50/30 transition-colors"
                     >
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#0F766E] text-center">
-                        {item.id}
+                        {index + 1 + (safePage - 1) * PAGE_SIZE}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-center">
                         {item.nama}
