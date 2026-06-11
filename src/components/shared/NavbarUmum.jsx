@@ -41,7 +41,7 @@ function NavbarUmum() {
         </div>
 
         {/* MENU TENGAH (DESKTOP) */}
-        <div className="hidden md:flex items-center gap-1 bg-white/70 backdrop-blur-sm rounded-full p-1.5 border border-emerald-100/60 shadow-[0_2px_10px_-4px_rgba(15,118,110,0.1)] absolute left-1/2 -translate-x-1/2">
+        <div className="hidden md:flex items-center gap-1 bg-emerald-50 rounded-full p-1.5 border border-emerald-200 shadow-[0_4px_16px_-4px_rgba(15,118,110,0.25)] absolute left-1/2 -translate-x-1/2">
           {navLinks.map((link) => (
             <Link key={link.to} to={link.to} className={linkClass(link.to)}>
               {link.label}

@@ -84,8 +84,8 @@ export default function ChartKas({ pemasukanItems, pengeluaranItems, themeColors
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 font-['Manrope']">
       <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
         <div>
-          <h2 className="text-base font-bold text-gray-900">Tren Transaksi Kas Dasawisma</h2>
-          <p className="text-xs text-gray-500 mt-0.5">Laporan akumulasi dana {waktu.toLowerCase()} {new Date().getFullYear()}</p>
+          <h2 className="text-base md:text-xl font-extrabold text-gray-900">Tren Transaksi Kas Dasawisma</h2>
+          <p className="text-xs md:text-sm text-gray-500 mt-1 font-medium">Laporan akumulasi dana {waktu.toLowerCase()} {new Date().getFullYear()}</p>
         </div>
         <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
           {["Bulanan", "Tahunan"].map((opt) => (
@@ -93,9 +93,11 @@ export default function ChartKas({ pemasukanItems, pengeluaranItems, themeColors
               key={opt}
               type="button"
               onClick={() => setWaktu(opt)}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                waktu === opt ? "bg-[#10B981] text-white" : "text-gray-500 hover:text-gray-700"
-              }`}
+              className={`px-3 md:px-4 py-1.5 md:py-2 rounded-md text-[11px] md:text-sm font-bold transition-all duration-300 ${
+                  waktu === opt 
+                    ? "bg-[#10B981] text-white shadow-sm" 
+                    : "text-gray-500 hover:text-gray-800 hover:bg-gray-200/50"
+                }`}
             >
               {opt}
             </button>

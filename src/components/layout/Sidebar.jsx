@@ -27,7 +27,7 @@ export default function Sidebar() {
     { name: "LAPORAN ZIS", icon: FileText, path: "/laporan-zis" },
     { name: "KADER DASAWISMA", icon: Users, path: "/anggota-dasawisma" },
     { name: "ANGGOTA AMIL", icon: UserCog, path: "/anggota-amil" },
-    { name: "PENGATURAN", icon: Settings, path: "/pengaturan" },
+    //{ name: "PENGATURAN", icon: Settings, path: "/pengaturan" },
   ];
 
   // Fungsi untuk menutup sidebar setelah menu diklik (khusus mobile)

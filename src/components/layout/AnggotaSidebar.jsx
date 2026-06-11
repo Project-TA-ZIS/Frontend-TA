@@ -23,7 +23,7 @@ export default function Sidebar() {
     { name: "DASHBOARD", icon: LayoutDashboard, path: "/anggota/dashboard" },
     { name: "LAPORAN KAS", icon: FileText, path: "/anggota/laporan-kas" },
     { name: "LAPORAN ZIS", icon: Wallet, path: "/anggota/laporan-zis" },
-    { name: "PENGATURAN", icon: Settings, path: "/anggota/pengaturan" },
+    //{ name: "PENGATURAN", icon: Settings, path: "/anggota/pengaturan" },
   ];
 
   // Fungsi untuk menutup sidebar setelah menu diklik (khusus mobile)

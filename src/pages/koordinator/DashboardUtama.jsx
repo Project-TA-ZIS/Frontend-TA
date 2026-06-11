@@ -22,7 +22,7 @@ const KPI_TEMPLATE = [
   { id: 1, icon: HandHeart, label: "JUMLAH MUZZAKI", key: "muzakki" },
   { id: 2, icon: Users, label: "JUMLAH MUSTAHIQ", key: "mustahik" },
   { id: 3, icon: Wallet, label: "JUMLAH AMIL", key: "amil" },
-  { id: 4, icon: UsersRound, label: "JUMLAH ANGGOTA", key: "anggota" }, // Disingkat agar tidak pecah
+  { id: 4, icon: UsersRound, label: "JUMLAH ANGGOTA DASAWISMA", key: "anggota" },
 ];
 
 const CLR = {
@@ -33,19 +33,24 @@ const CLR = {
 };
 
 // ─── Sub-Komponen KpiCard Lokal ───
-// Kartu indikator (label + angka + ikon) untuk menampilkan jumlah data.
+// Kartu indikator (ikon + label + angka) untuk menampilkan jumlah data.
+// Dibuat identik dengan KpiCard di Dashboard Anggota agar tampilannya seragam.
 const KpiCard = ({ icon: IconComponent, label, value }) => (
-  <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-center hover:shadow-md transition-shadow duration-200">
-    <div className="flex items-center justify-between mb-1 md:mb-2">
-      <p className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider line-clamp-1">
-        {label}
-      </p>
-      <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: CLR.primaryBg }}>
-        <IconComponent size={18} style={{ color: CLR.accent }} strokeWidth={2.5} />
-      </div>
+  <div
+    className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col justify-between"
+    style={{ minHeight: 140 }}
+  >
+    <div
+      className="w-10 h-10 rounded-lg flex items-center justify-center"
+      style={{ background: CLR.primaryBg }}
+    >
+      <IconComponent size={20} style={{ color: CLR.accent }} strokeWidth={2} />
     </div>
     <div>
-      <p className="text-lg md:text-2xl lg:text-3xl font-extrabold text-gray-900 truncate">{value}</p>
+      <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">
+        {label}
+      </p>
+      <p className="text-3xl font-bold text-gray-900">{value}</p>
     </div>
   </div>
 );
@@ -178,7 +183,7 @@ export default function DashboardUtama() {
         </div>
 
         {/* KPI Cards dengan Grid Responsif */}
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
           {kpiCards.map((card) => (
             <KpiCard key={card.id} icon={card.icon} label={card.label} value={card.value} />
           ))}
