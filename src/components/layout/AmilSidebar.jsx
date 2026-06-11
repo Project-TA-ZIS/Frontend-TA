@@ -22,7 +22,7 @@ export default function AmilSidebar({ isOpen, setIsOpen }) {
     { name: "KELOLA ZIS", icon: Wallet, path: "/amil/kelola-zis" },
     { name: "KELOLA MUZZAKI", icon: HandHeart, path: "/amil/kelola-muzzaki" },
     { name: "KELOLA MUSTAHIK", icon: Users, path: "/amil/kelola-mustahik" },
-    { name: "PENGATURAN", icon: Settings, path: "/amil/pengaturan" },
+    //{ name: "PENGATURAN", icon: Settings, path: "/amil/pengaturan" },
   ];
 
   return (

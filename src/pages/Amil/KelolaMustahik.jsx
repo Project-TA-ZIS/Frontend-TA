@@ -211,7 +211,7 @@ export default function KelolaMustahik() {
     }
 
     if (!(formData.telp || "").trim()) {
-      newErrors.telp = "Nomor telepon wajib diisi!";
+      newErrors.telp = "Nomor telepon wajib diisi 10 sampai 12 karakter!";
     } else if (!/^[0-9]+$/.test(formData.telp)) {
       newErrors.telp = "Nomor telepon hanya boleh angka!";
     } else if (formData.telp.length < 10) {
@@ -539,6 +539,7 @@ export default function KelolaMustahik() {
 
               <form
                 onSubmit={handleSubmit}
+                noValidate
                 className="flex-1 overflow-hidden flex flex-col"
               >
                 <div className="p-6 overflow-y-auto space-y-6">

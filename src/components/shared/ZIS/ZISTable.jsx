@@ -143,7 +143,7 @@ export default function ZisTable({
               {sortableHeader("KATEGORI", "kategori")}
               {sortableHeader("DESKRIPSI", "deskripsi")}
               {sortableHeader("NOMINAL (RP)", "nominal")}
-              {sortableHeader("TIPE", "tipe")}
+              {sortableHeader("JENIS", "jenis")}
 
               {showActions && (
                 <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
@@ -198,29 +198,20 @@ export default function ZisTable({
                   >
                     {trx.kategori === "Zakat Fitrah Beras"
                       ? `${trx.nominal} KG`
-                      : formatRupiah(trx.nominal).replace("Rp", "").trim()}
+                      : `Rp ${formatRupiah(trx.nominal).replace("Rp", "").trim()}`}
                   </td>
 
-                  <td className="px-6 py-4 text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <span
-                        className={`w-2 h-2 rounded-full ${
-                          trx.tipe === "Pemasukan"
-                            ? "bg-[#10B981]"
-                            : "bg-[#EF4444]"
-                        }`}
-                      />
-
-                      <span
-                        className={`text-xs font-bold ${
-                          trx.tipe === "Pemasukan"
-                            ? "text-[#10B981]"
-                            : "text-[#EF4444]"
-                        }`}
-                      >
-                        {trx.tipe}
-                      </span>
-                    </div>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    {/* Badge JENIS: gaya pill agar seragam dengan tabel Kas. */}
+                    <span
+                      className={`px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wider ${
+                        trx.tipe === "Pemasukan"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {trx.tipe}
+                    </span>
                   </td>
 
                   {showActions && (

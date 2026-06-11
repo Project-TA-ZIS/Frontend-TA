@@ -169,7 +169,7 @@ export default function AnggotaAmil() {
     }
 
     if (!formData.telp.trim()) {
-      newErrors.telp = "Nomor telepon wajib diisi!";
+      newErrors.telp = "Nomor telepon wajib diisi 10 sampai 12 karakter!";
     } else if (!/^[0-9]+$/.test(formData.telp)) {
       newErrors.telp = "Nomor telepon hanya boleh angka!";
     } else if (formData.telp.length < 10) {
