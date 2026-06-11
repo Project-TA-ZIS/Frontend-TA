@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import Select from "react-select";
 import { X } from "lucide-react";
 import { formatThousands } from "../../../utils/formatThousands";
 import { formatDateInput } from "../../../utils/formattedDate";
+import { validationDataZIS } from "../../../utils/ValidationDataZIS";
 
 export default function ModalsNewDataZIS({
   isOpen,
@@ -24,6 +25,7 @@ export default function ModalsNewDataZIS({
   searchMustahik,
   setSearchMustahik,
   limitedOptions,
+  errors = {},
 }) {
   if (!isOpen) return null;
 
@@ -58,11 +60,14 @@ export default function ModalsNewDataZIS({
             <input
               type="date"
               name="tanggal"
-              required
+              
               value={formatDateInput(formData.tanggal)}
               onChange={handleInputChange}
               className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
             />
+            {errors.tanggal && (
+              <p className="text-red-500 text-xs mt-1">{errors.tanggal}</p>
+            )}
           </div>
 
           {/* Muzakki / Mustahik */}
@@ -73,23 +78,33 @@ export default function ModalsNewDataZIS({
             </label>
 
             {modalMode === "PEMASUKAN" ? (
-              <Select
-                options={limitedOptions(muzakkiOptions, searchMuzakki)}
-                placeholder="Cari muzakki..."
-                onInputChange={setSearchMuzakki}
-                value={selectedMuzakki}
-                onChange={setSelectedMuzakki}
-                isClearable
-              />
+              <>
+                <Select
+                  options={limitedOptions(muzakkiOptions, searchMuzakki)}
+                  placeholder="Cari muzakki..."
+                  onInputChange={setSearchMuzakki}
+                  value={selectedMuzakki}
+                  onChange={setSelectedMuzakki}
+                  isClearable
+                />
+                {errors.muzakki && (
+                  <p className="text-red-500 text-xs mt-1">{errors.muzakki}</p>
+                )}
+              </>
             ) : (
-              <Select
-                options={limitedOptions(mustahikOptions, searchMustahik)}
-                placeholder="Cari mustahik..."
-                onInputChange={setSearchMustahik}
-                value={selectedMustahik}
-                onChange={setSelectedMustahik}
-                isClearable
-              />
+              <>
+                <Select
+                  options={limitedOptions(mustahikOptions, searchMustahik)}
+                  placeholder="Cari mustahik..."
+                  onInputChange={setSearchMustahik}
+                  value={selectedMustahik}
+                  onChange={setSelectedMustahik}
+                  isClearable
+                />
+                {errors.mustahik && (
+                  <p className="text-red-500 text-xs mt-1">{errors.mustahik}</p>
+                )}
+              </>
             )}
           </div>
 
@@ -129,6 +144,9 @@ export default function ModalsNewDataZIS({
               placeholder="Masukkan deskripsi..."
               className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
             />
+            {errors.deskripsi && (
+              <p className="text-red-500 text-xs mt-1">{errors.deskripsi}</p>
+            )}
           </div>
 
           {/* Nominal */}
@@ -141,12 +159,15 @@ export default function ModalsNewDataZIS({
             <input
               type={isBeras ? "number" : "text"}
               name="nominal"
-              required
+              
               value={formData.nominal}
               onChange={handleInputChange}
               placeholder={isBeras ? "Contoh: 2.5" : "0"}
               className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
             />
+            {errors.nominal && (
+              <p className="text-red-500 text-xs mt-1">{errors.nominal}</p>
+            )}
           </div>
 
           {/* Button */}

@@ -23,6 +23,7 @@ import { formatDateInput, formattedDate } from "../../utils/formattedDate";
 import ModalsEditZIS from "../../components/shared/ZIS/ModalsEditZIS";
 import ModalsNewDataZIS from "../../components/shared/ZIS/ModalsNewDataZIS";
 import ZisTable from "../../components/shared/ZIS/ZISTable";
+import { validationDataZIS } from "../../utils/ValidationDataZIS";
 
 // Halaman Kelola ZIS (Amil): catat pemasukan/pengeluaran ZIS via modal, lihat
 // ringkasan total, daftar transaksi dengan filter/pencarian/pagination, unduh PDF.
@@ -58,6 +59,7 @@ export default function KelolaZis() {
   const [saldoZIS, setSaldoZIS] = useState(0);
   const [saldoUpdatedAt, setSaldoUpdatedAt] = useState("");
   const [totalZIS, setTotalZIS] = useState([]);
+  const [errors, setErrors] = useState({});
 
   // Ubah nama kategori dari format server → format tampilan (UI).
   const toUiKategori = (kategoriApi) => {
@@ -393,6 +395,10 @@ export default function KelolaZis() {
       }));
       return;
     }
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
 
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -416,6 +422,7 @@ export default function KelolaZis() {
 
   // Tutup modal dengan konfirmasi & kosongkan form.
   const handleCloseModal = () => {
+    setErrors({});
     Swal.fire({
       title: "Tutup Form?",
       text: "Perubahan yang belum disimpan akan hilang.",
@@ -450,15 +457,19 @@ export default function KelolaZis() {
         : parseThousandsToNumber(formData.nominal);
       const kategoriApi = toApiKategori(formData.kategori);
 
-      if (!formData.tanggal) {
-        setErrorMsg("Tanggal wajib diisi");
+      const validationErrors = validationDataZIS({
+        formData,
+        modalMode,
+        selectedMuzakki,
+        selectedMustahik,
+      });
+
+      if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
         return;
       }
 
-      if (!nominal || nominal <= 0) {
-        setErrorMsg("Jumlah wajib diisi dan harus > 0");
-        return;
-      }
+      setErrors({});
 
       if (modalMode === "PEMASUKAN") {
         const muzakkiId = selectedMuzakki?.value ?? null;
@@ -766,8 +777,6 @@ export default function KelolaZis() {
   return (
     <PageTransition>
       <div className="min-h-screen bg-gray-50 p-6 md:p-10 font-['Manrope']">
-        
-
         {/* ─── Header ─── */}
         <div className="mb-8">
           <h1 className="text-2xl md:text-3xl font-extrabold text-[#0F766E]">
@@ -905,6 +914,7 @@ export default function KelolaZis() {
         searchMustahik={searchMustahik}
         setSearchMustahik={setSearchMustahik}
         limitedOptions={limitedOptions}
+        errors={errors}
       />
 
       <ModalsEditZIS
