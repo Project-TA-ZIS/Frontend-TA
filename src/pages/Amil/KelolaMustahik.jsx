@@ -9,6 +9,7 @@ import {
 } from "../../services/mustahik.service";
 import Swal from "sweetalert2";
 import { formatDateInput } from "../../utils/formattedDate";
+import { ValidationDataMustahik } from "../../utils/ValidationDataMustahik";
 
 // Ubah kode jenis kelamin menjadi label tampilan.
 const toGenderLabel = (value) => {
@@ -138,10 +139,15 @@ export default function KelolaMustahik() {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
   };
 
   // Buka modal mode TAMBAH: kosongkan form.
   const handleTambahClick = () => {
+    setErrors({});
     setEditingId(null);
     setFormData(getEmptyFormData());
     setIsModalOpen(true);
@@ -149,6 +155,7 @@ export default function KelolaMustahik() {
 
   // Buka modal mode EDIT: isi form dengan data baris yang dipilih.
   const handleEditClick = (item) => {
+    setErrors({});
     setEditingId(item.id);
     setFormData({
       nama: item.nama ?? "",
@@ -202,59 +209,18 @@ export default function KelolaMustahik() {
     }
   };
 
-  // Validasi isian form (nama, telp, kategori, NIK 16 digit, tanggal lahir, dll).
-  const validateForm = () => {
-    let newErrors = {};
-
-    if (!(formData.nama || "").trim()) {
-      newErrors.nama = "Nama lengkap wajib diisi!";
-    }
-
-    if (!(formData.telp || "").trim()) {
-      newErrors.telp = "Nomor telepon wajib diisi 10 sampai 12 karakter!";
-    } else if (!/^[0-9]+$/.test(formData.telp)) {
-      newErrors.telp = "Nomor telepon hanya boleh angka!";
-    } else if (formData.telp.length < 10) {
-      newErrors.telp = "Nomor telepon tidak valid!";
-    }
-
-    if (!formData.jenisKelamin) {
-      newErrors.jenisKelamin = "Jenis kelamin wajib dipilih!";
-    }
-
-    if (!formData.kategori) {
-      newErrors.kategori = "Kategori wajib dipilih!";
-    }
-
-    if (!(formData.nik || "").trim()) {
-      newErrors.nik = "NIK wajib diisi!";
-    } else if (!/^[0-9]+$/.test(formData.nik)) {
-      newErrors.nik = "NIK hanya boleh angka!";
-    } else if (formData.nik.length !== 16) {
-      newErrors.nik = "NIK harus 16 digit!";
-    }
-
-    if (!(formData.tempatLahir || "").trim()) {
-      newErrors.tempatLahir = "Tempat lahir wajib diisi!";
-    }
-
-    if (!formData.tanggalLahir) {
-      newErrors.tanggalLahir = "Tanggal lahir wajib diisi!";
-    } else if (isNaN(Date.parse(formData.tanggalLahir))) {
-      newErrors.tanggalLahir = "Tanggal lahir tidak valid!";
-    }
-
-    setErrors(newErrors);
-
-    return Object.keys(newErrors).length === 0;
-  };
-
   // Simpan form: validasi, lalu update (edit) atau buat baru (tambah).
   const handleSubmit = async (e) => {
-    console.log("Submitting form with data:", formData);
     e.preventDefault();
-    if (!validateForm()) return;
+    const validationErrors = ValidationDataMustahik(formData);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
     setErrorMsg("");
+    setErrors({});
 
     try {
       const payload = mapFormToApi(formData);
@@ -294,6 +260,7 @@ export default function KelolaMustahik() {
   };
   // Tutup modal dengan konfirmasi & kosongkan form.
   const handleCloseModal = () => {
+    setErrors({});
     Swal.fire({
       title: "Tutup Form?",
       text: "Perubahan yang belum disimpan akan hilang.",
@@ -324,8 +291,6 @@ export default function KelolaMustahik() {
   return (
     <PageTransition>
       <div className="min-h-screen bg-gray-50 p-6 md:p-10 font-['Manrope']">
-        
-
         {/* ─── Header ─── */}
         <div className="mb-6">
           <h1 className="text-2xl md:text-3xl font-extrabold text-[#0F766E]">

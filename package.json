@@ -10,7 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@mantine/core": "^9.3.1",
+    "@mantine/dates": "^9.3.1",
     "axios": "^1.16.1",
+    "dayjs": "^1.11.21",
+    "flowbite": "^4.0.2",
     "framer-motion": "^12.38.0",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",

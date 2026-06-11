@@ -9,6 +9,7 @@ import {
 } from "../../services/muzakki.service";
 import Swal from "sweetalert2";
 import { formatDateInput } from "../../utils/formattedDate";
+import { ValidationDataMuzakki } from "../../utils/ValidationDataMuzakki";
 
 // Halaman kelola Muzzaki (pemberi zakat): tabel + tambah/edit/hapus via modal,
 // dengan pencarian dan pagination.
@@ -128,10 +129,16 @@ export default function KelolaMuzzaki() {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
   };
 
   // Buka modal mode TAMBAH: kosongkan form.
   const handleTambahClick = () => {
+    setErrors({});
     setEditingId(null);
     setFormData({
       nama: "",
@@ -150,6 +157,7 @@ export default function KelolaMuzzaki() {
 
   // Buka modal mode EDIT: isi form dengan data baris yang dipilih.
   const handleEditClick = (item) => {
+    setErrors({});
     setEditingId(item.id);
     setFormData({
       nama: item.nama,
@@ -198,58 +206,17 @@ export default function KelolaMuzzaki() {
     }
   };
 
-  // Validasi isian form (nama, email, telp, NIK 16 digit, dll).
-  const validateForm = () => {
-    let newErrors = {};
-
-    if (!(formData.nama || "").trim()) {
-      newErrors.nama = "Nama lengkap wajib diisi!";
-    }
-
-    if (!(formData.email || "").trim()) {
-      newErrors.email = "Alamat email wajib diisi!";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email || "")) {
-      newErrors.email = "Format email tidak valid!";
-    }
-
-    if (!(formData.telp || "").trim()) {
-      newErrors.telp = "Nomor telepon wajib diisi 10 sampai 12 karakter!";
-    } else if (!/^[0-9]+$/.test(formData.telp || "")) {
-      newErrors.telp = "Nomor telepon hanya boleh angka!";
-    } else if ((formData.telp || "").length < 10) {
-      newErrors.telp = "Nomor telepon tidak valid!";
-    }
-
-    if (!(formData.nik || "").trim()) {
-      newErrors.nik = "NIK wajib diisi!";
-    } else if (!/^[0-9]+$/.test(formData.nik || "")) {
-      newErrors.nik = "NIK hanya boleh angka!";
-    } else if ((formData.nik || "").length !== 16) {
-      newErrors.nik = "NIK harus 16 digit!";
-    }
-
-    if (!(formData.tempatLahir || "").trim()) {
-      newErrors.tempatLahir = "Tempat lahir wajib diisi!";
-    }
-
-    if (!formData.tanggalLahir) {
-      newErrors.tanggalLahir = "Tanggal lahir wajib diisi!";
-    }
-
-    if (!(formData.pekerjaan || "").trim()) {
-      newErrors.pekerjaan = "Pekerjaan wajib diisi!";
-    }
-
-    setErrors(newErrors);
-
-    return Object.keys(newErrors).length === 0;
-  };
-
   // Simpan form: validasi, lalu update (edit) atau buat baru (tambah).
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
-    setErrorMsg("");
+    const validationErrors = ValidationDataMuzakki(formData);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    setErrors({});
 
     try {
       const payload = mapFormToApi(formData);
@@ -263,6 +230,7 @@ export default function KelolaMuzzaki() {
             text: "Akun muzakki berhasil di update",
             confirmButtonColor: "#10B981",
           });
+          setErrorMsg("");
         } catch (error) {
           const msg =
             error?.response?.data?.message ||
@@ -287,6 +255,7 @@ export default function KelolaMuzzaki() {
             text: "Akun muzakki berhasil dibuat",
             confirmButtonColor: "#10B981",
           });
+          setErrorMsg("");
         } catch (error) {
           const msg =
             error?.response?.data?.message ||
@@ -363,13 +332,12 @@ export default function KelolaMuzzaki() {
         });
       }
     });
+    setErrorMsg("");
   };
 
   return (
     <PageTransition>
       <div className="min-h-screen bg-gray-50 p-6 md:p-10 font-['Manrope']">
-        
-
         {/* ─── Header ─── */}
         <div className="mb-6">
           <h1 className="text-2xl md:text-3xl font-extrabold text-[#0F766E]">

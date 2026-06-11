@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import PageTransition from "../../components/shared/PageTransition";
 import LogoDasawisma from "../../assets/Logo.svg";
+import fotoDasawisma02 from "../../assets/foto_dasawisma_02.png";
 import fotoDasawisma from "../../assets/foto_dasawisma.png";
 import Footer from "../../components/layout/Footer";
 import NavbarUmum from "../../components/shared/NavbarUmum";
@@ -12,8 +13,6 @@ export default function Home() {
   return (
     <PageTransition>
       <div className="min-h-screen bg-gray-50 font-['Manrope'] flex flex-col">
-        
-
         {/* ─── NAVBAR PUBLIK ─── */}
         <NavbarUmum />
 
@@ -49,7 +48,11 @@ export default function Home() {
             <div className="order-1 md:order-2">
               <div className="w-full aspect-video bg-gray-200 rounded-2xl border-4 border-white shadow-md overflow-hidden relative">
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400 font-bold text-sm">
-                  <img src={fotoDasawisma} alt="Foto Dasawisma" className="w-full h-full object-cover" />
+                  <img
+                    src={fotoDasawisma02}
+                    alt="Foto Dasawisma"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
               </div>
             </div>
@@ -60,7 +63,11 @@ export default function Home() {
             <div>
               <div className="w-full aspect-video bg-gray-200 rounded-2xl border-4 border-white shadow-md overflow-hidden relative">
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400 font-bold text-sm">
-                  [ Area Foto Penyaluran ZIS ]
+                  <img
+                    src={fotoDasawisma}
+                    alt="Foto Dasawisma"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
               </div>
             </div>

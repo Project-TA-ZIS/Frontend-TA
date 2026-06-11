@@ -33,7 +33,7 @@ const PengaturanAnggota = lazy(
   () => import("./pages/anggota/PengaturanAnggota"),
 );
 const KelolaKas = lazy(() => import("./pages/koordinator/KelolaKas"));
-// const Home = lazy(() => import("./pages/publik/Home"));
+const Home = lazy(() => import("./pages/publik/Home"));
 const Dashboard = lazy(() => import("./pages/publik/Dashboard"));
 const ManajemenZis = lazy(() => import("./pages/publik/ManajemenZis"));
 const LupaPassword = lazy(() => import("./pages/auth/LupaPassword"));
@@ -48,7 +48,7 @@ import Loader from "./components/shared/Loader";
 
 // BUAT TEST LOADINGGGG
 // const DashboardUtama = lazy(() => new Promise((resolve) => setTimeout(() => resolve(import("./pages/koordinator/DashboardUtama")), 8000)));
-const Home = lazy(() => new Promise((resolve) => setTimeout(() => resolve(import("./pages/publik/Home")), 8000)));
+// const Home = lazy(() => new Promise((resolve) => setTimeout(() => resolve(import("./pages/publik/Home")), 8000)));
 
 
 // Daftar nama peran (role) sesuai data dari backend. Dipakai untuk membatasi
