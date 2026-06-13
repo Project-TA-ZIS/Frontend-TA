@@ -8,7 +8,7 @@ import {
   Check,
   Calendar,
   Home,
-  X
+  X,
 } from "lucide-react";
 import PageTransition from "../../components/shared/PageTransition";
 import useAuthStore from "../../store/useAuthStore";
@@ -16,6 +16,7 @@ import { formatDateInput } from "../../utils/formattedDate";
 import dasawismaService from "../../services/dasawisma.service";
 import Swal from "sweetalert2";
 import authService from "../../services/auth.service";
+import { validateAnggotaDasawisma } from "../../utils/ValidateAnggotaDasawisma";
 
 // Halaman Pengaturan profil anggota: edit data diri + ganti password (via modal).
 export default function PengaturanKoordinator() {
@@ -33,6 +34,10 @@ export default function PengaturanKoordinator() {
     telp: "",
     alamat: "",
   });
+
+  const [errors, setErrors] = useState({});
+  const [errorMsg, setErrorMsg] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
 
   // Ambil data user terbaru dari server lalu isi ke form.
   const loadUser = async () => {
@@ -64,9 +69,6 @@ export default function PengaturanKoordinator() {
     }
   };
 
-  const [errors, setErrors] = useState({});
-  const [isSuccess, setIsSuccess] = useState(false);
-
   // Update field form saat user mengetik & bersihkan pesan error field tsb.
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -75,50 +77,18 @@ export default function PengaturanKoordinator() {
     setIsSuccess(false);
   };
 
-  // Validasi seluruh isian form; kumpulkan pesan error per field.
-  const validateForm = () => {
-    let newErrors = {};
-    if (!formData.nama.trim()) newErrors.nama = "Nama lengkap wajib diisi!";
-    if (!formData.email.trim()) {
-      newErrors.email = "Alamat email wajib diisi!";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Format email tidak valid!";
-    }
-    if (!formData.telp.trim()) {
-      newErrors.telp = "Nomor telepon wajib diisi!";
-    } else if (!/^[0-9]+$/.test(formData.telp)) {
-      newErrors.telp = "Nomor telepon hanya boleh angka!";
-    }
-    if (!formData.nik.trim()) {
-      newErrors.nik = "NIK wajib diisi!";
-    }
-    if (!formData.tanggal_lahir.trim()) {
-      newErrors.tanggal_lahir = "Tanggal lahir wajib diisi!";
-    }
-    if (!formData.tempat_lahir.trim()) {
-      newErrors.tempat_lahir = "Tempat lahir wajib diisi!";
-    }
-    if (!formData.alamat.trim()) {
-      newErrors.alamat = "Alamat wajib diisi!";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   // Simpan perubahan profil: validasi dulu, lalu kirim ke server.
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      Swal.fire({
-        icon: "error",
-        title: "Validasi Gagal",
-        text: "Periksa kembali data yang diisi.",
-        confirmButtonColor: "#10B981",
-      });
+    const validationErrors = validateAnggotaDasawisma(formData);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
+
+    setErrorMsg("");
+    setErrors({});
 
     try {
       setIsSubmitting(true);
@@ -173,7 +143,10 @@ export default function PengaturanKoordinator() {
   };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [passwordData, setPasswordData] = useState({ passwordLama: "", passwordBaru: "" });
+  const [passwordData, setPasswordData] = useState({
+    passwordLama: "",
+    passwordBaru: "",
+  });
   const [passwordErrors, setPasswordErrors] = useState({});
 
   // Update field form ganti password saat diketik.
@@ -190,7 +163,8 @@ export default function PengaturanKoordinator() {
     e.preventDefault();
     let errors = {};
 
-    if (!passwordData.passwordLama) errors.passwordLama = "Password lama wajib diisi!";
+    if (!passwordData.passwordLama)
+      errors.passwordLama = "Password lama wajib diisi!";
     if (!passwordData.passwordBaru) {
       errors.passwordBaru = "Password baru wajib diisi!";
     } else if (passwordData.passwordBaru.length < 6) {
@@ -236,15 +210,16 @@ export default function PengaturanKoordinator() {
   }, []);
 
   // ─── KELAS REUSABLE UNTUK FORM ───
-  const labelClass = "block text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5";
-  const inputClass = (error) => `w-full pl-11 pr-4 py-2.5 md:py-3 bg-gray-50 text-sm md:text-base rounded-xl outline-none font-semibold transition-all border ${error ? "border-red-500 focus:ring-red-500 bg-red-50/50" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`;
-  const iconClass = "absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400";
+  const labelClass =
+    "block text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5";
+  const inputClass = (error) =>
+    `w-full pl-11 pr-4 py-2.5 md:py-3 bg-gray-50 text-sm md:text-base rounded-xl outline-none font-semibold transition-all border ${error ? "border-red-500 focus:ring-red-500 bg-red-50/50" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`;
+  const iconClass =
+    "absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400";
 
   return (
     <PageTransition>
       <div className="min-h-screen bg-gray-50 p-4 md:p-10 font-['Manrope']">
-        
-        
         {/* ─── Header ─── */}
         <div className="mb-6 md:mb-8">
           <h1 className="text-xl md:text-3xl font-extrabold text-[#0F766E]">
@@ -286,49 +261,101 @@ export default function PengaturanKoordinator() {
                   </p>
                 </div>
               )}
-              
-              <form onSubmit={handleSubmit} noValidate className="space-y-5 md:space-y-6">
+
+              <form
+                onSubmit={handleSubmit}
+                noValidate
+                className="space-y-5 md:space-y-6"
+              >
                 <div className="border-b border-gray-100 pb-5 md:pb-6">
                   <h4 className="text-sm md:text-lg font-extrabold text-gray-900 mb-4">
                     Informasi Dasar
                   </h4>
-                  
+
                   {/* Grid Form - Menggunakan gap-3 di mobile agar padat */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
                     <div>
                       <label className={labelClass}>Nama Lengkap</label>
                       <div className="relative">
-                        <div className={iconClass}><User className="h-4 w-4" /></div>
-                        <input type="text" name="nama" value={formData.nama} onChange={handleInputChange} className={inputClass(errors.nama)} />
+                        <div className={iconClass}>
+                          <User className="h-4 w-4" />
+                        </div>
+                        <input
+                          type="text"
+                          name="nama"
+                          value={formData.nama}
+                          onChange={handleInputChange}
+                          className={inputClass(errors.nama)}
+                        />
                       </div>
-                      {errors.nama && <p className="text-red-500 text-[10px] font-bold mt-1 pl-1">{errors.nama}</p>}
+                      {errors.nama && (
+                        <p className="text-red-500 text-[10px] font-bold mt-1 pl-1">
+                          {errors.nama}
+                        </p>
+                      )}
                     </div>
 
                     <div>
                       <label className={labelClass}>Nomor Telepon</label>
                       <div className="relative">
-                        <div className={iconClass}><Phone className="h-4 w-4" /></div>
-                        <input type="text" name="telp" value={formData.telp} onChange={handleInputChange} className={inputClass(errors.telp)} />
+                        <div className={iconClass}>
+                          <Phone className="h-4 w-4" />
+                        </div>
+                        <input
+                          type="text"
+                          name="telp"
+                          value={formData.telp}
+                          onChange={handleInputChange}
+                          className={inputClass(errors.telp)}
+                        />
                       </div>
-                      {errors.telp && <p className="text-red-500 text-[10px] font-bold mt-1 pl-1">{errors.telp}</p>}
+                      {errors.telp && (
+                        <p className="text-red-500 text-[10px] font-bold mt-1 pl-1">
+                          {errors.telp}
+                        </p>
+                      )}
                     </div>
 
                     <div>
                       <label className={labelClass}>Tempat Lahir</label>
                       <div className="relative">
-                        <div className={iconClass}><User className="h-4 w-4" /></div>
-                        <input type="text" name="tempat_lahir" value={formData.tempat_lahir} onChange={handleInputChange} className={inputClass(errors.tempat_lahir)} />
+                        <div className={iconClass}>
+                          <User className="h-4 w-4" />
+                        </div>
+                        <input
+                          type="text"
+                          name="tempat_lahir"
+                          value={formData.tempat_lahir}
+                          onChange={handleInputChange}
+                          className={inputClass(errors.tempat_lahir)}
+                        />
                       </div>
-                      {errors.tempat_lahir && <p className="text-red-500 text-[10px] font-bold mt-1 pl-1">{errors.tempat_lahir}</p>}
+                      {errors.tempat_lahir && (
+                        <p className="text-red-500 text-[10px] font-bold mt-1 pl-1">
+                          {errors.tempat_lahir}
+                        </p>
+                      )}
                     </div>
 
                     <div>
                       <label className={labelClass}>Tanggal Lahir</label>
                       <div className="relative">
-                        <div className={iconClass}><Calendar className="h-4 w-4" /></div>
-                        <input type="date" name="tanggal_lahir" value={formatDateInput(formData.tanggal_lahir) || ""} onChange={handleInputChange} className={inputClass(errors.tanggal_lahir)} />
+                        <div className={iconClass}>
+                          <Calendar className="h-4 w-4" />
+                        </div>
+                        <input
+                          type="date"
+                          name="tanggal_lahir"
+                          value={formatDateInput(formData.tanggal_lahir) || ""}
+                          onChange={handleInputChange}
+                          className={inputClass(errors.tanggal_lahir)}
+                        />
                       </div>
-                      {errors.tanggal_lahir && <p className="text-red-500 text-[10px] font-bold mt-1 pl-1">{errors.tanggal_lahir}</p>}
+                      {errors.tanggal_lahir && (
+                        <p className="text-red-500 text-[10px] font-bold mt-1 pl-1">
+                          {errors.tanggal_lahir}
+                        </p>
+                      )}
                     </div>
 
                     {/* Span-2 Element: Alamat Email, NIK, Rumah */}
@@ -336,28 +363,66 @@ export default function PengaturanKoordinator() {
                       <div>
                         <label className={labelClass}>Alamat Email</label>
                         <div className="relative">
-                          <div className={iconClass}><Mail className="h-4 w-4" /></div>
-                          <input type="email" name="email" value={formData.email} onChange={handleInputChange} className={inputClass(errors.email)} />
+                          <div className={iconClass}>
+                            <Mail className="h-4 w-4" />
+                          </div>
+                          <input
+                            type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            className={inputClass(errors.email)}
+                          />
                         </div>
-                        {errors.email && <p className="text-red-500 text-[10px] font-bold mt-1 pl-1">{errors.email}</p>}
+                        {errors.email && (
+                          <p className="text-red-500 text-[10px] font-bold mt-1 pl-1">
+                            {errors.email}
+                          </p>
+                        )}
                       </div>
 
                       <div>
-                        <label className={labelClass}>Nomor Induk Kependudukan (NIK)</label>
+                        <label className={labelClass}>
+                          Nomor Induk Kependudukan (NIK)
+                        </label>
                         <div className="relative">
-                          <div className={iconClass}><User className="h-4 w-4" /></div>
-                          <input type="text" name="nik" value={formData.nik} onChange={handleInputChange} className={inputClass(errors.nik)} />
+                          <div className={iconClass}>
+                            <User className="h-4 w-4" />
+                          </div>
+                          <input
+                            type="text"
+                            name="nik"
+                            value={formData.nik}
+                            onChange={handleInputChange}
+                            className={inputClass(errors.nik)}
+                          />
                         </div>
-                        {errors.nik && <p className="text-red-500 text-[10px] font-bold mt-1 pl-1">{errors.nik}</p>}
+                        {errors.nik && (
+                          <p className="text-red-500 text-[10px] font-bold mt-1 pl-1">
+                            {errors.nik}
+                          </p>
+                        )}
                       </div>
 
                       <div>
                         <label className={labelClass}>Alamat Rumah</label>
                         <div className="relative">
-                          <div className={iconClass}><Home className="h-4 w-4" /></div>
-                          <input type="text" name="alamat" value={formData.alamat} onChange={handleInputChange} className={inputClass(errors.alamat)} />
+                          <div className={iconClass}>
+                            <Home className="h-4 w-4" />
+                          </div>
+                          <input
+                            type="text"
+                            name="alamat"
+                            value={formData.alamat}
+                            onChange={handleInputChange}
+                            className={inputClass(errors.alamat)}
+                          />
                         </div>
-                        {errors.alamat && <p className="text-red-500 text-[10px] font-bold mt-1 pl-1">{errors.alamat}</p>}
+                        {errors.alamat && (
+                          <p className="text-red-500 text-[10px] font-bold mt-1 pl-1">
+                            {errors.alamat}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -392,8 +457,13 @@ export default function PengaturanKoordinator() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             {/* Header Modal */}
             <div className="bg-[#0F766E] px-5 py-4 flex items-center justify-between">
-              <h2 className="text-base md:text-lg font-bold text-white">Ganti Password</h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-emerald-100 hover:text-white transition-colors">
+              <h2 className="text-base md:text-lg font-bold text-white">
+                Ganti Password
+              </h2>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-emerald-100 hover:text-white transition-colors"
+              >
                 <X size={20} />
               </button>
             </div>
@@ -412,7 +482,11 @@ export default function PengaturanKoordinator() {
                   className={`w-full px-4 py-2.5 bg-gray-50 text-sm rounded-xl outline-none font-semibold transition-all border ${passwordErrors.passwordLama ? "border-red-500" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`}
                   placeholder="Masukkan password lama"
                 />
-                {passwordErrors.passwordLama && <p className="text-red-500 text-[10px] font-bold mt-1 pl-1">{passwordErrors.passwordLama}</p>}
+                {passwordErrors.passwordLama && (
+                  <p className="text-red-500 text-[10px] font-bold mt-1 pl-1">
+                    {passwordErrors.passwordLama}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -427,15 +501,26 @@ export default function PengaturanKoordinator() {
                   className={`w-full px-4 py-2.5 bg-gray-50 text-sm rounded-xl outline-none font-semibold transition-all border ${passwordErrors.passwordBaru ? "border-red-500" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`}
                   placeholder="Masukkan password baru"
                 />
-                {passwordErrors.passwordBaru && <p className="text-red-500 text-[10px] font-bold mt-1 pl-1">{passwordErrors.passwordBaru}</p>}
+                {passwordErrors.passwordBaru && (
+                  <p className="text-red-500 text-[10px] font-bold mt-1 pl-1">
+                    {passwordErrors.passwordBaru}
+                  </p>
+                )}
               </div>
 
               {/* Footer Modal */}
               <div className="flex flex-col sm:flex-row justify-end gap-2.5 pt-4 border-t border-gray-100">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors w-full sm:w-auto"
+                >
                   Batal
                 </button>
-                <button type="submit" className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#10B981] hover:bg-[#059669] transition-colors w-full sm:w-auto">
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#10B981] hover:bg-[#059669] transition-colors w-full sm:w-auto"
+                >
                   Simpan
                 </button>
               </div>

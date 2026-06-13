@@ -12,6 +12,16 @@ import LogoDasawismaPNG from "../assets/Logo.png";
 // tabel transaksi, lalu tabel ringkasan total) → simpan file.
 // Parameter historyData = daftar transaksi ZIS yang akan dicetak.
 export const exportZISPdf = ({ historyData = [] }) => {
+  if (historyData.length === 0) {
+    Swal.fire({
+      title: "Tidak Ada Data",
+      text: "Riwayat ZIS kosong, tidak ada data untuk diunduh!",
+      icon: "info",
+      confirmButtonText: "OK",
+      confirmButtonColor: "#10B981",
+    });
+    return;
+  }
   // Tampilkan dialog konfirmasi sebelum mengunduh.
   Swal.fire({
     title: "Unduh Riwayat ZIS",

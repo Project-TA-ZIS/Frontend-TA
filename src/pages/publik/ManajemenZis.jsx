@@ -8,6 +8,7 @@ import Footer from "../../components/layout/Footer";
 import { formatRupiah } from "../../utils/formatRupiah";
 import { formattedDate } from "../../utils/formattedDate";
 import pemasukanZISService from "../../services/pemasukanZIS.service";
+import muzakkiService from "../../services/muzakki.service";
 import totalZISService from "../../services/totalZIS.service";
 import Swal from "sweetalert2";
 import NavbarUmum from "../../components/shared/NavbarUmum";
@@ -123,7 +124,7 @@ export default function ManajemenZis() {
 
   // ─── TAHAP 1: Klik "Cari Data" (Validasi NIK & Buka Modal) ───
   // Validasi NIK terisi, lalu buka modal verifikasi nomor HP.
-  const handleSearchClick = (e) => {
+  const handleSearchClick = async (e) => {
     e.preventDefault();
     setAlertMessage(null);
     setModalError("");
@@ -138,7 +139,16 @@ export default function ManajemenZis() {
 
     // NIK terisi, buka modal popup nomor HP
     setPhoneDigits("");
-    setShowPhoneModal(true);
+
+    try {
+      await muzakkiService.getMuzakkiByNik(searchQuery.trim());
+      setShowPhoneModal(true);
+    } catch (error) {
+      setAlertMessage({
+        type: "error",
+        text: "Data NIK tidak ditemukan.",
+      });
+    }
   };
 
   // ─── TAHAP 2: Klik "Verifikasi" di dalam Modal (Eksekusi API) ───
@@ -154,6 +164,7 @@ export default function ManajemenZis() {
 
     // Lolos verifikasi awal, tutup modal dan mulai loading
     setShowPhoneModal(false);
+
     setIsLoading(true);
     setShowTable(false);
 
@@ -235,8 +246,6 @@ export default function ManajemenZis() {
   return (
     <PageTransition>
       <div className="min-h-screen bg-gray-50 font-['Manrope'] flex flex-col relative">
-        
-
         {/* ─── NAVBAR PUBLIK ─── */}
         <NavbarUmum />
 

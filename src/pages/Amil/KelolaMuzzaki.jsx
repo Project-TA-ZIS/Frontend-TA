@@ -194,7 +194,6 @@ export default function KelolaMuzzaki() {
         title: "Berhasil!",
         text: "Data Muzakki berhasil dihapus.",
         icon: "success",
-        timer: 1500,
         showConfirmButton: false,
       });
     } catch (err) {

@@ -244,7 +244,7 @@ export default function AnggotaDasawisma() {
         Swal.fire({
           icon: "success",
           title: "Berhasil",
-          text: "Akun amil berhasil dibuat",
+          text: "Akun berhasil di daftarkan",
           confirmButtonColor: "#10B981",
         });
       }

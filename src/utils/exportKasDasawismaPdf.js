@@ -16,6 +16,17 @@ export const exportKasDasawismaPdf = ({
   historyData = [],
   totalKasDaswisma,
 }) => {
+  if (historyData.length === 0) {
+    Swal.fire({
+      title: "Tidak Ada Data",
+      text: "Riwayat kas kosong, tidak ada data untuk diunduh!",
+      icon: "info",
+      confirmButtonText: "OK",
+      confirmButtonColor: "#10B981",
+    });
+    return;
+  }
+  
   // Tampilkan dialog konfirmasi sebelum mengunduh.
   Swal.fire({
     title: "Unduh Riwayat Kas",

@@ -29,6 +29,10 @@ import { formatDateInput } from "../../utils/formattedDate";
 import EditTransactionModal from "../../components/shared/Dasawisma/EditModals";
 import CreateDataModal from "../../components/shared/Dasawisma/CreateDataModal";
 import useAuthStore from "../../store/useAuthStore";
+import MonthList from "../../utils/monthList";
+import { getAvailableYears } from "../../utils/getAvailableYears";
+import KasFilterBar from "../../components/shared/Dasawisma/KasFilterBar";
+import { validateEditKasDasawisma } from "../../utils/validateEditKasDasawisma";
 
 // Halaman Kelola Kas (koordinator): catat/edit transaksi kas (pemasukan &
 // pengeluaran), lihat ringkasan saldo, filter, dan unduh PDF.
@@ -219,6 +223,8 @@ export default function KelolaKas() {
   };
 
   // Saring transaksi sesuai filter jenis, bulan, dan tahun.
+  const tahunList = getAvailableYears(transactions);
+
   const filteredTransactions = useMemo(() => {
     return transactions.filter((trx) => {
       const matchesJenis =
@@ -357,7 +363,7 @@ export default function KelolaKas() {
           jumlah: nominal,
           deskripsi: formData.deskripsi,
           tanggal_penyaluran: formData.tanggal,
-           nama_anggota: user.nama_lengkap,
+          nama_anggota: user.nama_lengkap,
         });
       }
 
@@ -419,9 +425,14 @@ export default function KelolaKas() {
 
   // Simpan hasil edit transaksi setelah konfirmasi, lalu muat ulang data & saldo.
   const handleSaveEdit = async () => {
-    if (!validateEditForm()) {
+    const validationErrors = validateEditKasDasawisma(editForm);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
+
+    setErrors({});
     if (
       editForm.jenis === "Pemasukan" &&
       editForm.sumber === "IURAN" &&
@@ -542,6 +553,7 @@ export default function KelolaKas() {
 
     if (result.isConfirmed) {
       setIsEditModalOpen(false);
+      setErrors({});
 
       setEditForm({
         tanggal: selectedTransaction.tanggal || "",
@@ -552,6 +564,35 @@ export default function KelolaKas() {
         namaAnggota: selectedTransaction.namaAnggota || "",
         anggota_dasawisma_id: selectedTransaction.anggota_dasawisma_id || "",
       });
+    }
+  };
+
+  const handleCloseCreateDataModal = async () => {
+    const result = await Swal.fire({
+      title: "Tutup form?",
+      text: "Data yang belum disimpan akan hilang",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#10B981",
+      cancelButtonColor: "#6B7280",
+      confirmButtonText: "Ya, tutup",
+      cancelButtonText: "Batal",
+    });
+
+    if (result.isConfirmed) {
+      setIsModalOpen(false);
+
+      setFormData({
+        tanggal: "",
+        deskripsi: "",
+        jenis: "Pemasukan",
+        nominal: "",
+        tipePemasukan: "IURAN",
+        anggota_dasawisma_id: "",
+        namaAnggota: "",
+      });
+
+      setErrors({});
     }
   };
 
@@ -574,8 +615,6 @@ export default function KelolaKas() {
         className="min-h-screen bg-gray-50 p-6 md:p-10"
         style={{ fontFamily: "Manrope, sans-serif" }}
       >
-        
-
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl md:text-3xl font-extrabold text-[#0F766E]">
@@ -595,62 +634,23 @@ export default function KelolaKas() {
         />
 
         {/* Action Bar & Filters */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-          {/* Filter Dropdowns - Mobile pakai Grid agar rapi */}
-          <div className="grid grid-cols-2 md:flex md:flex-wrap items-center gap-2 md:gap-3 w-full md:w-auto">
-            {/* select Jenis Kas (Memakan 2 kolom di mobile agar panjang) */}
-            <select
-              className="col-span-2 md:col-span-1 bg-white border border-gray-200 text-gray-700 text-sm md:text-sm rounded-lg focus:ring-[#10B981] focus:border-[#10B981] px-3 py-2 font-semibold shadow-sm outline-none w-full md:w-auto"
-              value={filterJenis}
-              onChange={(e) => setFilterJenis(e.target.value)}
-            >
-              <option value="Semua">Jenis Kas (Semua)</option>
-              <option value="Pemasukan">Kas Pemasukan</option>
-              <option value="Pengeluaran">Kas Pengeluaran</option>
-            </select>
-
-            <select
-              className="bg-white border border-gray-200 text-gray-700 text-sm md:text-sm rounded-lg focus:ring-[#10B981] focus:border-[#10B981] px-3 py-2 font-semibold shadow-sm outline-none w-full md:w-28"
-              value={filterBulan}
-              onChange={(e) => setFilterBulan(e.target.value)}
-            >
-              <option value="">Bulan</option>
-              <option value="April">April</option>
-              <option value="Maret">Maret</option>
-            </select>
-
-            <select
-              className="bg-white border border-gray-200 text-gray-700 text-sm md:text-sm rounded-lg focus:ring-[#10B981] focus:border-[#10B981] px-3 py-2 font-semibold shadow-sm outline-none w-full md:w-28"
-              value={filterTahun}
-              onChange={(e) => setFilterTahun(e.target.value)}
-            >
-              <option value="">Tahun</option>
-              <option value="2026">2026</option>
-              <option value="2025">2025</option>
-            </select>
-          </div>
-
-          {/* Action Buttons - Berjejer rapi di mobile */}
-          <div className="grid grid-cols-2 md:flex items-center gap-2 md:gap-3 w-full md:w-auto">
-            <button
-              onClick={() =>
-                exportKasDasawismaPdf({
-                  historyData: filteredTransactions,
-                  totalKasDaswisma: saldoKasDasawisma,
-                })
-              }
-              className="flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2 px-3 rounded-lg text-sm md:text-sm transition-all hover:bg-gray-50 shadow-sm w-full md:w-auto"
-            >
-              <Download size={16} /> Unduh
-            </button>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center justify-center gap-2 bg-[#10B981] text-white font-bold py-2 px-3 rounded-lg text-sm md:text-sm transition-all hover:bg-[#059669] shadow-sm w-full md:w-auto"
-            >
-              <Plus size={16} strokeWidth={2.5} /> Catat
-            </button>
-          </div>
-        </div>
+        <KasFilterBar
+          filterJenis={filterJenis}
+          setFilterJenis={setFilterJenis}
+          filterBulan={filterBulan}
+          setFilterBulan={setFilterBulan}
+          filterTahun={filterTahun}
+          setFilterTahun={setFilterTahun}
+          MonthList={MonthList}
+          tahunList={tahunList}
+          onExport={() =>
+            exportKasDasawismaPdf({
+              historyData: filteredTransactions,
+              totalKasDaswisma: saldoKasDasawisma,
+            })
+          }
+          onAdd={() => setIsModalOpen(true)}
+        />
 
         {/* INI BAGIAN TABLE, JANGAN DI REFACTORING LAGI */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -662,7 +662,7 @@ export default function KelolaKas() {
         {/* ─── MODAL POP-UP CATAT TRANSAKSI ─── */}
         <CreateDataModal
           isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          onClose={handleCloseCreateDataModal}
           formData={formData}
           setFormData={setFormData}
           errors={errors}

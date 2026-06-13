@@ -21,9 +21,11 @@ export default function ModalsEditZIS({
   limitedOptions,
   onClose,
   onSave,
+  muzakkiFound,
+  mustahikFound,
+  errors,
 }) {
   if (!isOpen) return null;
-
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
@@ -55,24 +57,51 @@ export default function ModalsEditZIS({
             </label>
 
             {editForm.jenis === "Pemasukan" ? (
-              <Select
-                options={limitedOptions(muzakkiOptions, searchMuzakki)}
-                placeholder="Cari muzakki..."
-                onInputChange={(value) => setSearchMuzakki(value)}
-                value={selectedMuzakki}
-                onChange={(opt) => setSelectedMuzakki(opt)}
-                isClearable
-                className="text-sm"
-              />
+              muzakkiFound ? (
+                <>
+                  <Select
+                    options={limitedOptions(muzakkiOptions, searchMuzakki)}
+                    placeholder="Cari muzakki..."
+                    onInputChange={(value) => setSearchMuzakki(value)}
+                    value={selectedMuzakki}
+                    onChange={(opt) => setSelectedMuzakki(opt)}
+                    isClearable
+                    className="text-sm"
+                  />
+
+                  {errors.muzakki && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.muzakki}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <input
+                  disabled
+                  value={selectedMuzakki.label || "Muzakki tidak ditemukan"}
+                  className="w-full mt-1 bg-gray-100 border rounded-xl px-4 py-2"
+                />
+              )
+            ) : mustahikFound ? (
+              <>
+                <Select
+                  options={limitedOptions(mustahikOptions, searchMustahik)}
+                  placeholder="Cari mustahik..."
+                  onInputChange={(value) => setSearchMustahik(value)}
+                  value={selectedMustahik}
+                  onChange={(opt) => setSelectedMustahik(opt)}
+                  isClearable
+                  className="text-sm"
+                />
+                {errors.mustahik && (
+                  <p className="text-red-500 text-xs mt-1">{errors.mustahik}</p>
+                )}
+              </>
             ) : (
-              <Select
-                options={limitedOptions(mustahikOptions, searchMustahik)}
-                placeholder="Cari mustahik..."
-                onInputChange={(value) => setSearchMustahik(value)}
-                value={selectedMustahik}
-                onChange={(opt) => setSelectedMustahik(opt)}
-                isClearable
-                className="text-sm"
+              <input
+                disabled
+                value={selectedMustahik.label || "Mustahik tidak ditemukan"}
+                className="w-full mt-1 bg-gray-100 border rounded-xl px-4 py-2"
               />
             )}
           </div>
@@ -118,6 +147,9 @@ export default function ModalsEditZIS({
               }
               className="w-full mt-1 border rounded-xl px-4 py-2"
             />
+            {errors.tanggal && (
+              <p className="text-red-500 text-xs mt-1">{errors.tanggal}</p>
+            )}
           </div>
 
           <div>
@@ -136,6 +168,10 @@ export default function ModalsEditZIS({
               }
               className="w-full mt-1 border rounded-xl px-4 py-2"
             />
+
+            {errors.deskripsi && (
+              <p className="text-red-500 text-xs mt-1">{errors.deskripsi}</p>
+            )}
           </div>
 
           <div>
@@ -154,6 +190,9 @@ export default function ModalsEditZIS({
               }
               className="w-full mt-1 border rounded-xl px-4 py-2"
             />
+            {errors.nominal && (
+              <p className="text-red-500 text-xs mt-1">{errors.nominal}</p>
+            )}
           </div>
         </div>
 

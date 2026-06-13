@@ -6,6 +6,16 @@ export async function getAllMuzakki() {
   return res.data;
 }
 
+export async function getMuzakkiById(id) {
+  const res = await api.get(`/muzakki/get/getMuzakkiById/${id}`);
+  return res.data;
+}
+
+export async function getMuzakkiByNik(nik) {
+  const res = await api.get(`/muzakki/get/getMuzakkiByNik/${nik}`);
+  return res.data;
+}
+
 // Tambah data muzakki baru.
 export async function createMuzakki(payload) {
   const res = await api.post("/muzakki/post/createMuzakki", payload);
@@ -27,9 +37,11 @@ export async function deleteMuzakki(id) {
 // Kumpulan fungsi CRUD muzakki diekspor sebagai satu objek service.
 const muzakkiService = {
   getAllMuzakki,
+  getMuzakkiById,
+  getMuzakkiByNik,
   createMuzakki,
   updateMuzakki,
-  deleteMuzakki
+  deleteMuzakki,
 };
 
 export default muzakkiService;
