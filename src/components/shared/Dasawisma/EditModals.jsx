@@ -3,7 +3,6 @@ import Select from "react-select";
 import { formatThousands } from "../../../utils/formatThousands";
 import { formatDateInput } from "../../../utils/formattedDate";
 
-
 const EditTransactionModal = ({
   isOpen,
   onClose,
@@ -111,6 +110,9 @@ const EditTransactionModal = ({
               }
               className="w-full mt-1 border rounded-xl px-4 py-2"
             />
+            {errors.tanggal && (
+              <p className="mt-1 text-xs text-red-500">{errors.tanggal}</p>
+            )}
           </div>
 
           <div>
@@ -125,6 +127,9 @@ const EditTransactionModal = ({
               }
               className="w-full mt-1 border rounded-xl px-4 py-2"
             />
+            {errors.deskripsi && (
+              <p className="mt-1 text-xs text-red-500">{errors.deskripsi}</p>
+            )}
           </div>
 
           <div>
@@ -139,6 +144,9 @@ const EditTransactionModal = ({
               }
               className="w-full mt-1 border rounded-xl px-4 py-2"
             />
+            {errors.nominal && (
+              <p className="mt-1 text-xs text-red-500">{errors.nominal}</p>
+            )}
           </div>
         </div>
 

@@ -24,6 +24,10 @@ import ModalsEditZIS from "../../components/shared/ZIS/ModalsEditZIS";
 import ModalsNewDataZIS from "../../components/shared/ZIS/ModalsNewDataZIS";
 import ZisTable from "../../components/shared/ZIS/ZISTable";
 import { validationDataZIS } from "../../utils/ValidationDataZIS";
+import MonthList from "../../utils/monthList";
+import { getAvailableYears } from "../../utils/getAvailableYears";
+import ZisFilterBar from "../../components/shared/ZIS/ZisFilterBar";
+import { ValidationEditZIS } from "../../utils/ValidationEditZIS";
 
 // Halaman Kelola ZIS (Amil): catat pemasukan/pengeluaran ZIS via modal, lihat
 // ringkasan total, daftar transaksi dengan filter/pencarian/pagination, unduh PDF.
@@ -60,6 +64,8 @@ export default function KelolaZis() {
   const [saldoUpdatedAt, setSaldoUpdatedAt] = useState("");
   const [totalZIS, setTotalZIS] = useState([]);
   const [errors, setErrors] = useState({});
+  const [muzakkiFound, setMuzakkiFound] = useState(true);
+  const [mustahikFound, setMustahikFound] = useState(true);
 
   // Ubah nama kategori dari format server → format tampilan (UI).
   const toUiKategori = (kategoriApi) => {
@@ -337,6 +343,8 @@ export default function KelolaZis() {
 
   // ─── Filter & Search Logic ───
   // Saring transaksi sesuai pencarian + filter (kategori, tipe, bulan, tahun).
+  const tahunList = getAvailableYears(transactions);
+
   const filteredTransactions = useMemo(() => {
     const q = searchQuery.toLowerCase();
 
@@ -345,7 +353,8 @@ export default function KelolaZis() {
       const id = (trx?.id || "").toString().toLowerCase();
       const kategori = (trx?.kategori || "").toString().toLowerCase();
       const tipe = (trx?.tipe || "").toString().toLowerCase();
-      const d = formatDateInput(trx?.tanggal);
+      const tanggalDisplay = formatDateInput(trx?.tanggal);
+      const tanggalFilter = new Date(trx?.tanggal);
 
       const matchesSearch =
         !q ||
@@ -360,13 +369,13 @@ export default function KelolaZis() {
       const matchesTipe = filterTipe ? trx?.tipe === filterTipe : true;
 
       const matchesBulan = filterBulan
-        ? d?.toLocaleString("id-ID", { month: "long" }) === filterBulan
+        ? tanggalFilter.toLocaleString("id-ID", { month: "long" }) ===
+          filterBulan
         : true;
 
       const matchesTahun = filterTahun
-        ? (d?.getFullYear?.() ?? "").toString() === filterTahun
+        ? tanggalFilter.getFullYear().toString() === filterTahun
         : true;
-
       return (
         matchesSearch &&
         matchesKategori &&
@@ -578,9 +587,8 @@ export default function KelolaZis() {
   });
 
   // Buka modal edit: isi form edit + pilih ulang muzakki/mustahik sesuai transaksi.
-  const handleEdit = (trx) => {
+  const handleEdit = async (trx) => {
     setSelectedZIS(trx);
-
     setSearchMuzakki("");
     setSearchMustahik("");
 
@@ -601,12 +609,24 @@ export default function KelolaZis() {
       );
       setSelectedMuzakki(muzakki);
       setSelectedMustahik(null);
+      try {
+        await muzakkiService.getMuzakkiById(trx.muzakki_id);
+        setMuzakkiFound(true);
+      } catch {
+        setMuzakkiFound(false);
+      }
     } else {
       const mustahik = findOptionByIdOrName(
         mustahikOptions,
         trx.mustahik_id,
         trx.nama,
       );
+      try {
+        await mustahikService.getMustahikById(trx.mustahik_id);
+        setMustahikFound(true);
+      } catch {
+        setMustahikFound(false);
+      }
       setSelectedMustahik(mustahik);
       setSelectedMuzakki(null);
     }
@@ -642,35 +662,14 @@ export default function KelolaZis() {
       const kategoriApi = toApiKategori(editForm.sumber);
       const jumlah = parseThousandsToNumber(editForm.nominal);
 
-      if (!editForm.tanggal) {
-        await Swal.fire({
-          icon: "warning",
-          title: "Validasi",
-          text: "Tanggal wajib diisi",
-          confirmButtonColor: "#10B981",
-        });
+      const validationErrors = ValidationEditZIS(editForm);
+
+      if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
         return;
       }
 
-      if (!editForm.deskripsi?.trim()) {
-        await Swal.fire({
-          icon: "warning",
-          title: "Validasi",
-          text: "Deskripsi wajib diisi",
-          confirmButtonColor: "#10B981",
-        });
-        return;
-      }
-
-      if (!jumlah || jumlah <= 0) {
-        await Swal.fire({
-          icon: "warning",
-          title: "Validasi",
-          text: "Nominal wajib diisi dan harus > 0",
-          confirmButtonColor: "#10B981",
-        });
-        return;
-      }
+      setErrors({});
 
       if (selectedZIS.tipe === "Pemasukan") {
         const muzakkiId = selectedMuzakki?.value ?? null;
@@ -709,6 +708,7 @@ export default function KelolaZis() {
           kategori: kategoriApi,
           jumlah,
           deskripsi: editForm.deskripsi,
+          nama_mustahik: selectedMustahik?.label ?? editForm.nama ?? "",
           tanggal_penyaluran: editForm.tanggal,
         });
       }
@@ -797,78 +797,25 @@ export default function KelolaZis() {
         />
 
         {/* ─── Filter & Action Bar ─── */}
-        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6 mt-5">
-          <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
-            <select
-              className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-[#10B981] px-4 py-2.5 font-semibold shadow-sm flex-1 md:flex-none cursor-pointer"
-              value={filterKategori}
-              onChange={(e) => setFilterKategori(e.target.value)}
-            >
-              <option value="">Kategori ZIS</option>
-              <option value="Zakat Maal">Zakat Maal</option>
-              <option value="Zakat Fitrah Uang">Zakat Fitrah Uang</option>
-              <option value="Zakat Fitrah Beras">Zakat Fitrah Beras</option>
-              <option value="Infaq">Infaq</option>
-              <option value="Sedekah">Sedekah</option>
-            </select>
-            <select
-              className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-[#10B981] px-4 py-2.5 font-semibold shadow-sm flex-1 md:flex-none cursor-pointer"
-              value={filterBulan}
-              onChange={(e) => setFilterBulan(e.target.value)}
-            >
-              <option value="">Bulan</option>
-              <option value="April">April</option>
-              <option value="Maret">Maret</option>
-            </select>
-            <select
-              className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-[#10B981] px-4 py-2.5 font-semibold shadow-sm flex-1 md:flex-none cursor-pointer"
-              value={filterTahun}
-              onChange={(e) => setFilterTahun(e.target.value)}
-            >
-              <option value="">Tahun</option>
-              <option value="2024">2024</option>
-              <option value="2023">2023</option>
-            </select>
-            <select
-              className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-[#10B981] px-4 py-2.5 font-semibold shadow-sm flex-1 md:flex-none cursor-pointer"
-              value={filterTipe}
-              onChange={(e) => setFilterTipe(e.target.value)}
-            >
-              <option value="">Tipe</option>
-              <option value="Pemasukan">Pemasukan</option>
-              <option value="Pengeluaran">Pengeluaran</option>
-            </select>
-          </div>
-          <div className="flex flex-col xl:flex-row gap-2 w-full xl:w-auto">
-            {/* Tombol Download */}
-            <button
-              onClick={handleDownloadPDF}
-              className="flex items-center justify-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-2.5 px-4 rounded-lg transition-colors shadow-sm text-sm w-full xl:w-auto"
-            >
-              <Download size={16} />
-              Unduh Data
-            </button>
-
-            {/* Tombol Tambah */}
-            <div className="grid grid-cols-2 gap-2 w-full xl:w-auto">
-              <button
-                onClick={() => openModal("PEMASUKAN")}
-                className="flex items-center justify-center gap-2 bg-[#10B981] text-white font-bold py-2.5 px-4 rounded-lg text-sm hover:bg-[#059669] shadow-sm transition-all"
-              >
-                <Plus size={18} strokeWidth={2.5} />
-                Pemasukan
-              </button>
-
-              <button
-                onClick={() => openModal("PENGELUARAN")}
-                className="flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2.5 px-4 rounded-lg text-sm hover:bg-gray-50 shadow-sm transition-all"
-              >
-                <Plus size={18} strokeWidth={2.5} />
-                Pengeluaran
-              </button>
-            </div>
-          </div>
-        </div>
+        <ZisFilterBar
+          filterKategori={filterKategori}
+          setFilterKategori={setFilterKategori}
+          filterBulan={filterBulan}
+          setFilterBulan={setFilterBulan}
+          filterTahun={filterTahun}
+          setFilterTahun={setFilterTahun}
+          filterTipe={filterTipe}
+          setFilterTipe={setFilterTipe}
+          MonthList={MonthList}
+          tahunList={tahunList}
+          onDownload={() =>
+            exportZISPdf({
+              historyData: filteredTransactions,
+            })
+          }
+          onTambahPemasukan={() => openModal("PEMASUKAN")}
+          onTambahPengeluaran={() => openModal("PENGELUARAN")}
+        />
 
         {/* ─── Search Bar ─── */}
         <div className="mb-6 relative">
@@ -934,6 +881,9 @@ export default function KelolaZis() {
         limitedOptions={limitedOptions}
         onClose={handleCloseEditModal}
         onSave={handleSaveEdit}
+        muzakkiFound={muzakkiFound}
+        mustahikFound={mustahikFound}
+        errors={errors}
       />
     </PageTransition>
   );

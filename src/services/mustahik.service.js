@@ -6,6 +6,11 @@ export async function getAllMustahik() {
   return res.data;
 }
 
+export async function getMustahikById(id) {
+  const res = await api.get(`/mustahik/get/getMustahik/${id}`);
+  return res.data;
+}
+
 // Tambah data mustahik baru.
 export async function createMustahik(payload) {
   const res = await api.post("/mustahik/post/createMustahik", payload);
@@ -27,6 +32,7 @@ export async function deleteMustahik(id) {
 // Kumpulan fungsi CRUD mustahik diekspor sebagai satu objek service.
 const mustahikService = {
   getAllMustahik,
+  getMustahikById,
   createMustahik,
   updateMustahik,
   deleteMustahik

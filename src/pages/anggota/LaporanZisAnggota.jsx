@@ -10,6 +10,9 @@ import totalZISService from "../../services/totalZIS.service";
 import BottomSummaryCards from "../../components/shared/BottomSummarycards";
 import { exportZISPdf } from "../../utils/exportZISPdf";
 import ZisTable from "../../components/shared/ZIS/ZISTable";
+import { getAvailableYears } from "../../utils/getAvailableYears";
+import { formatDateInput } from "../../utils/formattedDate";
+import MonthList from "../../utils/monthList";
 
 // Halaman Laporan/Manajemen ZIS untuk anggota: menampilkan ringkasan total,
 // daftar transaksi (pemasukan & pengeluaran) dengan filter, pencarian,
@@ -92,6 +95,7 @@ export default function LaporanZisAnggota() {
         Array.isArray(pemasukanArr) ? pemasukanArr : []
       ).map((item) => ({
         id: `${item?.id ?? ""}`,
+        uniqueKey: `pemasukan-zis-${item.id}`,
         tanggal: item?.tanggal_penghimpunan ?? item?.created_at ?? null,
         nama: item?.nama_muzakki || "-",
         kategori: toUiKategori(item?.kategori),
@@ -104,6 +108,7 @@ export default function LaporanZisAnggota() {
         Array.isArray(pengeluaranArr) ? pengeluaranArr : []
       ).map((item) => ({
         id: `${item?.id ?? ""}`,
+        uniqueKey: `pengeluaran-zis-${item.id}`,
         tanggal: item?.tanggal_penyaluran ?? item?.created_at ?? null,
         nama: item?.nama_mustahik || "-",
         kategori: toUiKategori(item?.kategori),
@@ -181,6 +186,8 @@ export default function LaporanZisAnggota() {
   // ─── Filter & Search Logic ───
   // Saring daftar transaksi sesuai kata kunci pencarian + filter (kategori,
   // tipe, bulan, tahun). Dihitung ulang hanya saat data/filter berubah.
+  const tahunList = getAvailableYears(transactions);
+
   const filteredTransactions = useMemo(() => {
     const q = searchQuery.toLowerCase();
 
@@ -189,7 +196,8 @@ export default function LaporanZisAnggota() {
       const id = (trx?.id || "").toString().toLowerCase();
       const kategori = (trx?.kategori || "").toString().toLowerCase();
       const tipe = (trx?.tipe || "").toString().toLowerCase();
-      const d = parseDateSafe(trx?.tanggal);
+      const tanggalDisplay = formatDateInput(trx?.tanggal);
+      const tanggalFilter = new Date(trx?.tanggal);
 
       const matchesSearch =
         !q ||
@@ -204,13 +212,13 @@ export default function LaporanZisAnggota() {
       const matchesTipe = filterTipe ? trx?.tipe === filterTipe : true;
 
       const matchesBulan = filterBulan
-        ? d?.toLocaleString("id-ID", { month: "long" }) === filterBulan
+        ? tanggalFilter.toLocaleString("id-ID", { month: "long" }) ===
+          filterBulan
         : true;
 
       const matchesTahun = filterTahun
-        ? (d?.getFullYear?.() ?? "").toString() === filterTahun
+        ? tanggalFilter.getFullYear().toString() === filterTahun
         : true;
-
       return (
         matchesSearch &&
         matchesKategori &&
@@ -246,8 +254,6 @@ export default function LaporanZisAnggota() {
   return (
     <PageTransition>
       <div className="min-h-screen bg-gray-50 p-6 md:p-10 font-['Manrope']">
-        
-
         {/* ─── Header ─── */}
         <div className="mb-8">
           <h1 className="text-2xl md:text-3xl font-extrabold text-[#0F766E]">
@@ -268,60 +274,26 @@ export default function LaporanZisAnggota() {
         />
 
         {/* ─── Filter & Action Bar ─── */}
-        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6 mt-5">
-          <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
-            <select
-              className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-[#10B981] px-4 py-2.5 font-semibold shadow-sm flex-1 md:flex-none cursor-pointer"
-              value={filterKategori}
-              onChange={(e) => setFilterKategori(e.target.value)}
-            >
-              <option value="">Kategori ZIS</option>
-              <option value="Zakat Maal">Zakat Maal</option>
-              <option value="Zakat Fitrah Uang">Zakat Fitrah Uang</option>
-              <option value="Zakat Fitrah Beras">Zakat Fitrah Beras</option>
-              <option value="Infaq">Infaq</option>
-              <option value="Sedekah">Sedekah</option>
-            </select>
-            <select
-              className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-[#10B981] px-4 py-2.5 font-semibold shadow-sm flex-1 md:flex-none cursor-pointer"
-              value={filterBulan}
-              onChange={(e) => setFilterBulan(e.target.value)}
-            >
-              <option value="">Bulan</option>
-              <option value="April">April</option>
-              <option value="Maret">Maret</option>
-            </select>
-            <select
-              className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-[#10B981] px-4 py-2.5 font-semibold shadow-sm flex-1 md:flex-none cursor-pointer"
-              value={filterTahun}
-              onChange={(e) => setFilterTahun(e.target.value)}
-            >
-              <option value="">Tahun</option>
-              <option value="2024">2024</option>
-              <option value="2023">2023</option>
-            </select>
-            <select
-              className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-[#10B981] px-4 py-2.5 font-semibold shadow-sm flex-1 md:flex-none cursor-pointer"
-              value={filterTipe}
-              onChange={(e) => setFilterTipe(e.target.value)}
-            >
-              <option value="">Tipe</option>
-              <option value="Pemasukan">Pemasukan</option>
-              <option value="Pengeluaran">Pengeluaran</option>
-            </select>
-          </div>
-          <div className="flex items-center gap-3 w-full xl:w-auto">
-            <button
-              onClick={() =>
-                exportZISPdf({ historyData: filteredTransactions })
-              }
-              className="flex items-center justify-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-2 px-4 rounded-lg transition-colors shadow-sm text-sm w-full md:w-auto"
-            >
-              <Download size={16} />
-              Unduh Data
-            </button>
-          </div>
-        </div>
+        <ZisFilterBar
+          filterKategori={filterKategori}
+          setFilterKategori={setFilterKategori}
+          filterBulan={filterBulan}
+          setFilterBulan={setFilterBulan}
+          filterTahun={filterTahun}
+          setFilterTahun={setFilterTahun}
+          filterTipe={filterTipe}
+          setFilterTipe={setFilterTipe}
+          MonthList={MonthList}
+          tahunList={tahunList}
+          onDownload={() => {
+            exportZISPdf({
+              historyData: filteredTransactions,
+            });
+          }}
+          onTambahPemasukan={() => openModal("PEMASUKAN")}
+          onTambahPengeluaran={() => openModal("PENGELUARAN")}
+          onEdit={false}
+        />
 
         {/* ─── Search Bar ─── */}
         <div className="mb-6 relative">

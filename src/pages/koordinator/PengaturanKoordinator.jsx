@@ -16,6 +16,7 @@ import { formatDateInput } from "../../utils/formattedDate";
 import dasawismaService from "../../services/dasawisma.service";
 import Swal from "sweetalert2";
 import authService from "../../services/auth.service";
+import { validateAnggotaDasawisma } from "../../utils/ValidateAnggotaDasawisma";
 
 // Halaman Pengaturan profil koordinator: edit data diri + ganti password (modal).
 export default function PengaturanKoordinator() {
@@ -33,6 +34,9 @@ export default function PengaturanKoordinator() {
     telp: "",
     alamat: "",
   });
+  const [errors, setErrors] = useState({});
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   // Ambil data user terbaru dari server lalu isi ke form.
   const loadUser = async () => {
@@ -65,9 +69,6 @@ export default function PengaturanKoordinator() {
     }
   };
 
-  const [errors, setErrors] = useState({});
-  const [isSuccess, setIsSuccess] = useState(false);
-
   // Update field form saat user mengetik & bersihkan error field tsb.
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -76,52 +77,17 @@ export default function PengaturanKoordinator() {
     setIsSuccess(false);
   };
 
-  // Validasi seluruh isian form; kumpulkan pesan error per field.
-  const validateForm = () => {
-    let newErrors = {};
-    if (!formData.nama.trim()) newErrors.nama = "Nama lengkap wajib diisi!";
-    if (!formData.email.trim()) {
-      newErrors.email = "Alamat email wajib diisi!";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Format email tidak valid!";
-    }
-    if (!formData.telp.trim()) {
-      newErrors.telp = "Nomor telepon wajib diisi!";
-    } else if (!/^[0-9]+$/.test(formData.telp)) {
-      newErrors.telp = "Nomor telepon hanya boleh angka!";
-    }
-    if (!formData.nik.trim()) {
-      newErrors.nik = "NIK wajib diisi!";
-    }
-    if (!formData.tanggal_lahir.trim()) {
-      newErrors.tanggal_lahir = "Tanggal lahir wajib diisi!";
-    }
-    if (!formData.tempat_lahir.trim()) {
-      newErrors.tempat_lahir = "Tempat lahir wajib diisi!";
-    }
-    if (!formData.alamat.trim()) {
-      newErrors.alamat = "Alamat wajib diisi!";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   // Simpan perubahan profil: validasi dulu, lalu kirim ke server.
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      Swal.fire({
-        icon: "error",
-        title: "Validasi Gagal",
-        text: "Periksa kembali data yang diisi.",
-        confirmButtonColor: "#10B981",
-      });
-
+    const validationErrors = validateAnggotaDasawisma(formData);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
 
+    setErrorMsg("");
+    setErrors({});
     try {
       setIsSubmitting(true);
 
@@ -265,8 +231,6 @@ export default function PengaturanKoordinator() {
   return (
     <PageTransition>
       <div className="min-h-screen bg-gray-50 p-6 md:p-10 font-['Manrope']">
-        
-
         {/* ─── Header ─── */}
         <div className="mb-8">
           <h1 className="text-2xl md:text-3xl font-extrabold text-[#0F766E]">
