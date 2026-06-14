@@ -1,14 +1,37 @@
 import React, { useMemo, useState } from "react";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 // Label nama bulan untuk sumbu X grafik.
-const MONTH_LABELS = ["JAN", "FEB", "MAR", "APR", "MEI", "JUN", "JUL", "AGT", "SEP", "OKT", "NOV", "DES"];
+const MONTH_LABELS = [
+  "JAN",
+  "FEB",
+  "MAR",
+  "APR",
+  "MEI",
+  "JUN",
+  "JUL",
+  "AGT",
+  "SEP",
+  "OKT",
+  "NOV",
+  "DES",
+];
 
 // Mengubah berbagai bentuk input tanggal menjadi objek Date secara aman
 // (mengembalikan null bila tidak valid).
 const parseDateSafe = (dateLike) => {
   if (!dateLike) return null;
-  if (dateLike instanceof Date) return Number.isNaN(dateLike.getTime()) ? null : dateLike;
+  if (dateLike instanceof Date)
+    return Number.isNaN(dateLike.getTime()) ? null : dateLike;
   const safe = String(dateLike).trim();
   if (!safe) return null;
   const looksLikeDateTime = safe.includes("T") || /\d{2}:\d{2}/.test(safe);
@@ -30,7 +53,12 @@ const getMaxYearFromItems = (items, dateKey) => {
 };
 
 // Grafik tren pemasukan vs pengeluaran kas dasawisma (bisa tampilan Bulanan/Tahunan).
-export default function ChartKas({ pemasukanItems, pengeluaranItems, themeColors, customTooltipFormatter }) {
+export default function ChartKas({
+  pemasukanItems,
+  pengeluaranItems,
+  themeColors,
+  customTooltipFormatter,
+}) {
   const [waktu, setWaktu] = useState("Bulanan");
 
   // Olah data mentah transaksi menjadi data grafik: jumlahkan nominal per
@@ -40,14 +68,19 @@ export default function ChartKas({ pemasukanItems, pengeluaranItems, themeColors
     const isTahunan = waktu === "Tahunan";
 
     const result = isTahunan
-      ? Array.from({ length: 7 }, (_, i) => ({ label: String(nowYear - 6 + i), pemasukan: 0, pengeluaran: 0 }))
+      ? Array.from({ length: 7 }, (_, i) => ({
+          label: String(nowYear - 6 + i),
+          pemasukan: 0,
+          pengeluaran: 0,
+        }))
       : MONTH_LABELS.map((m) => ({ label: m, pemasukan: 0, pengeluaran: 0 }));
 
     const latestYear = Math.max(
       getMaxYearFromItems(pemasukanItems, "tanggal_penghimpunan") ?? -Infinity,
-      getMaxYearFromItems(pengeluaranItems, "tanggal_penyaluran") ?? -Infinity
+      getMaxYearFromItems(pengeluaranItems, "tanggal_penyaluran") ?? -Infinity,
     );
-    const activeYear = isTahunan || latestYear === -Infinity ? nowYear : latestYear;
+    const activeYear =
+      isTahunan || latestYear === -Infinity ? nowYear : latestYear;
 
     (pemasukanItems || []).forEach((item) => {
       const d = parseDateSafe(item?.tanggal_penghimpunan);
@@ -84,8 +117,17 @@ export default function ChartKas({ pemasukanItems, pengeluaranItems, themeColors
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 font-['Manrope']">
       <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
         <div>
-          <h2 className="text-base md:text-xl font-extrabold text-gray-900">Tren Transaksi Kas Dasawisma</h2>
-          <p className="text-xs md:text-sm text-gray-500 mt-1 font-medium">Laporan akumulasi dana {waktu.toLowerCase()} {new Date().getFullYear()}</p>
+          <h2 className="text-base md:text-xl font-extrabold text-gray-900">
+            Tren Transaksi Kas Dasawisma
+          </h2>
+          {/* <p className="text-xs md:text-sm text-gray-500 mt-1 font-medium">Laporan akumulasi dana {waktu.toLowerCase()} {new Date().getFullYear()}</p> */}
+          <p className="text-xs md:text-sm text-gray-500 mt-1 font-medium">
+            Laporan akumulasi dana{" "}
+            <span className="font-extrabold text-gray-500">
+              {waktu.toLowerCase()}
+            </span>{" "}
+            kas dasawisma
+          </p>
         </div>
         <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
           {["Bulanan", "Tahunan"].map((opt) => (
@@ -94,10 +136,10 @@ export default function ChartKas({ pemasukanItems, pengeluaranItems, themeColors
               type="button"
               onClick={() => setWaktu(opt)}
               className={`px-3 md:px-4 py-1.5 md:py-2 rounded-md text-[11px] md:text-sm font-bold transition-all duration-300 ${
-                  waktu === opt 
-                    ? "bg-[#10B981] text-white shadow-sm" 
-                    : "text-gray-500 hover:text-gray-800 hover:bg-gray-200/50"
-                }`}
+                waktu === opt
+                  ? "bg-[#10B981] text-white shadow-sm"
+                  : "text-gray-500 hover:text-gray-800 hover:bg-gray-200/50"
+              }`}
             >
               {opt}
             </button>
@@ -106,20 +148,57 @@ export default function ChartKas({ pemasukanItems, pengeluaranItems, themeColors
       </div>
 
       <ResponsiveContainer width="100%" height={260}>
-        <AreaChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+        <AreaChart
+          data={chartData}
+          margin={{ top: 4, right: 4, left: 0, bottom: 0 }}
+        >
           <defs>
             <linearGradient id="gradKas" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={themeColors.accent} stopOpacity={0.25} />
-              <stop offset="95%" stopColor={themeColors.accent} stopOpacity={0} />
+              <stop
+                offset="5%"
+                stopColor={themeColors.accent}
+                stopOpacity={0.25}
+              />
+              <stop
+                offset="95%"
+                stopColor={themeColors.accent}
+                stopOpacity={0}
+              />
             </linearGradient>
           </defs>
-          <CartesianGrid vertical={false} stroke="#F3F4F6" strokeDasharray="4 4" />
-          <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
+          <CartesianGrid
+            vertical={false}
+            stroke="#F3F4F6"
+            strokeDasharray="4 4"
+          />
+          <XAxis
+            dataKey="label"
+            tick={{ fontSize: 11, fill: "#9CA3AF" }}
+            axisLine={false}
+            tickLine={false}
+          />
           <YAxis hide />
           <Tooltip content={customTooltipFormatter("Kas")} />
           <Legend wrapperStyle={{ fontSize: 12, paddingTop: 16 }} />
-          <Area type="monotone" dataKey="pemasukan" name="Pemasukan" stroke={themeColors.accent} strokeWidth={3} fill="url(#gradKas)" dot={false} />
-          <Area type="monotone" dataKey="pengeluaran" name="Pengeluaran" stroke={themeColors.danger} strokeWidth={2} strokeDasharray="5 5" fill="none" dot={false} />
+          <Area
+            type="monotone"
+            dataKey="pemasukan"
+            name="Pemasukan"
+            stroke={themeColors.accent}
+            strokeWidth={3}
+            fill="url(#gradKas)"
+            dot={false}
+          />
+          <Area
+            type="monotone"
+            dataKey="pengeluaran"
+            name="Pengeluaran"
+            stroke={themeColors.danger}
+            strokeWidth={2}
+            strokeDasharray="5 5"
+            fill="none"
+            dot={false}
+          />
         </AreaChart>
       </ResponsiveContainer>
     </div>

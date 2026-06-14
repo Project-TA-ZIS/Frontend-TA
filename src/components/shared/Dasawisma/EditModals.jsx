@@ -12,6 +12,8 @@ const EditTransactionModal = ({
   anggotaOptions,
   onSave,
   handleEditInputChange,
+  dasawismaFound = true,
+  jenisTransaksi,
 }) => {
   if (!isOpen) return null;
 
@@ -32,7 +34,21 @@ const EditTransactionModal = ({
               Jenis Transaksi
               <span className="text-red-500"> *</span>
             </label>
-            <select
+
+            {editForm.jenis === "Pemasukan" ? (
+              <input
+                disabled
+                value={editForm.jenis}
+                className="w-full mt-1 bg-gray-100 border rounded-xl px-4 py-2"
+              />
+            ) : (
+              <input
+                disabled
+                value={editForm.jenis}
+                className="w-full mt-1 bg-gray-100 border rounded-xl px-4 py-2"
+              />
+            )}
+            {/* <select
               name="jenis"
               value={editForm.jenis}
               onChange={handleEditInputChange}
@@ -40,26 +56,29 @@ const EditTransactionModal = ({
             >
               <option value="Pemasukan">KAS MASUK (PEMASUKAN)</option>
               <option value="Pengeluaran">KAS KELUAR (PENGELUARAN)</option>
-            </select>
+            </select> */}
           </div>
 
-          {editForm.jenis === "Pemasukan" && (
-            <div>
-              <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                Jenis Transaksi
-                <span className="text-red-500"> *</span>
-              </label>
-              <select
-                name="sumber"
-                value={editForm.sumber}
-                onChange={handleEditInputChange}
-                className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-2.5 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
-              >
-                <option value="IURAN">Iuran Anggota</option>
-                <option value="LAINNYA">Lainnya</option>
-              </select>
-            </div>
-          )}
+          <div>
+            <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+              Sumber Dana
+              <span className="text-red-500"> *</span>
+            </label>
+            <input
+              disabled
+              value={editForm.sumber}
+              className="w-full mt-1 bg-gray-100 border rounded-xl px-4 py-2"
+            />
+            {/* <select
+              name="sumber"
+              value={editForm.sumber}
+              onChange={handleEditInputChange}
+              className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-2.5 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
+            >
+              <option value="IURAN">Iuran Anggota</option>
+              <option value="LAINNYA">Lainnya</option>
+            </select> */}
+          </div>
 
           {editForm.jenis === "Pemasukan" && editForm.sumber === "IURAN" && (
             <div>
@@ -68,26 +87,34 @@ const EditTransactionModal = ({
                 <span className="text-red-500"> *</span>
               </label>
 
-              <Select
-                value={
-                  editForm.anggota_dasawisma_id
-                    ? {
-                        value: editForm.anggota_dasawisma_id,
-                        label: editForm.namaAnggota,
-                      }
-                    : null
-                }
-                options={anggotaOptions}
-                placeholder="Cari nama anggota..."
-                onChange={(selectedOption) =>
-                  setEditForm((prev) => ({
-                    ...prev,
-                    anggota_dasawisma_id: selectedOption?.value || "",
-                    namaAnggota: selectedOption?.label || "",
-                  }))
-                }
-                className="text-sm"
-              />
+              {dasawismaFound ? (
+                <Select
+                  value={
+                    editForm.anggota_dasawisma_id
+                      ? {
+                          value: editForm.anggota_dasawisma_id,
+                          label: editForm.namaAnggota,
+                        }
+                      : null
+                  }
+                  options={anggotaOptions}
+                  placeholder="Cari nama anggota..."
+                  onChange={(selectedOption) =>
+                    setEditForm((prev) => ({
+                      ...prev,
+                      anggota_dasawisma_id: selectedOption?.value || "",
+                      namaAnggota: selectedOption?.label || "",
+                    }))
+                  }
+                  className="text-sm"
+                />
+              ) : (
+                <input
+                  disabled
+                  value={editForm.namaAnggota || "Anggota tidak ditemukan"}
+                  className="w-full mt-1 bg-gray-100 border rounded-xl px-4 py-2"
+                />
+              )}
 
               {errors.anggota_dasawisma_id && (
                 <p className="mt-1 text-xs text-red-500">

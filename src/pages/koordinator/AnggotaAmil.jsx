@@ -3,6 +3,7 @@ import amilService from "../../services/amil.service";
 import Swal from "sweetalert2";
 import PageTransition from "../../components/shared/PageTransition";
 import { Edit, Info, Plus, Search, Trash2, X } from "lucide-react";
+import { ValidateAnggotaAmil } from "../../utils/ValidateAnggotaAmil";
 
 // Ubah satu data amil dari format server menjadi format baris tabel yang dipakai UI.
 const mapApiAmilToRowData = (amil) => ({
@@ -136,6 +137,7 @@ export default function AnggotaAmil() {
   // Buka modal dalam mode EDIT: isi form dengan data baris yang dipilih.
   const handleEditClick = (anggota) => {
     setEditingId(anggota.id);
+
     setFormData({
       nama: anggota.nama,
       email: anggota.email,
@@ -146,45 +148,16 @@ export default function AnggotaAmil() {
     setIsModalOpen(true);
   };
 
-  // Validasi isian form; password hanya wajib saat menambah data baru.
-  const validateForm = () => {
-    let newErrors = {};
-
-    if (!formData.nama.trim()) {
-      newErrors.nama = "Nama lengkap wajib diisi!";
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = "Alamat email wajib diisi!";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Format email tidak valid!";
-    }
-
-    if (!editingId) {
-      if (!formData.password.trim()) {
-        newErrors.password = "Password wajib diisi!";
-      } else if (formData.password.length < 6) {
-        newErrors.password = "Password minimal 6 karakter!";
-      }
-    }
-
-    if (!formData.telp.trim()) {
-      newErrors.telp = "Nomor telepon wajib diisi 10 sampai 12 karakter!";
-    } else if (!/^[0-9]+$/.test(formData.telp)) {
-      newErrors.telp = "Nomor telepon hanya boleh angka!";
-    } else if (formData.telp.length < 10) {
-      newErrors.telp = "Nomor telepon tidak valid!";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   // Simpan form: validasi dulu, lalu update (jika edit) atau buat baru (jika tambah).
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
-    setErrorMsg("");
+    const validationErrors = ValidateAnggotaAmil(formData, editingId);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+    setErrors({});
 
     try {
       if (editingId) {
@@ -232,6 +205,7 @@ export default function AnggotaAmil() {
         password: "",
       });
     } catch (err) {
+      console.error("Error submitting form:", err);
       Swal.fire({
         icon: "error",
         title: "Oops...",
@@ -257,6 +231,7 @@ export default function AnggotaAmil() {
     if (result.isConfirmed) {
       setIsModalOpen(false);
       setEditingId(null);
+      setErrors({});
       setFormData({
         nama: "",
         email: "",
@@ -281,8 +256,6 @@ export default function AnggotaAmil() {
         className="min-h-screen bg-gray-50 p-6 md:p-10 relative"
         style={{ fontFamily: "Manrope, sans-serif" }}
       >
-        
-
         {/* ─── Header ─── */}
         <div className="mb-6">
           <h1 className="text-2xl md:text-3xl font-extrabold text-[#0F766E]">
@@ -395,7 +368,8 @@ export default function AnggotaAmil() {
                         colSpan="6"
                         className="px-6 py-8 text-center text-sm font-medium text-gray-500"
                       >
-                        Tidak ada data yang cocok dengan pencarian "{searchQuery}"
+                        Tidak ada data yang cocok dengan pencarian "
+                        {searchQuery}"
                       </td>
                     ) : (
                       <td
@@ -589,6 +563,11 @@ export default function AnggotaAmil() {
                         className={inputClass}
                         placeholder="Bandung, Jawa Barat"
                       />
+                      {errors.alamat && (
+                        <p className="text-xs md:text-sm font-semibold text-red-500 mt-1">
+                          {errors.alamat}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
