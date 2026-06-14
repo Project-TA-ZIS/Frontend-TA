@@ -10,6 +10,7 @@ import {
 import Swal from "sweetalert2";
 import { formatDateInput } from "../../utils/formattedDate";
 import { ValidationDataMuzakki } from "../../utils/ValidationDataMuzakki";
+import MantineDateInput from "../../components/shared/MantineDateInput";
 
 // Halaman kelola Muzzaki (pemberi zakat): tabel + tambah/edit/hapus via modal,
 // dengan pencarian dan pagination.
@@ -734,12 +735,15 @@ export default function KelolaMuzzaki() {
                           Tanggal Lahir
                           <span className="text-red-500"> *</span>
                         </label>
-                        <input
-                          type="date"
+                        <MantineDateInput
                           name="tanggalLahir"
                           value={formatDateInput(formData.tanggalLahir)}
                           onChange={handleInputChange}
-                          className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
+                          error={errors.tanggalLahir}
+                          classNames={{
+                            input:
+                              "w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold",
+                          }}
                         />
                         {errors.tanggalLahir && (
                           <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">

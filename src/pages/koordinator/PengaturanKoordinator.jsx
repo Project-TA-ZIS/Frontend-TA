@@ -17,6 +17,7 @@ import dasawismaService from "../../services/dasawisma.service";
 import Swal from "sweetalert2";
 import authService from "../../services/auth.service";
 import { validateAnggotaDasawisma } from "../../utils/ValidateAnggotaDasawisma";
+import MantineDateInput from "../../components/shared/MantineDateInput";
 
 // Halaman Pengaturan profil koordinator: edit data diri + ganti password (modal).
 export default function PengaturanKoordinator() {
@@ -36,7 +37,7 @@ export default function PengaturanKoordinator() {
   });
   const [errors, setErrors] = useState({});
   const [isSuccess, setIsSuccess] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [, setErrorMsg] = useState("");
 
   // Ambil data user terbaru dari server lalu isi ke form.
   const loadUser = async () => {
@@ -364,12 +365,14 @@ export default function PengaturanKoordinator() {
                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                           <Calendar className="h-4 w-4 text-gray-400" />
                         </div>
-                        <input
-                          type="date"
+                        <MantineDateInput
                           name="tanggal_lahir"
                           value={formatDateInput(formData.tanggal_lahir) || ""}
                           onChange={handleInputChange}
-                          className={`w-full pl-11 pr-4 py-2.5 md:py-3 bg-gray-50 text-sm md:text-base rounded-xl outline-none font-semibold transition-all border ${errors.tanggal_lahir ? "border-red-500 focus:ring-red-500 bg-red-50/50" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`}
+                          error={errors.tanggal_lahir}
+                          classNames={{
+                            input: `w-full pl-11 pr-4 py-2.5 md:py-3 bg-gray-50 text-sm md:text-base rounded-xl outline-none font-semibold transition-all border ${errors.tanggal_lahir ? "border-red-500 focus:ring-red-500 bg-red-50/50" : "border-gray-200 focus:ring-2 focus:ring-[#10B981]"}`,
+                          }}
                         />
                       </div>
                       {errors.tanggal_lahir && (

@@ -2,7 +2,7 @@ import React from "react";
 import Select from "react-select";
 import { X } from "lucide-react";
 import { formatThousands } from "../../../utils/formatThousands";
-import { formatDateInput } from "../../../utils/formattedDate";
+import MantineDateInput from "../MantineDateInput";
 
 export default function ModalsEditZIS({
   isOpen,
@@ -136,16 +136,17 @@ export default function ModalsEditZIS({
               <span className="text-red-500"> *</span>
             </label>
 
-            <input
-              type="date"
-              value={formatDateInput(editForm.tanggal)}
+            <MantineDateInput
+              name="tanggal"
+              value={editForm.tanggal}
               onChange={(e) =>
                 setEditForm({
                   ...editForm,
                   tanggal: e.target.value,
                 })
               }
-              className="w-full mt-1 border rounded-xl px-4 py-2"
+              error={errors.tanggal}
+              className="mt-1"
             />
             {errors.tanggal && (
               <p className="text-red-500 text-xs mt-1">{errors.tanggal}</p>

@@ -10,6 +10,7 @@ import {
 import Swal from "sweetalert2";
 import { formatDateInput } from "../../utils/formattedDate";
 import { ValidationDataMustahik } from "../../utils/ValidationDataMustahik";
+import MantineDateInput from "../../components/shared/MantineDateInput";
 
 // Ubah kode jenis kelamin menjadi label tampilan.
 const toGenderLabel = (value) => {
@@ -686,12 +687,15 @@ export default function KelolaMustahik() {
                           Tanggal Lahir
                           <span className="text-red-500"> *</span>
                         </label>
-                        <input
-                          type="date"
+                        <MantineDateInput
                           name="tanggalLahir"
                           value={formData.tanggalLahir}
                           onChange={handleInputChange}
-                          className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
+                          error={errors.tanggalLahir}
+                          classNames={{
+                            input:
+                              "w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold",
+                          }}
                         />
                         {errors.tanggalLahir && (
                           <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">

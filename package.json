@@ -12,6 +12,7 @@
   "dependencies": {
     "@mantine/core": "^9.3.1",
     "@mantine/dates": "^9.3.1",
+    "@mantine/hooks": "^9.3.1",
     "axios": "^1.16.1",
     "dayjs": "^1.11.21",
     "flowbite": "^4.0.2",
