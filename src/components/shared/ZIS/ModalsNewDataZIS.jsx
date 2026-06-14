@@ -1,9 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import Select from "react-select";
 import { X } from "lucide-react";
-import { formatThousands } from "../../../utils/formatThousands";
-import { formatDateInput } from "../../../utils/formattedDate";
-import { validationDataZIS } from "../../../utils/ValidationDataZIS";
+import MantineDateInput from "../MantineDateInput";
 
 export default function ModalsNewDataZIS({
   isOpen,
@@ -57,13 +55,11 @@ export default function ModalsNewDataZIS({
               <span className="text-red-500"> *</span>
             </label>
 
-            <input
-              type="date"
+            <MantineDateInput
               name="tanggal"
-              
-              value={formatDateInput(formData.tanggal)}
+              value={formData.tanggal}
               onChange={handleInputChange}
-              className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
+              error={errors.tanggal}
             />
             {errors.tanggal && (
               <p className="text-red-500 text-xs mt-1">{errors.tanggal}</p>

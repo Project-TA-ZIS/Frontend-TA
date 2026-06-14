@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import Select from "react-select";
 import { formatThousands } from "../../../utils/formatThousands";
-import { formatDateInput } from "../../../utils/formattedDate";
+import MantineDateInput from "../MantineDateInput";
 
 const EditTransactionModal = ({
   isOpen,
@@ -99,16 +99,17 @@ const EditTransactionModal = ({
 
           <div>
             <label className="text-xs font-bold text-gray-500">Tanggal</label>
-            <input
-              type="date"
-              value={formatDateInput(editForm.tanggal)}
+            <MantineDateInput
+              name="tanggal"
+              value={editForm.tanggal}
               onChange={(e) =>
                 setEditForm((prev) => ({
                   ...prev,
                   tanggal: e.target.value,
                 }))
               }
-              className="w-full mt-1 border rounded-xl px-4 py-2"
+              error={errors.tanggal}
+              className="mt-1"
             />
             {errors.tanggal && (
               <p className="mt-1 text-xs text-red-500">{errors.tanggal}</p>

@@ -17,6 +17,7 @@ import dasawismaService from "../../services/dasawisma.service";
 import Swal from "sweetalert2";
 import authService from "../../services/auth.service";
 import { validateAnggotaDasawisma } from "../../utils/ValidateAnggotaDasawisma";
+import MantineDateInput from "../../components/shared/MantineDateInput";
 
 // Halaman Pengaturan profil anggota: edit data diri + ganti password (via modal).
 export default function PengaturanKoordinator() {
@@ -36,7 +37,7 @@ export default function PengaturanKoordinator() {
   });
 
   const [errors, setErrors] = useState({});
-  const [errorMsg, setErrorMsg] = useState("");
+  const [, setErrorMsg] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
 
   // Ambil data user terbaru dari server lalu isi ke form.
@@ -343,12 +344,14 @@ export default function PengaturanKoordinator() {
                         <div className={iconClass}>
                           <Calendar className="h-4 w-4" />
                         </div>
-                        <input
-                          type="date"
+                        <MantineDateInput
                           name="tanggal_lahir"
                           value={formatDateInput(formData.tanggal_lahir) || ""}
                           onChange={handleInputChange}
-                          className={inputClass(errors.tanggal_lahir)}
+                          error={errors.tanggal_lahir}
+                          classNames={{
+                            input: inputClass(errors.tanggal_lahir),
+                          }}
                         />
                       </div>
                       {errors.tanggal_lahir && (
