@@ -13,6 +13,7 @@ import ZisTable from "../../components/shared/ZIS/ZISTable";
 import { getAvailableYears } from "../../utils/getAvailableYears";
 import { formatDateInput } from "../../utils/formattedDate";
 import MonthList from "../../utils/monthList";
+import ZisFilterBar from "../../components/shared/ZIS/ZisFilterBar";
 
 // Halaman Laporan/Manajemen ZIS untuk anggota: menampilkan ringkasan total,
 // daftar transaksi (pemasukan & pengeluaran) dengan filter, pencarian,

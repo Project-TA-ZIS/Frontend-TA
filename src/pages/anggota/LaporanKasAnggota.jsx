@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Download, Plus, X } from "lucide-react";
+import { Download, Plus, Search, X } from "lucide-react";
 import PageTransition from "../../components/shared/PageTransition";
 import Swal from "sweetalert2";
 import pengeluaranService from "../../services/pengeluaranDasawisma.service";
@@ -199,6 +199,20 @@ export default function LaporanKasAnggota() {
           onAdd={() => setIsModalOpen(true)}
           onEdit={false}
         />
+
+        {/* ─── Search Bar ─── */}
+        <div className="mb-6 relative">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <Search className="h-4 w-4 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            placeholder="Cari data anggota atau transaksi..."
+            className="bg-gray-200/60 border-none text-gray-700 text-sm rounded-lg focus:ring-2 focus:ring-[#10B981] block w-full pl-11 pr-5 py-3.5 font-medium outline-none transition-all placeholder-gray-400"
+            // value={searchQuery}
+            // onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
         {/* Table */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">

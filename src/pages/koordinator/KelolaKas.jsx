@@ -7,6 +7,7 @@ import {
   Edit,
   Info,
   Plus,
+  Search,
   Trash2,
   X,
 } from "lucide-react";
@@ -74,6 +75,7 @@ export default function KelolaKas() {
   const [filterBulan, setFilterBulan] = useState("");
   const [filterTahun, setFilterTahun] = useState("");
   const user = useAuthStore((s) => s.user) || {};
+  const [dasawismaFound, setDasawismaFound] = useState(true);
 
   // Validasi form catat transaksi; anggota wajib dipilih khusus pemasukan iuran.
   const validateForm = () => {
@@ -407,7 +409,7 @@ export default function KelolaKas() {
   };
 
   // Buka modal edit: isi form edit dengan data transaksi yang dipilih.
-  const handleEdit = (trx) => {
+  const handleEdit =  async (trx) => {
     setSelectedTransaction(trx);
 
     setEditForm({
@@ -420,6 +422,12 @@ export default function KelolaKas() {
       anggota_dasawisma_id: trx.anggota_dasawisma_id || "",
     });
 
+      try {
+        await dasawismaService.getAnggotaDasawismaById(trx.anggota_dasawisma_id);
+        setDasawismaFound(true);
+      } catch (error) {
+        setDasawismaFound(false); 
+      }
     setIsEditModalOpen(true);
   };
 
@@ -463,7 +471,6 @@ export default function KelolaKas() {
           tanggal_penghimpunan: editForm.tanggal,
           anggota_dasawisma_id: editForm.anggota_dasawisma_id,
         };
-
         await pemasukanDasawismaService.updatePemasukanKas(
           selectedTransaction.id,
           payload,
@@ -652,6 +659,20 @@ export default function KelolaKas() {
           onAdd={() => setIsModalOpen(true)}
         />
 
+         {/* ─── Search Bar ─── */}
+        <div className="mb-6 relative">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <Search className="h-4 w-4 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            placeholder="Cari data anggota atau transaksi..."
+            className="bg-gray-200/60 border-none text-gray-700 text-sm rounded-lg focus:ring-2 focus:ring-[#10B981] block w-full pl-11 pr-5 py-3.5 font-medium outline-none transition-all placeholder-gray-400"
+            // value={searchQuery}
+            // onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+
         {/* INI BAGIAN TABLE, JANGAN DI REFACTORING LAGI */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
@@ -682,6 +703,7 @@ export default function KelolaKas() {
         anggotaOptions={anggotaOptions}
         onSave={handleSaveEdit}
         handleEditInputChange={handleEditInputChange}
+        dasawismaFound={dasawismaFound}
       />
     </PageTransition>
   );

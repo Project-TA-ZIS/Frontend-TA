@@ -1,4 +1,4 @@
-import { DateInput } from "@mantine/dates";
+import { DatePickerInput } from "@mantine/dates";
 import "dayjs/locale/id";
 import { formatDateInput } from "../../utils/formattedDate";
 
@@ -21,12 +21,13 @@ const MantineDateInput = ({
   };
 
   return (
-    <DateInput
+    <DatePickerInput
       name={name}
       value={formatDateInput(value) || null}
       onChange={handleChange}
       valueFormat="DD MMMM YYYY"
       locale="id"
+      placeholder="Masukan tanggal"
       clearable
       error={Boolean(error)}
       className={className}

@@ -15,6 +15,7 @@ import NavbarUmum from "../../components/shared/NavbarUmum";
 import BottomSummaryCards from "../../components/shared/BottomSummarycards";
 import pengeluaranZISService from "../../services/pengeluaranZIS.service";
 import { exportZISPdf } from "../../utils/exportZISPdf";
+import ZisTable from "../../components/shared/ZIS/ZISTable";
 
 // Halaman ZIS publik (tanpa login): ringkasan total ZIS + fitur cek riwayat
 // transaksi pribadi dengan verifikasi NIK + 4 digit terakhir nomor HP.
@@ -331,115 +332,34 @@ export default function ManajemenZis() {
 
           {/* ─── TABEL TRANSAKSI ─── */}
           {showTable && (
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                <div>
-                  <h3 className="text-sm font-extrabold text-[#0F766E]">
-                    Riwayat Transaksi
-                  </h3>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Data transaksi ZIS berdasarkan NIK {searchQuery}
-                  </p>
-                </div>
-                <button
-                  onClick={handleDownloadPDF}
-                  className="flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg text-xs transition-all hover:bg-gray-50 shadow-sm"
-                >
-                  <Download size={14} /> Unduh Data
-                </button>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[800px] text-left border-collapse">
-                  <thead>
-                    <tr className="bg-gray-50/70 border-b border-gray-100">
-                      <th className="py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center">
-                        NO
-                      </th>
-                      <th className="py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center">
-                        Tanggal
-                      </th>
-                      <th className="py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                        Nama
-                      </th>
-                      <th className="py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                        Kategori
-                      </th>
-                      <th className="py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center">
-                        Nominal
-                      </th>
-                      <th className="py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center">
-                        Tipe
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {paginatedHistoryData.map((tx, idx) => (
-                      <tr
-                        key={idx}
-                        className="hover:bg-gray-50/40 transition-colors"
-                      >
-                        <td className="py-4 px-6 text-xs font-bold text-[#0F766E] text-center">
-                          {idx + 1 + (safePage - 1) * PAGE_SIZE}
-                        </td>
-                        <td className="py-4 px-6 text-xs font-bold text-gray-400 text-center">
-                          {formattedDate(tx.tanggal)}
-                        </td>
-                        <td className="py-4 px-6 text-xs font-extrabold text-gray-900">
-                          {tx.nama_muzakki || tx.nama || "-"}
-                        </td>
-                        <td className="py-4 px-6 text-xs font-bold text-gray-500">
-                          {tx.kategori}
-                        </td>
-                        <td className="py-4 px-6 text-xs font-extrabold text-center text-[#0F766E]">
-                          {formatRupiah(tx.nominal)}
-                        </td>
-                        <td className="py-4 px-6 text-center">
-                          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                            {tx.tipe}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Pagination */}
-              <div className="flex items-center justify-between m-6">
-                <p className="text-xs text-gray-400 font-bold">
-                  Halaman {safePage} dari {totalPages}
-                </p>
-                <div className="flex items-center gap-1.5">
+            <div>
+              <div className="mb-[10px] bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                  <div>
+                    <h3 className="text-sm font-extrabold text-[#0F766E]">
+                      Riwayat Transaksi
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Data transaksi ZIS berdasarkan NIK{" "}
+                      <span className="font-extrabold text-gray-500">
+                        {searchQuery}
+                      </span>{" "}
+                    </p>
+                  </div>
                   <button
-                    type="button"
-                    disabled={safePage <= 1}
-                    onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                      safePage <= 1
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-gray-200 hover:bg-gray-300 text-gray-700"
-                    }`}
+                    onClick={handleDownloadPDF}
+                    className="flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg text-xs transition-all hover:bg-gray-50 shadow-sm"
                   >
-                    Sebelumnya
-                  </button>
-                  <button
-                    type="button"
-                    disabled={safePage >= totalPages}
-                    onClick={() =>
-                      setPage((prev) => Math.min(totalPages, prev + 1))
-                    }
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                      safePage >= totalPages
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-[#10B981] hover:bg-[#059669] text-white"
-                    }`}
-                  >
-                    Selanjutnya
+                    <Download size={14} /> Unduh Data
                   </button>
                 </div>
               </div>
+              <ZisTable
+                data={paginatedHistoryData}
+                isLoading={isLoading}
+                searchQuery={searchQuery}
+                showActions={false}
+              />
             </div>
           )}
         </main>
