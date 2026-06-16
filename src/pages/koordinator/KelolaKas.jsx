@@ -170,7 +170,7 @@ export default function KelolaKas() {
   // Ambil daftar anggota (untuk dropdown pemilihan anggota saat iuran).
   const loadAnggotaDasawisma = async () => {
     try {
-      const res = await dasawismaService.getAllAnggotaDasawisma();
+      const res = await dasawismaService.getAnggotaDasawismaByRW();
 
       setAnggotaList(res.data || []);
     } catch (error) {
@@ -256,7 +256,7 @@ export default function KelolaKas() {
 
       try {
         const pemasukanRes =
-          await pemasukanDasawismaService.getAllPemasukanKas();
+          await pemasukanDasawismaService.getPemasukanKasByRw();
 
         pemasukanData = (pemasukanRes.data || []).map((item) => ({
           id: item.id,
@@ -273,7 +273,7 @@ export default function KelolaKas() {
       }
 
       try {
-        const pengeluaranRes = await pengeluaranService.getAllPengeluaran();
+        const pengeluaranRes = await pengeluaranService.getPengeluaranByRW();
 
         pengeluaranData = (pengeluaranRes.data || []).map((item) => ({
           id: item.id,
@@ -328,7 +328,7 @@ export default function KelolaKas() {
   // Ambil saldo total kas dasawisma + waktu terakhir diperbarui dari server.
   const loadTotalKasDasawisma = async () => {
     try {
-      const res = await totalKasDasawismaService.getTotalKasDasawisma();
+      const res = await totalKasDasawismaService.getTotalKasDasawismaByRW();
       setSaldoKasDasawisma(Number(res.data?.jumlah_keseluruhan || 0));
       setSaldoUpdatedAt(res.data?.updated_at || "");
     } catch {
@@ -409,7 +409,7 @@ export default function KelolaKas() {
   };
 
   // Buka modal edit: isi form edit dengan data transaksi yang dipilih.
-  const handleEdit =  async (trx) => {
+  const handleEdit = async (trx) => {
     setSelectedTransaction(trx);
 
     setEditForm({
@@ -422,12 +422,12 @@ export default function KelolaKas() {
       anggota_dasawisma_id: trx.anggota_dasawisma_id || "",
     });
 
-      try {
-        await dasawismaService.getAnggotaDasawismaById(trx.anggota_dasawisma_id);
-        setDasawismaFound(true);
-      } catch (error) {
-        setDasawismaFound(false); 
-      }
+    try {
+      await dasawismaService.getAnggotaDasawismaById(trx.anggota_dasawisma_id);
+      setDasawismaFound(true);
+    } catch (error) {
+      setDasawismaFound(false);
+    }
     setIsEditModalOpen(true);
   };
 
@@ -603,6 +603,15 @@ export default function KelolaKas() {
     }
   };
 
+  const handleDownloadPDF = async () => {
+    const koordinatorFound = await dasawismaService.getPenanggungJawabByRW();
+    exportKasDasawismaPdf({
+      historyData: filteredTransactions,
+      totalKasDaswisma: saldoKasDasawisma,
+      koordinatorDasawisma: koordinatorFound ? koordinatorFound.data : "N/A",
+    });
+  };
+
   // ─── useEffect ───
   // Saat halaman dibuka: muat data kas, daftar anggota, dan total saldo.
   // Dibungkus fungsi async di dalam effect agar pemanggilan loader (yang
@@ -625,7 +634,7 @@ export default function KelolaKas() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl md:text-3xl font-extrabold text-[#0F766E]">
-            Manajemen Kas Dasawisma
+            Manajemen Kas Dasawisma RW {user.nama_rw || ""}
           </h1>
           <p className="text-sm text-gray-600 mt-1 font-medium">
             Kelola penerimaan dan penyaluran dana Kas secara transparan.
@@ -638,6 +647,7 @@ export default function KelolaKas() {
           pengeluaran={summary.pengeluaran}
           saldoKas={saldoKasDasawisma}
           saldoUpdatedAt={saldoUpdatedAt}
+          namaRW={user.nama_rw || ""}
         />
 
         {/* Action Bar & Filters */}
@@ -650,16 +660,11 @@ export default function KelolaKas() {
           setFilterTahun={setFilterTahun}
           MonthList={MonthList}
           tahunList={tahunList}
-          onExport={() =>
-            exportKasDasawismaPdf({
-              historyData: filteredTransactions,
-              totalKasDaswisma: saldoKasDasawisma,
-            })
-          }
+          onExport={() => handleDownloadPDF()}
           onAdd={() => setIsModalOpen(true)}
         />
 
-         {/* ─── Search Bar ─── */}
+        {/* ─── Search Bar ─── */}
         <div className="mb-6 relative">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <Search className="h-4 w-4 text-gray-400" />

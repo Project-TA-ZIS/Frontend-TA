@@ -15,6 +15,7 @@ import LogoDasawismaPNG from "../assets/Logo.png";
 export const exportKasDasawismaPdf = ({
   historyData = [],
   totalKasDaswisma,
+  koordinatorDasawisma,
 }) => {
   if (historyData.length === 0) {
     Swal.fire({
@@ -26,7 +27,7 @@ export const exportKasDasawismaPdf = ({
     });
     return;
   }
-  
+
   // Tampilkan dialog konfirmasi sebelum mengunduh.
   Swal.fire({
     title: "Unduh Riwayat Kas",
@@ -167,6 +168,29 @@ export const exportKasDasawismaPdf = ({
         },
 
         theme: "grid",
+      });
+
+      // ================= TANDA TANGAN =================
+
+      const signY = doc.lastAutoTable.finalY + 25;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.setTextColor(0);
+
+      // rata kanan
+      doc.text(
+        `Mengetahui,\nPenanggung Jawab Dasawisma RW ${koordinatorDasawisma.nama_rw || "-"}`,
+        pageWidth - 60,
+        signY,
+        {
+          align: "center",
+        },
+      );
+
+      // beri jarak untuk tanda tangan
+      doc.text(koordinatorDasawisma.nama_lengkap || "-", pageWidth - 60, signY + 30, {
+        align: "center",
       });
 
       // Save

@@ -10,7 +10,7 @@ import {
 
 const PAGE_SIZE = 5;
 
-export default function AnggotaTable({
+export default function AmilTable({
   data = [],
   isLoading = false,
   searchQuery = "",
@@ -140,9 +140,9 @@ export default function AnggotaTable({
               </th>
 
               {sortableHeader("Nama Lengkap", "nama")}
-              {sortableHeader("Role", "role")}
               {sortableHeader("Email", "email")}
               {sortableHeader("No. Telp", "telp")}
+              {sortableHeader("Alamat", "alamat")}
 
               {showActions && (
                 <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center w-36">
@@ -176,41 +176,21 @@ export default function AnggotaTable({
                     {item.nama}
                   </td>
 
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide ${
-                        item.role?.toLowerCase() ===
-                          "penanggung jawab dasawisma" ||
-                        item.role === "Amil Zakat"
-                          ? "bg-emerald-50 text-emerald-700"
-                          : "bg-gray-100 text-gray-600"
-                      }`}
-                    >
-                      {item.role}
-                    </span>
-                  </td>
-
                   <td className="px-6 py-4 whitespace-nowrap text-[12px] font-bold text-gray-900 text-center">
                     {item.email}
                   </td>
 
                   <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-gray-500 text-center">
-                    {item.telp || "-"}
+                    {item.telp}
+                  </td>
+
+                  <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-gray-500 text-center">
+                    {item.alamat}
                   </td>
 
                   {showActions && (
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="flex items-center justify-center gap-2">
-                        {canView && (
-                          <button
-                            onClick={() => onInfo?.(item.id)}
-                            className="text-[#0F766E] bg-emerald-50 hover:bg-[#0F766E] hover:text-white p-2 rounded-xl transition-all shadow-sm"
-                            title="Detail"
-                          >
-                            <Info size={15} />
-                          </button>
-                        )}
-
                         {canEdit && (
                           <button
                             onClick={() => onEdit?.(item)}
@@ -243,7 +223,7 @@ export default function AnggotaTable({
                 >
                   {searchQuery
                     ? `Tidak ada data yang cocok dengan pencarian "${searchQuery}"`
-                    : "Belum ada data anggota"}
+                    : "Belum ada data anggota amil. Klik tombol Tambah Anggota untuk menambahkan data anggota amil baru."}
                 </td>
               </tr>
             )}
