@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import PageTransition from "../../components/shared/PageTransition";
 import { Edit, Info, Plus, Search, Trash2, X } from "lucide-react";
 import { ValidateAnggotaAmil } from "../../utils/ValidateAnggotaAmil";
+import AmilTable from "../../components/shared/ZIS/AmilTable";
 
 // Ubah satu data amil dari format server menjadi format baris tabel yang dipakai UI.
 const mapApiAmilToRowData = (amil) => ({
@@ -295,132 +296,15 @@ export default function AnggotaAmil() {
         </div>
 
         {/* ─── Table ─── */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/80">
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center w-20">
-                    No
-                  </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    NAMA
-                  </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    EMAIL
-                  </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    NO.TELP
-                  </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    ALAMAT
-                  </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center w-28">
-                    AKSI
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredAnggota.length > 0 ? (
-                  paginatedAnggota.map((item, index) => (
-                    <tr
-                      key={index}
-                      className="hover:bg-emerald-50/30 transition-colors"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#0F766E] text-center">
-                        {index + 1 + (safePage - 1) * PAGE_SIZE}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-center">
-                        {item.nama}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600 text-center">
-                        {item.email}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600 text-center">
-                        {item.telp}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600 text-center">
-                        {item.alamat}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <div className="flex items-center justify-center gap-3">
-                          <button
-                            onClick={() => handleEditClick(item)}
-                            className="text-amber-600 bg-amber-50 hover:bg-amber-500 hover:text-white p-2 rounded-xl transition-all shadow-sm"
-                            title="Edit"
-                          >
-                            <Edit size={18} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteClick(item.id)}
-                            className="text-red-500 bg-red-50 hover:bg-red-500 hover:text-white p-2 rounded-xl transition-all shadow-sm"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    {searchQuery ? (
-                      <td
-                        colSpan="6"
-                        className="px-6 py-8 text-center text-sm font-medium text-gray-500"
-                      >
-                        Tidak ada data yang cocok dengan pencarian "
-                        {searchQuery}"
-                      </td>
-                    ) : (
-                      <td
-                        colSpan="6"
-                        className="px-6 py-8 text-center text-sm font-medium text-gray-500"
-                      >
-                        Belum ada data anggota amil. Klik tombol "Tambah Anggota
-                        Amil" untuk menambahkan data pertama Anda.
-                      </td>
-                    )}
-                  </tr>
-                )}
-              </tbody>
-            </table>
-
-            {/* Pagination (maks 5 data per halaman) */}
-            <div className="flex items-center justify-between m-6">
-              <p className="text-xs text-gray-400 font-bold">
-                Halaman {safePage} dari {totalPages}
-              </p>
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  disabled={safePage <= 1}
-                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                    safePage <= 1
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-gray-200 hover:bg-gray-300 text-gray-700"
-                  }`}
-                >
-                  Sebelumnya
-                </button>
-                <button
-                  type="button"
-                  disabled={safePage >= totalPages}
-                  onClick={() =>
-                    setPage((prev) => Math.min(totalPages, prev + 1))
-                  }
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                    safePage >= totalPages
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-[#10B981] hover:bg-[#059669] text-white"
-                  }`}
-                >
-                  Selanjutnya
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <AmilTable
+          data={filteredAnggota}
+          isLoading={false}
+          searchQuery={searchQuery}
+          onEdit={handleEditClick}
+          onDelete={handleDeleteClick}
+          canEdit
+          canDelete
+        />
 
         {/* ─── MODAL FORM: TAMBAH / EDIT DATA ─── */}
         {isModalOpen && (

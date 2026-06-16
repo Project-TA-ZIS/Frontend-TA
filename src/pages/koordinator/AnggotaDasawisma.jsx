@@ -5,12 +5,15 @@ import dasawismaService from "../../services/dasawisma.service";
 import Swal from "sweetalert2";
 import { formattedDate } from "../../utils/formattedDate";
 import AnggotaTable from "../../components/shared/Dasawisma/AnggotaTable";
+import rwService from "../../services/rw.service";
+import useAuthStore from "../../store/useAuthStore";
 
 // Halaman kelola Kader Dasawisma (koordinator): tabel + tambah/edit/hapus/detail
 // via modal, dengan pencarian dan pagination.
 export default function AnggotaDasawisma() {
   // ─── States ───
   const [anggotaList, setAnggotaList] = useState([]);
+  const [rwList, setRwList] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [, setErrorMsg] = useState("");
@@ -22,15 +25,26 @@ export default function AnggotaDasawisma() {
   const [, setIsLoadingDetail] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const user = useAuthStore((s) => s.user) || {};
 
   // State untuk form input
   const [formData, setFormData] = useState({
+    rw_id: null,
     nama: "",
     role: "Kader Dasawisma",
     email: "",
     telp: "",
     password: "",
   });
+
+  const getRwList = async () => {
+    try {
+      const res = await rwService.getAllRw();
+      setRwList(res.data || []);
+    } catch (err) {
+      console.error("Gagal memuat daftar RW:", err);
+    }
+  };
 
   // Ubah label role dari format UI → format server (sebelum dikirim ke API).
   const roleUiToApi = (roleUi) => {
@@ -52,6 +66,8 @@ export default function AnggotaDasawisma() {
   // Ubah satu data anggota dari format server menjadi format baris tabel.
   const mapApiToRow = (item) => ({
     id: String(item?.id ?? ""),
+    rw_id: item?.rw_id ?? null,
+    nama_rw: item?.nama_rw ?? "",
     nama: item?.nama_lengkap ?? "",
     role: roleApiToUi(item?.roles),
     email: item?.email ?? "",
@@ -75,6 +91,10 @@ export default function AnggotaDasawisma() {
         newErrors.password = "Password minimal 6 karakter!";
       }
     }
+
+    if (formData.rw_id === null) {
+      newErrors.rw_id = "RW wajib diisi!";
+    }
     if (!(formData.telp || "").trim()) {
       newErrors.telp = "Nomor telepon wajib diisi 10 sampai 12 karakter!";
     } else if (!/^[0-9]+$/.test(formData.telp)) {
@@ -92,8 +112,9 @@ export default function AnggotaDasawisma() {
     setIsLoading(true);
     setErrorMsg("");
     try {
-      const res = await dasawismaService.getAllAnggotaDasawisma();
+      const res = await dasawismaService.getAnggotaDasawismaByRW();
       const rows = Array.isArray(res?.data) ? res.data.map(mapApiToRow) : [];
+      // console.log("Data anggota yang dimuat:", rows);
       setAnggotaList(rows);
     } catch (err) {
       if (err?.response?.status === 404) {
@@ -113,6 +134,7 @@ export default function AnggotaDasawisma() {
   // Muat data anggota saat halaman pertama dibuka.
   useEffect(() => {
     loadData();
+    getRwList();
   }, []);
 
   // Saring data sesuai kata kunci pencarian (nama atau ID).
@@ -144,6 +166,7 @@ export default function AnggotaDasawisma() {
     setEditingId(null);
     setErrors({});
     setFormData({
+      rw_id: null,
       nama: "",
       role: "Kader Dasawisma",
       email: "",
@@ -193,6 +216,7 @@ export default function AnggotaDasawisma() {
     setEditingId(anggota.id);
     setErrors({});
     setFormData({
+      rw_id: anggota.rw_id,
       nama: anggota.nama,
       role: anggota.role,
       email: anggota.email,
@@ -232,9 +256,11 @@ export default function AnggotaDasawisma() {
           email: formData.email,
           nomor_telpon: formData.telp,
           roles: roleApi,
+          rw_id: formData.rw_id,
         });
       } else {
         await dasawismaService.createAnggotaDasawisma({
+          rw_id: formData.rw_id,
           nama_lengkap: formData.nama,
           email: formData.email,
           nomor_telpon: formData.telp,
@@ -252,6 +278,7 @@ export default function AnggotaDasawisma() {
       setIsModalOpen(false);
       setEditingId(null);
       setFormData({
+        rw_id: null,
         nama: "",
         role: "Kader Dasawisma",
         email: "",
@@ -260,6 +287,7 @@ export default function AnggotaDasawisma() {
       });
       await loadData();
     } catch (err) {
+      console.error("Error saat menyimpan data anggota:", err);
       Swal.fire({
         icon: "error",
         title: "Gagal",
@@ -339,11 +367,10 @@ export default function AnggotaDasawisma() {
         className="min-h-screen bg-gray-50 p-6 md:p-10 relative"
         style={{ fontFamily: "Manrope, sans-serif" }}
       >
-
         {/* ─── Header ─── */}
         <div className="mb-6">
           <h1 className="text-2xl md:text-3xl font-extrabold text-[#0F766E] tracking-tight capitalize">
-            Kader Dasawisma
+            Kader Dasawisma {user.nama_rw ? `RW ${user.nama_rw}` : ""}
           </h1>
           <p className="text-sm text-gray-500 mt-1 font-medium">
             Beberapa kader dasawisma yang sudah terdaftar dalam sistem.
@@ -454,6 +481,29 @@ export default function AnggotaDasawisma() {
                             </p>
                           )}
                         </div>
+                        <div>
+                          <label className={labelClass}>
+                            Anggota RW<span className="text-red-500"> *</span>
+                          </label>
+                          <select
+                            name="rw_id"
+                            value={formData.rw_id || ""}
+                            onChange={handleInputChange}
+                            className={inputClass}
+                          >
+                            <option value="">Pilih RW</option>
+                            {rwList.map((rw) => (
+                              <option key={rw.id} value={rw.id}>
+                                {rw.nama_rw}
+                              </option>
+                            ))}
+                          </select>
+                          {errors.rw_id && (
+                            <p className="text-xs md:text-sm font-semibold text-red-500 mt-1">
+                              {errors.rw_id}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -504,6 +554,27 @@ export default function AnggotaDasawisma() {
                           </p>
                         )}
                       </div>
+
+                      {editingId && (
+                        <div>
+                          <label className={labelClass}>
+                            Anggota RW<span className="text-red-500"> *</span>
+                          </label>
+                          <select
+                            name="rw_id"
+                            value={formData.rw_id || ""}
+                            onChange={handleInputChange}
+                            className={inputClass}
+                          >
+                            <option value="">Pilih RW</option>
+                            {rwList.map((rw) => (
+                              <option key={rw.id} value={rw.id}>
+                                {rw.nama_rw}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
 
                       {/* Saat edit, telp ada di sini */}
                       {editingId && (
@@ -631,13 +702,19 @@ export default function AnggotaDasawisma() {
                       </span>
                     </div>
                     <div>
+                      <span className={labelClass}>Kader Dasawisma RW</span>
+                      <span className="text-sm md:text-base font-bold text-gray-700 block">
+                        {selectedUser.nama_rw || "-"}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
+                    <div>
                       <span className={labelClass}>NIK</span>
                       <span className="text-sm md:text-base font-bold text-gray-700 block tracking-wide">
                         {selectedUser.nik || "-"}
                       </span>
                     </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
                     <div>
                       <span className={labelClass}>Alamat Email</span>
                       <span className="text-sm md:text-base font-semibold text-gray-700 block break-all">

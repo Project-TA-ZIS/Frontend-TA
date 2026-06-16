@@ -2,10 +2,13 @@ import api from "./api";
 
 // Ambil seluruh data pemasukan kas dasawisma.
 export async function getAllPemasukanKas() {
-  const res = await api.get(
-    "/pemasukanDasawisma/get/getAllPemasukan",
-  );
+  const res = await api.get("/pemasukanDasawisma/get/getAllPemasukan");
 
+  return res.data;
+}
+
+export async function getPemasukanKasByRw() {
+  const res = await api.get("/pemasukanDasawisma/get/getPemasukanByRW");
   return res.data;
 }
 
@@ -28,18 +31,16 @@ export async function getTotalKas() {
 
 // Ubah data pemasukan kas berdasarkan id.
 export async function updatePemasukanKas(id, payload) {
-  await api.put(
-    `/pemasukanDasawisma/update/updatePemasukan/${id}`,
-    payload,
-  );
+  await api.put(`/pemasukanDasawisma/update/updatePemasukan/${id}`, payload);
 }
 
 // Kumpulan fungsi pemasukan kas dasawisma diekspor sebagai satu objek service.
 const pemasukanDasawismaService = {
   getAllPemasukanKas,
+  getPemasukanKasByRw,
   createPemasukanKas,
   getTotalKas,
   updatePemasukanKas,
-}
+};
 
 export default pemasukanDasawismaService;

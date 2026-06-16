@@ -12,6 +12,16 @@ async function getAnggotaDasawismaById(id) {
   return res.data;
 }
 
+async function getAnggotaDasawismaByRW() {
+  const res = await api.get(`/dasawisma/get/getAnggotaByRW`);
+  return res.data;
+}
+
+async function getPenanggungJawabByRW(role) {
+  const res = await api.get(`/dasawisma/get/getPenanggungJawabByRW`);
+  return res.data;
+}
+
 // Tambah data anggota dasawisma baru.
 async function createAnggotaDasawisma(payload) {
   const res = await api.post("/dasawisma/post/createAnggota", payload);
@@ -52,11 +62,13 @@ async function updatePassword(arg1, arg2) {
 const dasawismaService = {
   getAllAnggotaDasawisma,
   getAnggotaDasawismaById,
+  getAnggotaDasawismaByRW,
   createAnggotaDasawisma,
   updateProfile,
   updateAnggotaByPJ,
   deleteAnggotaDasawisma,
   updatePassword,
+  getPenanggungJawabByRW,
 };
 
 export default dasawismaService;

@@ -58,6 +58,7 @@ export default function ChartKas({
   pengeluaranItems,
   themeColors,
   customTooltipFormatter,
+  namaRW,
 }) {
   const [waktu, setWaktu] = useState("Bulanan");
 
@@ -118,7 +119,7 @@ export default function ChartKas({
       <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
         <div>
           <h2 className="text-base md:text-xl font-extrabold text-gray-900">
-            Tren Transaksi Kas Dasawisma
+            Tren Transaksi Kas Dasawisma {namaRW}
           </h2>
           {/* <p className="text-xs md:text-sm text-gray-500 mt-1 font-medium">Laporan akumulasi dana {waktu.toLowerCase()} {new Date().getFullYear()}</p> */}
           <p className="text-xs md:text-sm text-gray-500 mt-1 font-medium">

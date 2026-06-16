@@ -30,6 +30,7 @@ const KasSummaryCards = ({
   pengeluaran,
   saldoKas,
   saldoUpdatedAt,
+  namaRW,
 }) => {
   return (
     // KUNCI: grid-cols-1 (3 menyusun ke bawah) di Mobile, md:grid-cols-3 (menyamping) di Desktop.
@@ -48,7 +49,7 @@ const KasSummaryCards = ({
       />
       
       <KasSummaryCard
-        label="SALDO KAS SAAT INI"
+        label={`SALDO KAS RW ${namaRW || "N/A"} SAAT INI`}
         value={formatRupiah(saldoKas)}
         subtext={`Diperbarui: ${formattedDate(saldoUpdatedAt) || "N/A"}`}
         valueClassName="text-m md:text-2xl font-extrabold text-gray-900"

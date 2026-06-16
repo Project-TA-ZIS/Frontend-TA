@@ -1,38 +1,230 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Download, Plus, Search, X } from "lucide-react";
+import {
+  ArrowUpDown,
+  ChevronDown,
+  ChevronUp,
+  Download,
+  Edit,
+  Info,
+  Plus,
+  Search,
+  Trash2,
+  X,
+} from "lucide-react";
 import PageTransition from "../../components/shared/PageTransition";
 import Swal from "sweetalert2";
+import Select from "react-select";
+import { formatRupiah } from "../../utils/formatRupiah";
 import pengeluaranService from "../../services/pengeluaranDasawisma.service";
 import pemasukanDasawismaService from "../../services/pemasukanDasawisma.service";
+import dasawismaService from "../../services/dasawisma.service";
 import totalKasDasawismaService from "../../services/totalKasDasawisma.service";
 import KasSummaryCards from "../../components/shared/KasSummaryCards";
 import { exportKasDasawismaPdf } from "../../utils/exportKasDasawismaPdf";
+import {
+  formatThousands,
+  parseThousandsToNumber,
+} from "../../utils/formatThousands";
 import KasTable from "../../components/shared/Dasawisma/kasTable";
-import { getAvailableYears } from "../../utils/getAvailableYears";
+import { formatDateInput } from "../../utils/formattedDate";
+import EditTransactionModal from "../../components/shared/Dasawisma/EditModals";
+import CreateDataModal from "../../components/shared/Dasawisma/CreateDataModal";
+import useAuthStore from "../../store/useAuthStore";
 import MonthList from "../../utils/monthList";
+import { getAvailableYears } from "../../utils/getAvailableYears";
 import KasFilterBar from "../../components/shared/Dasawisma/KasFilterBar";
+import { validateEditKasDasawisma } from "../../utils/validateEditKasDasawisma";
 
-// Halaman Laporan/Manajemen Kas Dasawisma untuk anggota: ringkasan saldo,
-// daftar transaksi kas (pemasukan & pengeluaran) dengan filter, dan unduh PDF.
+// Halaman Kelola Kas (koordinator): catat/edit transaksi kas (pemasukan &
+// pengeluaran), lihat ringkasan saldo, filter, dan unduh PDF.
 export default function LaporanKasAnggota() {
+  const [anggotaList, setAnggotaList] = useState([]);
+  const [searchAnggota] = useState("");
   const [saldoUpdatedAt, setSaldoUpdatedAt] = useState("");
   const [saldoKasDasawisma, setSaldoKasDasawisma] = useState(0);
-
-  // ─── States Data ───
+  const [errors, setErrors] = useState({});
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [editForm, setEditForm] = useState({
+    tanggal: "",
+    deskripsi: "",
+    nominal: "",
+    jenis: "",
+    sumber: "",
+    anggota_dasawisma_id: "",
+    namaAnggota: "",
+  });
+  // ─── States Data & Modal ───
   const [transactions, setTransactions] = useState([]);
-
   const [summary, setSummary] = useState({
     pemasukan: 0,
     pengeluaran: 0,
     saldo: 0,
   });
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    tanggal: "",
+    deskripsi: "",
+    jenis: "Pemasukan",
+    nominal: "",
+    tipePemasukan: "IURAN",
+    anggota_dasawisma_id: "",
+    namaAnggota: "",
+  });
   const [filterJenis, setFilterJenis] = useState("");
   const [filterBulan, setFilterBulan] = useState("");
   const [filterTahun, setFilterTahun] = useState("");
+  const user = useAuthStore((s) => s.user) || {};
+  const [dasawismaFound, setDasawismaFound] = useState(true);
 
-  // Saring transaksi sesuai filter jenis, bulan, dan tahun. Dihitung ulang
-  // hanya saat data atau filter berubah.
+  // Validasi form catat transaksi; anggota wajib dipilih khusus pemasukan iuran.
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.tanggal) {
+      newErrors.tanggal = "Tanggal transaksi wajib diisi";
+    }
+
+    if (!formData.deskripsi.trim()) {
+      newErrors.deskripsi = "Deskripsi kegiatan wajib diisi";
+    }
+
+    if (!formData.nominal) {
+      newErrors.nominal = "Nominal wajib diisi";
+    }
+
+    if (
+      formData.jenis === "Pemasukan" &&
+      formData.tipePemasukan === "IURAN" &&
+      !formData.anggota_dasawisma_id
+    ) {
+      newErrors.anggota_dasawisma_id = "Silakan pilih anggota Dasawisma";
+    }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateEditForm = () => {
+    const newErrors = {};
+
+    if (!editForm.tanggal) {
+      newErrors.tanggal = "Tanggal transaksi wajib diisi";
+    }
+
+    if (!editForm.deskripsi?.trim()) {
+      newErrors.deskripsi = "Deskripsi kegiatan wajib diisi";
+    }
+
+    if (!editForm.nominal) {
+      newErrors.nominal = "Nominal wajib diisi";
+    }
+
+    if (
+      editForm.jenis === "Pemasukan" &&
+      editForm.sumber === "IURAN" &&
+      !editForm.anggota_dasawisma_id
+    ) {
+      newErrors.anggota_dasawisma_id = "Silakan pilih anggota Dasawisma";
+    }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Amankan teks agar tidak ditafsirkan sebagai HTML (cegah XSS) saat
+  // ditampilkan di dalam dialog SweetAlert berformat HTML.
+  const escapeHtml = (value) => {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  };
+
+  // Susun detail tambahan (kategori & saldo tersedia) dari error server, mis.
+  // saat pengeluaran melebihi saldo — untuk ditampilkan di dialog error.
+  const kasSaldoErrorDetails = (err) => {
+    const data = err?.response?.data;
+    const saldo = data?.saldo_tersedia;
+    const kategori = data?.kategori;
+
+    if (saldo === undefined && !kategori) return null;
+
+    const parts = [];
+    if (kategori)
+      parts.push(`<div><b>Kategori:</b> ${escapeHtml(kategori)}</div>`);
+    if (saldo !== undefined) {
+      const saldoNum = Number(saldo);
+      parts.push(
+        `<div><b>Saldo tersedia:</b> ${escapeHtml(formatRupiah(Number.isNaN(saldoNum) ? 0 : saldoNum))}</div>`,
+      );
+    }
+
+    return { html: parts.join("") };
+  };
+
+  // Ambil daftar anggota (untuk dropdown pemilihan anggota saat iuran).
+  const loadAnggotaDasawisma = async () => {
+    try {
+      const res = await dasawismaService.getAnggotaDasawismaByRW();
+
+      setAnggotaList(res.data || []);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  // Ubah daftar anggota menjadi opsi dropdown {value, label}.
+  const anggotaOptions = anggotaList.map((anggota) => ({
+    value: anggota.id,
+    label: anggota.nama_lengkap,
+  }));
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+
+    if (name === "nominal") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: formatThousands(value),
+      }));
+      return;
+    }
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleEditInputChange = (e) => {
+    const { name, value } = e.target;
+
+    setEditForm((prev) => {
+      const updated = {
+        ...prev,
+        [name]: value,
+      };
+
+      if (name === "sumber" && value === "LAINNYA") {
+        updated.anggota_dasawisma_id = "";
+        updated.namaAnggota = "";
+      }
+
+      return updated;
+    });
+  };
+
+  // Saring transaksi sesuai filter jenis, bulan, dan tahun.
   const tahunList = getAvailableYears(transactions);
 
   const filteredTransactions = useMemo(() => {
@@ -55,8 +247,8 @@ export default function LaporanKasAnggota() {
   }, [transactions, filterJenis, filterBulan, filterTahun]);
 
   // ─── Load Data ───
-  // Muat data kas: ambil pemasukan & pengeluaran, ubah ke bentuk seragam,
-  // gabung + urutkan dari terbaru, lalu hitung ringkasan (masuk/keluar/saldo).
+  // Muat data kas: ambil pemasukan & pengeluaran, seragamkan bentuknya, gabung +
+  // urutkan dari terbaru, lalu hitung ringkasan (masuk/keluar/saldo).
   const loadKasData = async () => {
     try {
       let pemasukanData = [];
@@ -64,7 +256,7 @@ export default function LaporanKasAnggota() {
 
       try {
         const pemasukanRes =
-          await pemasukanDasawismaService.getAllPemasukanKas();
+          await pemasukanDasawismaService.getPemasukanKasByRw();
 
         pemasukanData = (pemasukanRes.data || []).map((item) => ({
           id: item.id,
@@ -81,7 +273,7 @@ export default function LaporanKasAnggota() {
       }
 
       try {
-        const pengeluaranRes = await pengeluaranService.getAllPengeluaran();
+        const pengeluaranRes = await pengeluaranService.getPengeluaranByRW();
 
         pengeluaranData = (pengeluaranRes.data || []).map((item) => ({
           id: item.id,
@@ -136,12 +328,288 @@ export default function LaporanKasAnggota() {
   // Ambil saldo total kas dasawisma + waktu terakhir diperbarui dari server.
   const loadTotalKasDasawisma = async () => {
     try {
-      const res = await totalKasDasawismaService.getTotalKasDasawisma();
+      const res = await totalKasDasawismaService.getTotalKasDasawismaByRW();
       setSaldoKasDasawisma(Number(res.data?.jumlah_keseluruhan || 0));
       setSaldoUpdatedAt(res.data?.updated_at || "");
     } catch {
       console.log("Gagal memuat total kas dasawisma");
     }
+  };
+
+  // Simpan transaksi baru: validasi, kirim ke endpoint pemasukan/pengeluaran
+  // sesuai jenis, lalu muat ulang data & saldo.
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      const nominal = parseThousandsToNumber(formData.nominal);
+
+      if (formData.jenis === "Pemasukan") {
+        await pemasukanDasawismaService.createPemasukanKas({
+          jumlah: nominal,
+          deskripsi: formData.deskripsi,
+          sumber: formData.tipePemasukan,
+          tanggal_penghimpunan: formData.tanggal,
+
+          anggota_dasawisma_id:
+            formData.tipePemasukan === "IURAN"
+              ? Number(formData.anggota_dasawisma_id)
+              : null,
+        });
+      } else {
+        await pengeluaranService.createPengeluaran({
+          jumlah: nominal,
+          deskripsi: formData.deskripsi,
+          tanggal_penyaluran: formData.tanggal,
+          nama_anggota: user.nama_lengkap,
+        });
+      }
+
+      await loadKasData();
+      await loadTotalKasDasawisma();
+
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil",
+        text: "Transaksi berhasil ditambahkan",
+        confirmButtonColor: "#10B981",
+      });
+
+      setIsModalOpen(false);
+
+      setFormData({
+        tanggal: "",
+        deskripsi: "",
+        jenis: "Pemasukan",
+        nominal: "",
+        tipePemasukan: "IURAN",
+        anggota_dasawisma_id: "",
+        namaAnggota: "",
+      });
+    } catch (error) {
+      console.log(error);
+      const msg =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        "Terjadi kesalahan pada server";
+      const extra = kasSaldoErrorDetails(error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        ...(extra
+          ? { html: `<div>${escapeHtml(msg)}</div><br/>${extra.html}` }
+          : { text: msg }),
+        confirmButtonColor: "#10B981",
+      });
+    }
+  };
+
+  // Buka modal edit: isi form edit dengan data transaksi yang dipilih.
+  const handleEdit = async (trx) => {
+    setSelectedTransaction(trx);
+
+    setEditForm({
+      tanggal: trx.tanggal || "",
+      deskripsi: trx.deskripsi || "",
+      nominal: formatThousands(trx.nominal || 0),
+      jenis: trx.jenis || "",
+      sumber: trx.sumber || "",
+      namaAnggota: trx.namaAnggota || "",
+      anggota_dasawisma_id: trx.anggota_dasawisma_id || "",
+    });
+
+    try {
+      await dasawismaService.getAnggotaDasawismaById(trx.anggota_dasawisma_id);
+      setDasawismaFound(true);
+    } catch (error) {
+      setDasawismaFound(false);
+    }
+    setIsEditModalOpen(true);
+  };
+
+  // Simpan hasil edit transaksi setelah konfirmasi, lalu muat ulang data & saldo.
+  const handleSaveEdit = async () => {
+    const validationErrors = validateEditKasDasawisma(editForm);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    setErrors({});
+    if (
+      editForm.jenis === "Pemasukan" &&
+      editForm.sumber === "IURAN" &&
+      !editForm.anggota_dasawisma_id
+    ) {
+      toast.error("Silahkan pilih anggota dasawisma");
+      return;
+    }
+
+    const result = await Swal.fire({
+      title: "Simpan perubahan?",
+      text: "Data transaksi akan diperbarui.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Simpan",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#10B981",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      if (selectedTransaction.jenis === "Pemasukan") {
+        const payload = {
+          jumlah: parseThousandsToNumber(editForm.nominal),
+          sumber: editForm.sumber,
+          deskripsi: editForm.deskripsi,
+          tanggal_penghimpunan: editForm.tanggal,
+          anggota_dasawisma_id: editForm.anggota_dasawisma_id,
+        };
+        await pemasukanDasawismaService.updatePemasukanKas(
+          selectedTransaction.id,
+          payload,
+        );
+      } else {
+        const payload = {
+          jumlah: parseThousandsToNumber(editForm.nominal),
+          sumber: editForm.sumber,
+          deskripsi: editForm.deskripsi,
+          tanggal_penyaluran: editForm.tanggal,
+          anggota_dasawisma_id: editForm.anggota_dasawisma_id,
+        };
+        await pengeluaranService.updatePengeluaran(
+          selectedTransaction.id,
+          payload,
+        );
+      }
+
+      await loadKasData();
+      await loadTotalKasDasawisma();
+
+      setIsEditModalOpen(false);
+
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil",
+        text: "Transaksi berhasil diperbarui",
+        confirmButtonColor: "#10B981",
+      });
+    } catch (error) {
+      const msg =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        "Terjadi kesalahan saat memperbarui data";
+      const extra = kasSaldoErrorDetails(error);
+      Swal.fire({
+        icon: "error",
+        title: "Gagal",
+        ...(extra
+          ? { html: `<div>${escapeHtml(msg)}</div><br/>${extra.html}` }
+          : { text: msg }),
+        confirmButtonColor: "#10B981",
+      });
+    }
+  };
+
+  // Tutup modal catat transaksi dengan konfirmasi & kosongkan form.
+  const handleCloseModal = async () => {
+    const result = await Swal.fire({
+      title: "Tutup form?",
+      text: "Data yang belum disimpan akan hilang",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#10B981",
+      cancelButtonColor: "#6B7280",
+      confirmButtonText: "Ya, tutup",
+      cancelButtonText: "Batal",
+    });
+
+    if (result.isConfirmed) {
+      setIsModalOpen(false);
+
+      setFormData({
+        tanggal: "",
+        deskripsi: "",
+        jenis: "Pemasukan",
+        nominal: "",
+        tipePemasukan: "IURAN",
+        anggota_dasawisma_id: "",
+        namaAnggota: "",
+      });
+    }
+  };
+
+  // Tutup modal edit dengan konfirmasi & kembalikan isi form ke data semula.
+  const handleCloseEditModal = async () => {
+    const result = await Swal.fire({
+      title: "Tutup form?",
+      text: "Data yang belum disimpan akan hilang",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#10B981",
+      cancelButtonColor: "#6B7280",
+      confirmButtonText: "Ya, tutup",
+      cancelButtonText: "Batal",
+    });
+
+    if (result.isConfirmed) {
+      setIsEditModalOpen(false);
+      setErrors({});
+
+      setEditForm({
+        tanggal: selectedTransaction.tanggal || "",
+        deskripsi: selectedTransaction.deskripsi || "",
+        nominal: formatThousands(selectedTransaction.nominal || 0),
+        jenis: selectedTransaction.jenis || "",
+        sumber: selectedTransaction.sumber || "",
+        namaAnggota: selectedTransaction.namaAnggota || "",
+        anggota_dasawisma_id: selectedTransaction.anggota_dasawisma_id || "",
+      });
+    }
+  };
+
+  const handleCloseCreateDataModal = async () => {
+    const result = await Swal.fire({
+      title: "Tutup form?",
+      text: "Data yang belum disimpan akan hilang",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#10B981",
+      cancelButtonColor: "#6B7280",
+      confirmButtonText: "Ya, tutup",
+      cancelButtonText: "Batal",
+    });
+
+    if (result.isConfirmed) {
+      setIsModalOpen(false);
+
+      setFormData({
+        tanggal: "",
+        deskripsi: "",
+        jenis: "Pemasukan",
+        nominal: "",
+        tipePemasukan: "IURAN",
+        anggota_dasawisma_id: "",
+        namaAnggota: "",
+      });
+
+      setErrors({});
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    const koordinatorFound = await dasawismaService.getPenanggungJawabByRW();
+    exportKasDasawismaPdf({
+      historyData: filteredTransactions,
+      totalKasDaswisma: saldoKasDasawisma,
+      koordinatorDasawisma: koordinatorFound ? koordinatorFound.data : "N/A",
+    });
   };
 
   // ─── useEffect ───
@@ -151,6 +619,7 @@ export default function LaporanKasAnggota() {
   useEffect(() => {
     const init = async () => {
       await loadKasData();
+      await loadAnggotaDasawisma();
       await loadTotalKasDasawisma();
     };
     init();
@@ -165,7 +634,7 @@ export default function LaporanKasAnggota() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl md:text-3xl font-extrabold text-[#0F766E]">
-            Manajemen Kas Dasawisma
+            Manajemen Kas Dasawisma RW {user.nama_rw || ""}
           </h1>
           <p className="text-sm text-gray-600 mt-1 font-medium">
             Kelola penerimaan dan penyaluran dana Kas secara transparan.
@@ -178,6 +647,7 @@ export default function LaporanKasAnggota() {
           pengeluaran={summary.pengeluaran}
           saldoKas={saldoKasDasawisma}
           saldoUpdatedAt={saldoUpdatedAt}
+          namaRW={user.nama_rw || ""}
         />
 
         {/* Action Bar & Filters */}
@@ -191,10 +661,7 @@ export default function LaporanKasAnggota() {
           MonthList={MonthList}
           tahunList={tahunList}
           onExport={() =>
-            exportKasDasawismaPdf({
-              historyData: filteredTransactions,
-              totalKasDaswisma: saldoKasDasawisma,
-            })
+            handleDownloadPDF()
           }
           onAdd={() => setIsModalOpen(true)}
           onEdit={false}
@@ -213,18 +680,39 @@ export default function LaporanKasAnggota() {
             // onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        {/* Table */}
+
+        {/* INI BAGIAN TABLE, JANGAN DI REFACTORING LAGI */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
-            {/* INI BAGIAN TABLE, JANGAN DI REFACTORING LAGI */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="overflow-x-auto">
-                <KasTable data={filteredTransactions} showAction={false} />
-              </div>
-            </div>
+            <KasTable data={filteredTransactions} onEdit={handleEdit} />
           </div>
         </div>
+
+        {/* ─── MODAL POP-UP CATAT TRANSAKSI ─── */}
+        <CreateDataModal
+          isOpen={isModalOpen}
+          onClose={handleCloseCreateDataModal}
+          formData={formData}
+          setFormData={setFormData}
+          errors={errors}
+          anggotaOptions={anggotaOptions}
+          onSave={handleSubmit}
+          handleInputChange={handleInputChange}
+          userData={user}
+        />
       </div>
+
+      <EditTransactionModal
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEditModal}
+        editForm={editForm}
+        setEditForm={setEditForm}
+        errors={errors}
+        anggotaOptions={anggotaOptions}
+        onSave={handleSaveEdit}
+        handleEditInputChange={handleEditInputChange}
+        dasawismaFound={dasawismaFound}
+      />
     </PageTransition>
   );
 }

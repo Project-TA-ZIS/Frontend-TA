@@ -6,6 +6,11 @@ async function getAllPengeluaran() {
   return res.data;
 }
 
+async function getPengeluaranByRW() {
+  const res = await api.get(`/pengeluaranDasawisma/get/getPengeluaranByRW`);
+  return res.data;
+}
+
 // Tambah data pengeluaran kas dasawisma baru.
 async function createPengeluaran(payload) {
   const res = await api.post(
@@ -27,6 +32,7 @@ async function updatePengeluaran(id, payload) {
 // Kumpulan fungsi pengeluaran kas dasawisma diekspor sebagai satu objek service.
 const pengeluaranDasawismaService = {
   getAllPengeluaran,
+  getPengeluaranByRW,
   createPengeluaran,
   updatePengeluaran,
 };
