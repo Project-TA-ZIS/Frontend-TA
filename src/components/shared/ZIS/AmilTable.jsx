@@ -8,9 +8,9 @@ import {
   Trash2,
 } from "lucide-react";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 5;
 
-export default function AnggotaTable({
+export default function AmilTable({
   data = [],
   isLoading = false,
   searchQuery = "",
@@ -184,7 +184,7 @@ export default function AnggotaTable({
                     {item.telp}
                   </td>
 
-                   <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-gray-500 text-center">
+                  <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-gray-500 text-center">
                     {item.alamat}
                   </td>
 

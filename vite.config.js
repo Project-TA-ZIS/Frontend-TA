@@ -12,5 +12,16 @@ export default defineConfig({
     setupFiles: './src/test/setup.js',
     // pakai describe/it/expect tanpa import manual di tiap file
     globals: true,
+    // Laporan cakupan (coverage) difokuskan ke lapisan logika yang diuji unit.
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html"], // text = ringkasan di terminal, html = folder coverage/
+      include: ["src/utils/**", "src/store/**"],
+      // File pembuat PDF tidak di-unit-test (efek samping berat), jadi dikecualikan.
+      exclude: [
+        "src/utils/exportKasDasawismaPdf.js",
+        "src/utils/exportZISPdf.js",
+      ],
+    },
   },
 })

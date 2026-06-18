@@ -297,7 +297,7 @@ export default function AnggotaAmil() {
 
         {/* ─── Table ─── */}
         <AmilTable
-          data={filteredAnggota} 
+          data={filteredAnggota}
           isLoading={false}
           searchQuery={searchQuery}
           onEdit={handleEditClick}

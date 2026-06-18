@@ -8,7 +8,7 @@ import {
   Trash2,
 } from "lucide-react";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 5;
 
 export default function AnggotaTable({
   data = [],

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { ValidateAnggotaAmil } from "./ValidateAnggotaAmil";
+import { ValidateAnggotaAmil } from "../utils/ValidateAnggotaAmil";
 
 // Data yang valid sebagai titik awal; tiap test mengubah sebagian field saja.
 const dataValid = {

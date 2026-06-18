@@ -255,7 +255,7 @@ export default function PengaturanKoordinator() {
                 {formData.nama || "Super Admin"}
               </h3>
               <p className="text-xs md:text-sm font-bold text-[#10B981] mt-1 uppercase tracking-wider">
-                {formData.role || ""}
+                {formData.role || ""} {" "} {user.nama_rw || "-"}
               </p>
             </div>
           </div>
