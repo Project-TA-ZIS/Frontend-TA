@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Coins, Users, HandHeart } from "lucide-react";
+import { Coins, Users, HandHeart, X } from "lucide-react";
 import PageTransition from "../../components/shared/PageTransition";
 import Footer from "../../components/layout/Footer";
 import NavbarUmum from "../../components/shared/NavbarUmum";
 import ChartZis from "../../components/shared/ChartZis";
 import KpiCardShared from "../../components/shared/KpiCardShared";
+import MustahikChart from "../../components/shared/ZIS/MustahikChart";
 
 import muzakkiService from "../../services/muzakki.service";
 import mustahikService from "../../services/mustahik.service";
@@ -30,6 +31,9 @@ export default function Dashboard() {
   // Data State untuk dikirim ke komponen anak grafik
   const [zisPemasukanItems, setZisPemasukanItems] = useState([]);
   const [zisPengeluaranItems, setZisPengeluaranItems] = useState([]);
+  const [mustahikItems, setMustahikItems] = useState([]);
+  // Kontrol popup grafik sebaran Mustahik per kategori asnaf.
+  const [isMustahikChartOpen, setIsMustahikChartOpen] = useState(false);
 
   // Saat halaman dibuka: muat data muzakki, mustahik, dan transaksi ZIS.
   useEffect(() => {
@@ -64,6 +68,7 @@ export default function Dashboard() {
             muzakki: muzakkiArr?.length || 0,
             mustahik: mustahikArr?.length || 0,
           });
+          setMustahikItems(mustahikArr || []);
           setZisPemasukanItems(pemasukanArr || []);
           setZisPengeluaranItems(pengeluaranArr || []);
 
@@ -157,6 +162,7 @@ export default function Dashboard() {
               label="Jumlah Mustahiq"
               value={kpiCounts.mustahik}
               icon={Users}
+              onDetailClick={() => setIsMustahikChartOpen(true)}
             />
           </div>
 
@@ -170,6 +176,32 @@ export default function Dashboard() {
             />
           </div>
         </main>
+
+        {/* ─── POPUP: Grafik Sebaran Mustahik per Kategori (Asnaf) ─── */}
+        {isMustahikChartOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+              {/* Header */}
+              <div className="bg-[#0F766E] px-5 md:px-7 py-4 md:py-5 flex items-center justify-between">
+                <h2 className="text-lg md:text-xl font-extrabold text-white tracking-tight">
+                  Sebaran Mustahik per Kategori
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setIsMustahikChartOpen(false)}
+                  className="text-emerald-100 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 md:p-2 rounded-full transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Body: Pie Chart */}
+              <div className="p-5 md:p-7">
+                <MustahikChart data={mustahikItems} />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       <Footer />
     </PageTransition>

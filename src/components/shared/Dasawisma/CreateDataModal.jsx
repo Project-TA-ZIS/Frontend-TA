@@ -46,6 +46,7 @@ const CreateDataModal = ({
               <MantineDateInput
                 name="tanggal"
                 value={formData.tanggal}
+                placeholder="Pilih tanggal transaksi"
                 onChange={handleInputChange}
                 error={errors.tanggal}
               />

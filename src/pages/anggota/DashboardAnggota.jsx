@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { HandHeart, Users, Wallet, UsersRound } from "lucide-react";
+import { HandHeart, Users, Wallet, UsersRound, X, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
 import PageTransition from "../../components/shared/PageTransition";
 import ChartZis from "../../components/shared/ChartZis";
 import ChartKas from "../../components/shared/ChartKas";
+import MustahikChart from "../../components/shared/ZIS/MustahikChart";
 
 import muzakkiService from "../../services/muzakki.service";
 import mustahikService from "../../services/mustahik.service";
@@ -34,6 +35,9 @@ export default function DashboardUtama() {
   const [zisPengeluaranItems, setZisPengeluaranItems] = useState([]);
   const [kasPemasukanItems, setKasPemasukanItems] = useState([]);
   const [kasPengeluaranItems, setKasPengeluaranItems] = useState([]);
+  const [mustahikItems, setMustahikItems] = useState([]);
+  // Kontrol popup grafik sebaran Mustahik per kategori asnaf.
+  const [isMustahikChartOpen, setIsMustahikChartOpen] = useState(false);
   const user = useAuthStore((s) => s.user) || {};
 
   const KPI_TEMPLATE = [
@@ -58,7 +62,7 @@ export default function DashboardUtama() {
   // ─── Sub-Komponen KpiCard Lokal ───
   // Kartu indikator (ikon + label + angka) untuk menampilkan jumlah data.
   // Dibuat identik dengan KpiCard di Dashboard Anggota agar tampilannya seragam.
-  const KpiCard = ({ icon: IconComponent, label, value }) => (
+  const KpiCard = ({ icon: IconComponent, label, value, onDetailClick }) => (
     <div
       className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col justify-between"
       style={{ minHeight: 140 }}
@@ -77,7 +81,20 @@ export default function DashboardUtama() {
         <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">
           {label}
         </p>
-        <p className="text-3xl font-bold text-gray-900">{value}</p>
+        <div className="flex items-end justify-between gap-2">
+          <p className="text-3xl font-bold text-gray-900">{value}</p>
+          {/* Tombol "Lihat Detail" di kanan bawah (hanya muncul bila onDetailClick diberikan) */}
+          {onDetailClick && (
+            <button
+              type="button"
+              onClick={onDetailClick}
+              className="inline-flex items-center gap-1 text-xs font-bold text-[#10B981] hover:text-[#059669] transition-colors shrink-0"
+            >
+              Lihat Detail
+              <ChevronRight size={14} strokeWidth={2.5} />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -110,12 +127,14 @@ export default function DashboardUtama() {
         };
 
         if (!cancelled) {
+          const mustahikData = pick(1) || [];
           setKpiCounts({
             muzakki: pick(0)?.length || 0,
-            mustahik: pick(1)?.length || 0,
+            mustahik: mustahikData.length,
             amil: pick(2)?.length || 0,
             anggota: pick(3)?.length || 0,
           });
+          setMustahikItems(mustahikData);
           setZisPemasukanItems(pick(4) || []);
           setZisPengeluaranItems(pick(5) || []);
           setKasPemasukanItems(pick(6) || []);
@@ -171,7 +190,7 @@ export default function DashboardUtama() {
           allowOutsideClick: false,
           allowEscapeKey: false,
         });
-        if (result.isConfirmed) navigate("/pengaturan");
+        if (result.isConfirmed) navigate("/anggota/pengaturan");
       }
     } catch (e) {
       console.log(e);
@@ -244,6 +263,11 @@ export default function DashboardUtama() {
               icon={card.icon}
               label={card.label}
               value={card.value}
+              onDetailClick={
+                card.key === "mustahik"
+                  ? () => setIsMustahikChartOpen(true)
+                  : undefined
+              }
             />
           ))}
         </div>
@@ -277,6 +301,32 @@ export default function DashboardUtama() {
             />
           </div>
         </div>
+
+        {/* ─── POPUP: Grafik Sebaran Mustahik per Kategori (Asnaf) ─── */}
+        {isMustahikChartOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+              {/* Header */}
+              <div className="bg-[#0F766E] px-5 md:px-7 py-4 md:py-5 flex items-center justify-between">
+                <h2 className="text-lg md:text-xl font-extrabold text-white tracking-tight">
+                  Sebaran Mustahik per Kategori
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setIsMustahikChartOpen(false)}
+                  className="text-emerald-100 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 md:p-2 rounded-full transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Body: Pie Chart */}
+              <div className="p-5 md:p-7">
+                <MustahikChart data={mustahikItems} />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </PageTransition>
   );
