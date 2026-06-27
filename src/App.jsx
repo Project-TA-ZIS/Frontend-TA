@@ -9,7 +9,7 @@ import useAuthStore from "./store/useAuthStore";
 // Page components
 const Login = lazy(() => import("./pages/auth/Login"));
 const DashboardUtama = lazy(() => import("./pages/koordinator/DashboardUtama"));
-const LaporanZIS = lazy(() => import("./pages/koordinator/LaporanZIS"));
+const LaporanZis = lazy(() => import("./pages/koordinator/LaporanZis"));
 const AnggotaDasawisma = lazy(
   () => import("./pages/koordinator/AnggotaDasawisma"),
 );
@@ -173,7 +173,7 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={[ROLE.KOORDINATOR]}>
                   <DashboardLayout>
-                    <LaporanZIS />
+                    <LaporanZis />
                   </DashboardLayout>
                 </ProtectedRoute>
               }
