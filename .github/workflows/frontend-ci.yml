@@ -4,13 +4,15 @@ on:
   push:
     branches:
       - main
-      - master
-      - develop
+      - development
+      - ammar
+      - rafif
   pull_request:
     branches:
       - main
-      - master
-      - develop
+      - development
+      - ammar
+      - rafif
 
 jobs:
   test:
