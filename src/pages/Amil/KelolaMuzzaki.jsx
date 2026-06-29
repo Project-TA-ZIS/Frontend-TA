@@ -1,6 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
 import PageTransition from "../../components/shared/PageTransition";
-import { Plus, Search, Edit, Trash2, X } from "lucide-react";
+import {
+  ArrowUpDown,
+  ChevronDown,
+  ChevronUp,
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  X,
+} from "lucide-react";
 import {
   createMuzakki,
   deleteMuzakki,
@@ -22,6 +31,10 @@ export default function KelolaMuzzaki() {
   const [, setErrorMsg] = useState("");
   const [errors, setErrors] = useState({});
   const [page, setPage] = useState(1);
+  const [sortConfig, setSortConfig] = useState({
+    key: "nama",
+    direction: "asc",
+  });
   const PAGE_SIZE = 5;
 
   // State untuk Modal Pop-up
@@ -118,12 +131,96 @@ export default function KelolaMuzzaki() {
     );
   }, [muzzakiList, searchQuery]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredMuzzaki.length / PAGE_SIZE));
+  const handleSort = (key) => {
+    setPage(1);
+
+    if (sortConfig.key !== key) {
+      setSortConfig({
+        key,
+        direction: "asc",
+      });
+      return;
+    }
+
+    if (sortConfig.direction === "asc") {
+      setSortConfig({
+        key,
+        direction: "desc",
+      });
+      return;
+    }
+
+    setSortConfig({
+      key: null,
+      direction: null,
+    });
+  };
+
+  const renderSortIcon = (key) => {
+    if (sortConfig.key !== key) {
+      return <ArrowUpDown size={14} />;
+    }
+
+    if (sortConfig.direction === "asc") {
+      return <ChevronUp size={14} />;
+    }
+
+    if (sortConfig.direction === "desc") {
+      return <ChevronDown size={14} />;
+    }
+
+    return <ArrowUpDown size={14} />;
+  };
+
+  const sortedMuzzaki = useMemo(() => {
+    if (!sortConfig.key) {
+      return [...filteredMuzzaki];
+    }
+
+    return [...filteredMuzzaki].sort((a, b) => {
+      let aValue = a[sortConfig.key] ?? "";
+      let bValue = b[sortConfig.key] ?? "";
+
+      if (typeof aValue === "string") {
+        aValue = aValue.toLowerCase();
+      }
+
+      if (typeof bValue === "string") {
+        bValue = bValue.toLowerCase();
+      }
+
+      if (aValue < bValue) {
+        return sortConfig.direction === "asc" ? -1 : 1;
+      }
+
+      if (aValue > bValue) {
+        return sortConfig.direction === "asc" ? 1 : -1;
+      }
+
+      return 0;
+    });
+  }, [filteredMuzzaki, sortConfig]);
+
+  const sortableHeader = (label, key) => (
+    <th
+      onClick={() => handleSort(key)}
+      className={`px-6 py-4 text-[11px] font-extrabold uppercase tracking-wider text-center cursor-pointer hover:bg-gray-100 ${
+        sortConfig.key === key ? "text-[#10B981]" : "text-gray-500"
+      }`}
+    >
+      <div className="flex items-center justify-center gap-1">
+        {label}
+        {renderSortIcon(key)}
+      </div>
+    </th>
+  );
+
+  const totalPages = Math.max(1, Math.ceil(sortedMuzzaki.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
   const paginatedMuzzaki = useMemo(() => {
     const start = (safePage - 1) * PAGE_SIZE;
-    return filteredMuzzaki.slice(start, start + PAGE_SIZE);
-  }, [filteredMuzzaki, safePage]);
+    return sortedMuzzaki.slice(start, start + PAGE_SIZE);
+  }, [sortedMuzzaki, safePage]);
 
   // ─── Handlers ───
   // Update field form saat user mengetik.
@@ -385,18 +482,10 @@ export default function KelolaMuzzaki() {
                   <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center w-20">
                     NO
                   </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    NAMA
-                  </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    EMAIL
-                  </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    NO.TELP
-                  </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    JENIS KELAMIN
-                  </th>
+                  {sortableHeader("NAMA", "nama")}
+                  {sortableHeader("EMAIL", "email")}
+                  {sortableHeader("NO.TELP", "telp")}
+                  {sortableHeader("JENIS KELAMIN", "jenisKelamin")}
                   <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center w-28">
                     AKSI
                   </th>
