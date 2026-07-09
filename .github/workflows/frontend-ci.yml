@@ -1,4 +1,4 @@
-name: Frontend CI
+name: Frontend CI/CD Pipeline
 
 on:
   push:
@@ -26,7 +26,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 20
           cache: npm
 
       - name: Install dependencies
@@ -36,4 +36,38 @@ jobs:
         run: npm run test:run
 
       - name: Build frontend
+        env:
+          VITE_API_URL: https://api.e-dasawisma.web.id
         run: npm run build
+
+  deploy:
+    name: Deploy Frontend
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/rafif'
+
+    steps:
+      - name: Deploy to Azure VM
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          port: ${{ secrets.VM_SSH_PORT || 22 }}
+          script: |
+            set -e
+            if [ -s "$HOME/.nvm/nvm.sh" ]; then
+              . "$HOME/.nvm/nvm.sh"
+              nvm use --lts
+            fi
+            cd /var/www/project-ta/Frontend-TA
+            git fetch origin rafif
+            git checkout rafif
+            git pull --ff-only origin rafif
+            printf "VITE_API_URL=https://api.e-dasawisma.web.id\n" > .env.production
+            npm ci
+            npm run build
+            pm2 describe frontend-ta >/dev/null \
+              && pm2 restart frontend-ta --update-env \
+              || pm2 start serve --name frontend-ta -- -s dist -l 4173
+            pm2 save
