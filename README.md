@@ -1,4 +1,4 @@
-# Frontend Dasawisma — Sistem Manajemen Keuangan & ZIS
+﻿# Frontend Dasawisma Sistem Manajemen Kas Dasawisma & ZIS
 
 Aplikasi web **Single Page Application (SPA)** untuk pengelolaan keuangan
 Dasawisma (kas RT/RW) sekaligus pengelolaan dana **ZIS** (Zakat, Infaq,
@@ -8,24 +8,24 @@ berbasis token serta hak akses (role-based access) untuk tiga peran pengguna:
 
 ---
 
-## ✨ Fitur Utama
+## Fitur Utama
 
-- **Autentikasi & Sesi** — login, lupa/reset password, validasi sesi otomatis
+- **Autentikasi & Sesi**  login, lupa/reset password, validasi sesi otomatis
   tiap 60 detik dan saat tab kembali aktif.
-- **Hak Akses per Peran (RBAC)** — setiap peran memiliki dashboard, menu, dan
+- **Hak Akses per Peran (RBAC)**  setiap peran memiliki dashboard, menu, dan
   layout sendiri.
-- **Manajemen Kas Dasawisma** — catat pemasukan/pengeluaran kas, lihat saldo,
+- **Manajemen Kas Dasawisma**  catat pemasukan/pengeluaran kas, lihat saldo,
   grafik, dan ekspor laporan PDF.
-- **Manajemen ZIS** — pencatatan ZIS (muzakki/mustahik), filter & pencarian,
+- **Manajemen ZIS**  pencatatan ZIS (muzakki/mustahik), filter & pencarian,
   perhitungan total real-time, ekspor PDF.
-- **Halaman Publik** — beranda, dashboard ringkasan, dan info ZIS yang dapat
+- **Halaman Publik**  beranda, dashboard ringkasan, dan info ZIS yang dapat
   diakses tanpa login.
-- **UX** — animasi transisi halaman (Framer Motion), dialog interaktif
+- **UX**  animasi transisi halaman (Framer Motion), dialog interaktif
   (SweetAlert2), dan tampilan responsif (Tailwind CSS).
 
 ---
 
-## 🛠️ Teknologi
+## Teknologi
 
 | Kategori        | Library                                        |
 | --------------- | ---------------------------------------------- |
@@ -44,7 +44,7 @@ berbasis token serta hak akses (role-based access) untuk tiga peran pengguna:
 
 ---
 
-## 🚀 Memulai
+## Memulai
 
 ### Prasyarat
 
@@ -66,7 +66,7 @@ npm install
 
 Buat file `.env` di root `Frontend-TA` (lihat `.env.example` sebagai acuan).
 
-> ⚠️ **Penting:** Vite hanya membaca variabel yang berawalan `VITE_`. Kode di
+> **Penting:** Vite hanya membaca variabel yang berawalan `VITE_`. Kode di
 > proyek ini membaca `import.meta.env.VITE_API_URL`, jadi gunakan nama tersebut:
 
 ```env
@@ -77,7 +77,7 @@ VITE_API_URL=http://localhost:3000
 ### Menjalankan
 
 ```bash
-# mode development (hot reload) → http://localhost:5173
+# mode development (hot reload)  http://localhost:5173
 npm run dev
 
 # build untuk produksi
@@ -92,61 +92,69 @@ npm run lint
 
 ---
 
-## 📁 Struktur Proyek
+## Struktur Proyek
 
-```
+```text
 Frontend-TA/
-├── public/                 # aset statis
-├── src/
-│   ├── assets/             # logo & gambar
-│   ├── components/
-│   │   ├── layout/         # kerangka per peran (Layout + Sidebar + Footer)
-│   │   └── shared/         # komponen reusable (kartu, tabel, chart, dll.)
-│   ├── pages/
-│   │   ├── auth/           # Login, LupaPassword
-│   │   ├── koordinator/    # halaman peran Koordinator
-│   │   ├── anggota/        # halaman peran Anggota/Kader
-│   │   ├── Amil/           # halaman peran Amil Zakat
-│   │   └── publik/         # halaman tanpa login
-│   ├── routes/             # ProtectedRoute (penjaga rute)
-│   ├── services/           # lapisan komunikasi API (Axios)
-│   ├── store/              # state global (Zustand)
-│   ├── utils/              # helper (format Rupiah, tanggal, ekspor PDF)
-│   ├── App.jsx             # definisi rute & bootstrap autentikasi
-│   └── main.jsx            # entry point React
-├── .env.example
-├── package.json
-├── tailwind.config.js
-└── vite.config.js
+|-- .github/workflows/                         # workflow CI/CD
+|-- public/                                    # aset publik, favicon, robots, sitemap
+|-- src/
+|   |-- assets/                                # logo dan gambar aplikasi
+|   |-- components/
+|   |   |-- layout/                            # layout dan sidebar per role
+|   |   `-- shared/                            # komponen reusable
+|   |       |-- Dasawisma/                     # komponen kas/anggota Dasawisma
+|   |       `-- ZIS/                           # komponen pengelolaan ZIS
+|   |-- pages/
+|   |   |-- auth/                              # Login dan LupaPassword
+|   |   |-- anggota/                           # halaman role kader/anggota
+|   |   |-- Amil/                              # halaman role amil zakat
+|   |   |-- koordinator/                       # halaman role penanggung jawab Dasawisma
+|   |   `-- publik/                            # halaman publik tanpa login
+|   |-- routes/                                # ProtectedRoute dan konfigurasi rute
+|   |-- services/                              # API client Axios
+|   |-- store/                                 # state global Zustand
+|   |-- test/                                  # unit/integration test frontend
+|   |-- utils/                                 # formatter, validasi, export PDF
+|   |-- App.jsx                                # definisi rute utama
+|   |-- index.css                              # Tailwind dan style global
+|   `-- main.jsx                               # entry point React
+|-- .env.example
+|-- eslint.config.js
+|-- index.html
+|-- package.json
+|-- postcss.config.js
+|-- tailwind.config.js
+`-- vite.config.js
 ```
 
 ---
 
-## 🧱 Arsitektur
+## Arsitektur
 
 Aliran data mengikuti pola berlapis:
 
 ```
-UI (pages/components) → State (Zustand) → Service (Axios) → Backend API
+UI (pages/components) http-apiState (Zustand) http-apiService (Axios) http-apiBackend API
 ```
 
 ### Autentikasi & Sesi
 
-- **`store/useAuthStore.js`** — menyimpan `user`, `token`, `role` (Zustand),
+- **`store/useAuthStore.js`**  menyimpan `user`, `token`, `role` (Zustand),
   dengan persistensi ke `localStorage`.
-- **`App.jsx` › `AuthBootstrapper`** — saat token ada, memuat ulang profil
+- **`App.jsx` â€º `AuthBootstrapper`**  saat token ada, memuat ulang profil
   (`getMe`) dan memvalidasi sesi secara berkala.
-- **`routes/ProtectedRoute.jsx`** — memblokir akses tanpa token / peran yang
+- **`routes/ProtectedRoute.jsx`**  memblokir akses tanpa token / peran yang
   tidak sesuai, mengarahkan ke `/login`.
 
 ### Lapisan Service (Axios)
 
 Terdapat dua instance:
 
-- **`services/api.js`** — instance **ber-token**. Request interceptor otomatis
+- **`services/api.js`**  instance **ber-token**. Request interceptor otomatis
   menambahkan header `Authorization: Bearer <token>`; response interceptor
   menangani error `401/403` dengan logout otomatis + redirect ke login.
-- **`services/apiPublic.js`** — instance **tanpa token** untuk endpoint publik.
+- **`services/apiPublic.js`**  instance **tanpa token** untuk endpoint publik.
 
 ### Peran & Rute
 
@@ -158,7 +166,7 @@ Terdapat dua instance:
 
 ---
 
-## 📜 Skrip yang Tersedia
+## Skrip yang Tersedia
 
 | Perintah          | Keterangan                          |
 | ----------------- | ----------------------------------- |
@@ -169,9 +177,10 @@ Terdapat dua instance:
 
 ---
 
-## 📝 Catatan
+## Catatan
 
 - Proyek ini adalah bagian **frontend**; pastikan backend API berjalan dan
   `VITE_API_URL` menunjuk ke alamat yang benar.
 - Token disimpan di `localStorage` dengan kunci `dasawisma_token` (mendukung
   kunci lama `token` untuk kompatibilitas).
+
