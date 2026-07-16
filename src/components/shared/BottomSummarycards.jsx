@@ -67,22 +67,6 @@ const BottomSummaryCards = ({
         className="w-full" 
       />
 
-      {/* ─── GROUP 2: Zakat Fitrah ─── */}
-      <div className={scrollContainerClass}>
-        <TopSummaryCard
-          label="Zakat Fitrah Beras"
-          value={`${getTotalByKategori("zakat fitrah beras")} Kg`}
-          valueClassName="text-xl md:text-2xl font-extrabold text-gray-900"
-          className={scrollItemClass}
-        />
-        <TopSummaryCard
-          label="Zakat Fitrah Uang"
-          value={formatRupiah(getTotalByKategori("zakat fitrah uang"))}
-          valueClassName="text-xl md:text-2xl font-extrabold text-gray-900"
-          className={scrollItemClass}
-        />
-      </div>
-
       {/* ─── GROUP 3: Maal / Infaq / Shodaqoh ─── */}
       <div className="flex md:grid md:grid-cols-3 gap-3 overflow-x-auto pb-1 -mx-4 px-4 md:mx-0 md:px-0 md:pb-0 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden">
         <TopSummaryCard

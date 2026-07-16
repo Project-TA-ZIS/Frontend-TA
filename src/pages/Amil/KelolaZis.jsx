@@ -71,9 +71,7 @@ export default function KelolaZis() {
   const toUiKategori = (kategoriApi) => {
     const k = (kategoriApi || "").toString().trim().toLowerCase();
     if (!k) return "-";
-    if (k.includes("zakat mal")) return "Zakat Maal";
-    if (k.includes("zakat fitrah uang")) return "Zakat Fitrah Uang";
-    if (k.includes("zakat fitrah beras")) return "Zakat Fitrah Beras";
+    if (k.includes("zakat maal")) return "Zakat Maal";
     if (k === "infaq") return "Infaq";
     if (k === "shodaqoh") return "Sedekah";
     return kategoriApi;
@@ -82,9 +80,7 @@ export default function KelolaZis() {
   // Kebalikan toUiKategori: format UI → format server (sebelum dikirim ke API).
   const toApiKategori = (kategoriUi) => {
     const k = (kategoriUi || "").toString().trim().toLowerCase();
-    if (k === "zakat maal" || k === "zakat mal") return "zakat mal";
-    if (k === "zakat fitrah uang") return "zakat fitrah uang";
-    if (k === "zakat fitrah beras") return "zakat fitrah beras";
+    if (k === "zakat maal" || k === "zakat maal") return "zakat maal";
     if (k === "infaq") return "infaq";
     if (k === "sedekah" || k === "shodaqoh") return "shodaqoh";
     return "infaq";

@@ -23,14 +23,6 @@ export const ValidationDataMuzakki = (formData) => {
     errors.alamat = "Alamat wajib diisi!";
   }
 
-  if (!formData.npwp) {
-    errors.npwp = "NPWP wajib diisi!";
-  } else if (!/^[0-9]+$/.test(formData.npwp)) {
-    errors.npwp = "NPWP hanya boleh angka!";
-  } else if (formData.npwp.length !== 15) {
-    errors.npwp = "NPWP harus 15 digit!";
-  }
-
   if (!(formData.nik || "").trim()) {
     errors.nik = "NIK wajib diisi!";
   } else if (!/^[0-9]+$/.test(formData.nik)) {
@@ -45,6 +37,10 @@ export const ValidationDataMuzakki = (formData) => {
 
   if (!formData.tanggalLahir) {
     errors.tanggalLahir = "Tanggal lahir wajib diisi!";
+  }
+
+  if (!(formData.statusPernikahan || "").trim()) {
+    errors.statusPernikahan = "Status pernikahan wajib diisi!";
   }
 
   if (!(formData.pekerjaan || "").trim()) {

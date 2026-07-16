@@ -18,12 +18,16 @@ export default function Home() {
 
         {/* ─── KONTEN UTAMA ─── */}
         <main className="w-full px-6 md:px-12 lg:px-20 py-10 flex-1 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="mb-12">
-            <h2 className="text-3xl md:text-4xl font-extrabold text-[#0F766E] mb-2">
-              Halaman Utama
+          <div className="mb-10 md:mb-14">
+            <h2 className="max-w-3xl text-3xl leading-tight md:text-4xl font-extrabold text-[#0F766E] mb-4 md:mb-6">
+              Sistem Informasi Dasawisma Kelurahan Lenteng Agung
             </h2>
-            <p className="text-gray-500 font-medium">
-              Selamat datang kembali, mari kenali lebih dekat program kami.
+            <p className="max-w-3xl text-sm md:text-base text-gray-500 font-medium leading-relaxed">
+              Sistem informasi berbasis web yang membantu pengurus Dasawisma
+              dalam mengelola data warga, pencatatan kas, serta administrasi
+              Zakat, Infak, dan Sedekah (ZIS). Melalui dashboard monitoring,
+              informasi keuangan dan aktivitas dapat dipantau secara lebih
+              cepat, transparan, dan terdokumentasi dengan baik.
             </p>
           </div>
 
@@ -34,15 +38,15 @@ export default function Home() {
                 Tentang Kami
               </div>
               <h3 className="text-2xl md:text-3xl font-extrabold text-gray-900">
-                Apa itu Program Dasawisma?
+                Apa itu Dasawisma?
               </h3>
               <p className="text-gray-600 leading-relaxed font-medium text-sm md:text-base">
-                Dasawisma adalah kelompok ibu-ibu yang berasal dari 10 kepala
-                keluarga (KK) rumah yang bertetangga untuk mempermudah jalannya
-                suatu program desa atau kelurahan. Program ini sangat penting
-                untuk pemberdayaan kesejahteraan keluarga, pemantauan kesehatan
-                warga, hingga pengelolaan data kependudukan skala mikro yang
-                akurat.
+                Di Kelurahan Lenteng Agung, Dasawisma merupakan kelompok
+                masyarakat yang menjadi penggerak utama program Pemberdayaan
+                Kesejahteraan Keluarga (PKK). Selain berfokus pada program
+                kesejahteraan warga setempat, kelompok ini juga memiliki peran
+                krusial dalam mengelola dana kas dan kegiatan sosial secara
+                swadaya di lingkungan bertetangga.{" "}
               </p>
             </div>
             <div className="order-1 md:order-2">
@@ -73,17 +77,18 @@ export default function Home() {
             </div>
             <div className="space-y-4">
               <div className="inline-block px-3 py-1 bg-teal-100 text-teal-800 text-xs font-bold uppercase tracking-widest rounded-lg">
-                Transparansi
+                Program Kami
               </div>
               <h3 className="text-2xl md:text-3xl font-extrabold text-gray-900">
                 Pengelolaan Zakat, Infaq, & Shodaqoh
               </h3>
               <p className="text-gray-600 leading-relaxed font-medium text-sm md:text-base">
-                Sistem kami tidak hanya mengelola data warga, tetapi juga
-                mengintegrasikan pencatatan penerimaan dan penyaluran ZIS secara
-                transparan. Hal ini memastikan setiap dana yang dititipkan oleh
-                Muzzaki dapat dipantau dan disalurkan dengan tepat sasaran
-                kepada para Mustahik di lingkungan sekitar.
+                Untuk mendukung peran aktif Dasawisma Lenteng Agung tersebut,
+                sistem ini hadir mendigitalisasi pencatatan penerimaan kas dan
+                penyaluran ZIS. Transformasi ini memastikan setiap dana sosial
+                yang dititipkan oleh Muzzaki dapat dikelola secara transparan
+                dan tersalurkan tepat sasaran kepada para Mustahik di lingkungan
+                sekitar.
               </p>
             </div>
           </div>

@@ -38,6 +38,9 @@ const toKategoriLabel = (value) => {
   return v.charAt(0).toUpperCase() + v.slice(1);
 };
 
+// Nilai awal dropdown penghasilan; harus sama dengan salah satu <option value>.
+const DEFAULT_PENGHASILAN = "0-500000";
+
 // Ubah satu data mustahik dari format server → format baris tabel/form.
 const mapApiToRow = (item) => ({
   id: String(item?.id ?? ""),
@@ -45,10 +48,14 @@ const mapApiToRow = (item) => ({
   telp: item?.nomor_telpon ?? "-",
   alamat: item?.alamat ?? "",
   nik: item?.nik ?? "",
+  statusPernikahan: item?.status_pernikahan ?? "menikah",
   tempatLahir: item?.tempat_lahir ?? "",
   tanggalLahir: formatDateInput(item?.tanggal_lahir),
   kategori: item?.kategori ?? "fakir",
   jenisKelamin: item?.jenis_kelamin ?? "laki-laki",
+  pekerjaan: item?.pekerjaan ?? "",
+  penghasilan: item?.penghasilan ?? "",
+  statusPekerjaan: item?.status_pekerjaan || "tidak tetap",
 });
 
 // Kebalikan mapApiToRow: ubah isi form → format yang dikirim ke server.
@@ -57,10 +64,14 @@ const mapFormToApi = (form) => ({
   nomor_telpon: form.telp,
   alamat: form.alamat,
   nik: (form.nik || "").trim() || null,
+  status_pernikahan: form.statusPernikahan,
   tempat_lahir: form.tempatLahir,
   tanggal_lahir: form.tanggalLahir || null,
   jenis_kelamin: form.jenisKelamin,
   kategori: form.kategori,
+  pekerjaan: form.pekerjaan,
+  penghasilan: form.penghasilan,
+  status_pekerjaan: form.statusPekerjaan,
 });
 
 // Halaman kelola Mustahik (penerima zakat): tabel + tambah/edit/hapus via modal,
@@ -90,13 +101,20 @@ export default function KelolaMustahik() {
     telp: "",
     alamat: "",
     nik: "",
+    statusPernikahan: "menikah",
     tempatLahir: "",
     tanggalLahir: "",
     kategori: "fakir",
     jenisKelamin: "laki-laki",
+    pekerjaan: "",
+    penghasilan: DEFAULT_PENGHASILAN,
+    statusPekerjaan: "tidak tetap",
   });
 
   const [formData, setFormData] = useState(getEmptyFormData);
+
+  // Pekerjaan & penghasilan hanya ditampilkan bila mustahik berstatus tetap.
+  const isPekerjaanTetap = formData.statusPekerjaan === "tetap";
 
   // Ambil semua data mustahik dari server lalu ubah ke format baris tabel.
   const loadData = async () => {
@@ -233,10 +251,23 @@ export default function KelolaMustahik() {
   // Update field form saat user mengetik.
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => {
+      const next = { ...prev, [name]: value };
+      if (name === "statusPekerjaan") {
+        // Pekerjaan & penghasilan hanya berlaku bagi status tetap: kosongkan
+        // supaya sisa isian lama tidak ikut terkirim ke server, dan pulihkan
+        // default dropdown saat user kembali memilih "tetap".
+        next.pekerjaan = "";
+        next.penghasilan = value === "tetap" ? DEFAULT_PENGHASILAN : "";
+      }
+      return next;
+    });
     setErrors((prev) => ({
       ...prev,
       [name]: "",
+      ...(name === "statusPekerjaan" && value !== "tetap"
+        ? { pekerjaan: "", penghasilan: "" }
+        : {}),
     }));
   };
 
@@ -257,10 +288,14 @@ export default function KelolaMustahik() {
       telp: item.telp ?? "",
       alamat: item.alamat ?? "",
       nik: item.nik ?? "",
+      statusPernikahan: item.statusPernikahan ?? "menikah",
       tempatLahir: item.tempatLahir ?? "",
       tanggalLahir: item.tanggalLahir ?? "",
       kategori: item.kategori ?? "fakir",
       jenisKelamin: item.jenisKelamin ?? "laki-laki",
+      pekerjaan: item.pekerjaan ?? "",
+      penghasilan: item.penghasilan || DEFAULT_PENGHASILAN,
+      statusPekerjaan: item.statusPekerjaan || "tidak tetap",
     });
     setIsModalOpen(true);
   };
@@ -369,16 +404,7 @@ export default function KelolaMustahik() {
       if (result.isConfirmed) {
         setIsModalOpen(false);
         setEditingId(null);
-        setFormData({
-          nama: "",
-          telp: "",
-          alamat: "",
-          nik: "",
-          tempatLahir: "",
-          tanggalLahir: "",
-          kategori: "fakir",
-          jenisKelamin: "laki-laki",
-        });
+        setFormData(getEmptyFormData());
       }
     });
   };
@@ -720,7 +746,7 @@ export default function KelolaMustahik() {
                       Identitas
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="md:col-span-2">
+                      <div>
                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                           NIK
                           <span className="text-red-500"> *</span>
@@ -736,6 +762,28 @@ export default function KelolaMustahik() {
                         {errors.nik && (
                           <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
                             {errors.nik}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                          Status Pernikahan
+                          <span className="text-red-500"> *</span>
+                        </label>
+                        <select
+                          name="statusPernikahan"
+                          required
+                          value={formData.statusPernikahan}
+                          onChange={handleInputChange}
+                          className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold cursor-pointer"
+                        >
+                          <option value="menikah">Menikah</option>
+                          <option value="lajang">Lajang</option>
+                          <option value="cerai">Cerai</option>
+                        </select>
+                        {errors.statusPernikahan && (
+                          <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                            {errors.statusPernikahan}
                           </p>
                         )}
                       </div>
@@ -789,6 +837,87 @@ export default function KelolaMustahik() {
                           </p>
                         )}
                       </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-base font-extrabold text-gray-900 mb-4">
+                      Data Pekerjaan & Penghasilan
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                       <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                          Status Pekerjaan
+                          <span className="text-red-500"> *</span>
+                        </label>
+                        <select
+                          name="statusPekerjaan"
+                          required
+                          value={formData.statusPekerjaan}
+                          onChange={handleInputChange}
+                          className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold cursor-pointer"
+                        >
+                          <option value="tetap">Tetap</option>
+                          <option value="tidak tetap">Tidak Tetap</option>
+                        </select>
+                        {errors.statusPekerjaan && (
+                          <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                            {errors.statusPekerjaan}
+                          </p>
+                        )}
+                      </div>
+                      {isPekerjaanTetap && (
+                        <>
+                          <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                              Pekerjaan
+                              <span className="text-red-500"> *</span>
+                            </label>
+                            <input
+                              type="text"
+                              name="pekerjaan"
+                              value={formData.pekerjaan}
+                              onChange={handleInputChange}
+                              className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
+                              placeholder="Karyawan Swasta"
+                            />
+                            {errors.pekerjaan && (
+                              <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                                {errors.pekerjaan}
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                              Penghasilan
+                              <span className="text-red-500"> *</span>
+                            </label>
+                            <select
+                              name="penghasilan"
+                              required
+                              value={formData.penghasilan}
+                              onChange={handleInputChange}
+                              className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold cursor-pointer"
+                            >
+                              <option value="0-500000">Rp.0-Rp.500.000</option>
+                              <option value="500001-5000000">
+                                Rp.500.000-Rp.5.000.000
+                              </option>
+                              <option value="5000001-10000000">
+                                Rp.5.000.000-Rp.10.000.000
+                              </option>
+                              <option value="10000001+">
+                                Rp.10.000.000 keatas
+                              </option>
+                            </select>
+                            {errors.penghasilan && (
+                              <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                                {errors.penghasilan}
+                              </p>
+                            )}
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>

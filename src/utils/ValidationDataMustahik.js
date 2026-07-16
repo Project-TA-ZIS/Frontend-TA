@@ -24,6 +24,14 @@ export const ValidationDataMustahik = (formData) => {
     errors.kategori = "Kategori wajib dipilih!";
   }
 
+  if (!(formData.statusPernikahan || "").trim()) {
+    errors.statusPernikahan = "Status pernikahan wajib dipilih!";
+  }
+
+  if (!(formData.statusPekerjaan || "").trim()) {
+    errors.statusPekerjaan = "Status pekerjaan wajib dipilih!";
+  }
+
   if (!(formData.nik || "").trim()) {
     errors.nik = "NIK wajib diisi!";
   } else if (!/^[0-9]+$/.test(formData.nik)) {
@@ -40,6 +48,16 @@ export const ValidationDataMustahik = (formData) => {
     errors.tanggalLahir = "Tanggal lahir wajib diisi!";
   } else if (isNaN(Date.parse(formData.tanggalLahir))) {
     errors.tanggalLahir = "Tanggal lahir tidak valid!";
+  }
+
+  // Pekerjaan & penghasilan hanya ditanyakan pada mustahik dengan status tetap.
+  if (formData.statusPekerjaan === "tetap") {
+    if (!(formData.pekerjaan || "").trim()) {
+      errors.pekerjaan = "Pekerjaan wajib diisi!";
+    }
+    if (!formData.penghasilan) {
+      errors.penghasilan = "Penghasilan wajib dipilih!";
+    }
   }
   return errors;
 };

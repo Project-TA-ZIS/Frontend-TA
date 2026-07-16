@@ -47,12 +47,12 @@ export default function KelolaMuzzaki() {
     email: "",
     telp: "",
     alamat: "",
-    npwp: "",
     nik: "",
     tempatLahir: "",
     tanggalLahir: "",
     jenisKelamin: "laki-laki",
     pekerjaan: "",
+    statusPernikahan: "menikah",
   });
 
   // Ubah kode jenis kelamin menjadi label tampilan.
@@ -69,12 +69,12 @@ export default function KelolaMuzzaki() {
     email: item?.email ?? "-",
     telp: item?.nomor_telpon ?? "-",
     alamat: item?.alamat ?? "",
-    npwp: item?.npwp ?? "",
     nik: item?.nik ?? "",
     tempatLahir: item?.tempat_lahir ?? "",
     tanggalLahir: formatDateInput(item?.tanggal_lahir),
     jenisKelamin: item?.jenis_kelamin ?? "laki-laki",
     pekerjaan: item?.pekerjaan ?? "",
+    statusPernikahan: item?.status_pernikahan ?? "",
   });
 
   // Kebalikan mapApiToRow: ubah isi form → format yang dikirim ke server.
@@ -83,13 +83,14 @@ export default function KelolaMuzzaki() {
     email: form.email,
     nomor_telpon: form.telp,
     alamat: form.alamat,
-    npwp: form.npwp,
     nik: form.nik,
     tempat_lahir: form.tempatLahir,
     tanggal_lahir: form.tanggalLahir,
     jenis_kelamin: form.jenisKelamin,
     pekerjaan: form.pekerjaan,
+    status_pernikahan: form.statusPernikahan,
   });
+
 
   // Ambil semua data muzakki dari server lalu ubah ke format baris tabel.
   const loadData = async () => {
@@ -243,12 +244,12 @@ export default function KelolaMuzzaki() {
       email: "",
       telp: "",
       alamat: "",
-      npwp: "",
       nik: "",
       tempatLahir: "",
       tanggalLahir: "",
       jenisKelamin: "laki-laki",
       pekerjaan: "",
+      statusPernikahan: "menikah",
     });
     setIsModalOpen(true);
   };
@@ -262,12 +263,12 @@ export default function KelolaMuzzaki() {
       email: item.email,
       telp: item.telp,
       alamat: item.alamat,
-      npwp: item.npwp,
       nik: item.nik,
       tempatLahir: item.tempatLahir,
       tanggalLahir: formatDateInput(item.tanggalLahir),
       jenisKelamin: item.jenisKelamin,
       pekerjaan: item.pekerjaan,
+      statusPernikahan: item.statusPernikahan,
     });
     setIsModalOpen(true);
   };
@@ -375,12 +376,12 @@ export default function KelolaMuzzaki() {
         email: "",
         telp: "",
         alamat: "",
-        npwp: "",
         nik: "",
         tempatLahir: "",
         tanggalLahir: "",
         jenisKelamin: "laki-laki",
         pekerjaan: "",
+        statusPernikahan: "menikah",
       });
 
       await loadData();
@@ -420,12 +421,12 @@ export default function KelolaMuzzaki() {
           email: "",
           telp: "",
           alamat: "",
-          npwp: "",
           nik: "",
           tempatLahir: "",
           tanggalLahir: "",
           jenisKelamin: "laki-laki",
           pekerjaan: "",
+          statusPernikahan: "menikah",
         });
       }
     });
@@ -771,23 +772,24 @@ export default function KelolaMuzzaki() {
                           </p>
                         )}
                       </div>
-
                       <div>
                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                          NPWP
+                          Status Pernikahan
                           <span className="text-red-500"> *</span>
                         </label>
-                        <input
-                          type="text"
-                          name="npwp"
-                          value={formData.npwp}
+                        <select
+                          name="statusPernikahan"
+                          value={formData.statusPernikahan}
                           onChange={handleInputChange}
-                          className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
-                          placeholder="15.555.678.9-015.000"
-                        />
-                        {errors.npwp && (
+                          className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold cursor-pointer"
+                        >
+                          <option value="menikah">Menikah</option>
+                          <option value="lajang">Lajang</option>
+                          <option value="cerai">Cerai</option>
+                        </select>
+                        {errors.statusPernikahan && (
                           <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
-                            {errors.npwp}
+                            {errors.statusPernikahan}
                           </p>
                         )}
                       </div>
