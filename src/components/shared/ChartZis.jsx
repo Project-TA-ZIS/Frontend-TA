@@ -26,8 +26,6 @@ const MONTH_LABELS = [
 ];
 const KATEGORI_ZIS = [
   "Zakat Maal",
-  "Zakat Fitrah Beras",
-  "Zakat Fitrah Uang",
   "Infaq",
   "Sedekah",
 ];

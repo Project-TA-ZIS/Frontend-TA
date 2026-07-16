@@ -27,10 +27,8 @@ const ZisFilterBar = ({
         >
           <option value="">Kategori ZIS</option>
           <option value="Zakat Maal">Zakat Maal</option>
-          <option value="Zakat Fitrah Uang">Zakat Fitrah Uang</option>
-          <option value="Zakat Fitrah Beras">Zakat Fitrah Beras</option>
           <option value="Infaq">Infaq</option>
-          <option value="Sedekah">Sedekah</option>
+          <option value="Sedekah">Shodaqoh</option>
         </select>
 
         <select

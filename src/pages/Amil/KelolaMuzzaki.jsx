@@ -47,7 +47,6 @@ export default function KelolaMuzzaki() {
     email: "",
     telp: "",
     alamat: "",
-    npwp: "",
     nik: "",
     tempatLahir: "",
     tanggalLahir: "",
@@ -69,7 +68,6 @@ export default function KelolaMuzzaki() {
     email: item?.email ?? "-",
     telp: item?.nomor_telpon ?? "-",
     alamat: item?.alamat ?? "",
-    npwp: item?.npwp ?? "",
     nik: item?.nik ?? "",
     tempatLahir: item?.tempat_lahir ?? "",
     tanggalLahir: formatDateInput(item?.tanggal_lahir),
@@ -83,7 +81,6 @@ export default function KelolaMuzzaki() {
     email: form.email,
     nomor_telpon: form.telp,
     alamat: form.alamat,
-    npwp: form.npwp,
     nik: form.nik,
     tempat_lahir: form.tempatLahir,
     tanggal_lahir: form.tanggalLahir,
@@ -243,7 +240,6 @@ export default function KelolaMuzzaki() {
       email: "",
       telp: "",
       alamat: "",
-      npwp: "",
       nik: "",
       tempatLahir: "",
       tanggalLahir: "",
@@ -262,7 +258,6 @@ export default function KelolaMuzzaki() {
       email: item.email,
       telp: item.telp,
       alamat: item.alamat,
-      npwp: item.npwp,
       nik: item.nik,
       tempatLahir: item.tempatLahir,
       tanggalLahir: formatDateInput(item.tanggalLahir),
@@ -375,7 +370,6 @@ export default function KelolaMuzzaki() {
         email: "",
         telp: "",
         alamat: "",
-        npwp: "",
         nik: "",
         tempatLahir: "",
         tanggalLahir: "",
@@ -420,7 +414,6 @@ export default function KelolaMuzzaki() {
           email: "",
           telp: "",
           alamat: "",
-          npwp: "",
           nik: "",
           tempatLahir: "",
           tanggalLahir: "",
@@ -768,26 +761,6 @@ export default function KelolaMuzzaki() {
                         {errors.nik && (
                           <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
                             {errors.nik}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                          NPWP
-                          <span className="text-red-500"> *</span>
-                        </label>
-                        <input
-                          type="text"
-                          name="npwp"
-                          value={formData.npwp}
-                          onChange={handleInputChange}
-                          className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
-                          placeholder="15.555.678.9-015.000"
-                        />
-                        {errors.npwp && (
-                          <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
-                            {errors.npwp}
                           </p>
                         )}
                       </div>
