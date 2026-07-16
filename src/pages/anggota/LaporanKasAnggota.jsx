@@ -684,7 +684,7 @@ export default function LaporanKasAnggota() {
         {/* INI BAGIAN TABLE, JANGAN DI REFACTORING LAGI */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
-            <KasTable data={filteredTransactions} onEdit={handleEdit} />
+            <KasTable data={filteredTransactions} showAction={false} />
           </div>
         </div>
 

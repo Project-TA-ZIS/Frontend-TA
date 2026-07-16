@@ -41,5 +41,15 @@ export const ValidationDataMustahik = (formData) => {
   } else if (isNaN(Date.parse(formData.tanggalLahir))) {
     errors.tanggalLahir = "Tanggal lahir tidak valid!";
   }
+
+  // Pekerjaan & penghasilan hanya ditanyakan pada mustahik yang bekerja.
+  if (formData.statusPekerjaan === "bekerja") {
+    if (!(formData.pekerjaan || "").trim()) {
+      errors.pekerjaan = "Pekerjaan wajib diisi!";
+    }
+    if (!formData.penghasilan) {
+      errors.penghasilan = "Penghasilan wajib dipilih!";
+    }
+  }
   return errors;
 };

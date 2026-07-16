@@ -18,14 +18,15 @@ export default function Home() {
 
         {/* ─── KONTEN UTAMA ─── */}
         <main className="w-full px-6 md:px-12 lg:px-20 py-10 flex-1 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="mb-12">
+          <div className="mb-6">
             <h2 className="text-3xl md:text-4xl font-extrabold text-[#0F766E] mb-2">
-              Halaman Utama
+              Selamat Datang 
             </h2>
             <p className="text-gray-500 font-medium">
-              Selamat datang kembali, mari kenali lebih dekat program kami.
+              Selamat datang di sistem informasi kelurahan Lenteng Agung, pantau aktivitas Dasawisma hari ini.
             </p>
           </div>
+          
 
           {/* SECTION 1: DASAWISMA */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-20 items-center mb-20">
@@ -34,16 +35,10 @@ export default function Home() {
                 Tentang Kami
               </div>
               <h3 className="text-2xl md:text-3xl font-extrabold text-gray-900">
-                Apa itu Program Dasawisma?
+                Apa itu Dasawisma?
               </h3>
               <p className="text-gray-600 leading-relaxed font-medium text-sm md:text-base">
-                Dasawisma adalah kelompok ibu-ibu yang berasal dari 10 kepala
-                keluarga (KK) rumah yang bertetangga untuk mempermudah jalannya
-                suatu program desa atau kelurahan. Program ini sangat penting
-                untuk pemberdayaan kesejahteraan keluarga, pemantauan kesehatan
-                warga, hingga pengelolaan data kependudukan skala mikro yang
-                akurat.
-              </p>
+                Di Kelurahan Lenteng Agung, Dasawisma merupakan kelompok masyarakat yang menjadi penggerak utama program Pemberdayaan Kesejahteraan Keluarga (PKK). Selain berfokus pada program kesejahteraan warga setempat, kelompok ini juga memiliki peran krusial dalam mengelola dana kas dan kegiatan sosial secara swadaya di lingkungan bertetangga.              </p>
             </div>
             <div className="order-1 md:order-2">
               <div className="w-full aspect-video bg-gray-200 rounded-2xl border-4 border-white shadow-md overflow-hidden relative">
@@ -79,11 +74,7 @@ export default function Home() {
                 Pengelolaan Zakat, Infaq, & Shodaqoh
               </h3>
               <p className="text-gray-600 leading-relaxed font-medium text-sm md:text-base">
-                Sistem kami tidak hanya mengelola data warga, tetapi juga
-                mengintegrasikan pencatatan penerimaan dan penyaluran ZIS secara
-                transparan. Hal ini memastikan setiap dana yang dititipkan oleh
-                Muzzaki dapat dipantau dan disalurkan dengan tepat sasaran
-                kepada para Mustahik di lingkungan sekitar.
+                Untuk mendukung peran aktif Dasawisma Lenteng Agung tersebut, sistem ini hadir mendigitalisasi pencatatan penerimaan kas dan penyaluran ZIS. Transformasi ini memastikan setiap dana sosial yang dititipkan oleh Muzzaki dapat dikelola secara transparan dan tersalurkan tepat sasaran kepada para Mustahik di lingkungan sekitar.
               </p>
             </div>
           </div>

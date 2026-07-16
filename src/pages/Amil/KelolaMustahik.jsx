@@ -1,5 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Plus, Search, Edit, Trash2, X } from "lucide-react";
+import {
+  ArrowUpDown,
+  ChevronDown,
+  ChevronUp,
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  X,
+} from "lucide-react";
 import PageTransition from "../../components/shared/PageTransition";
 import {
   createMustahik,
@@ -29,6 +38,9 @@ const toKategoriLabel = (value) => {
   return v.charAt(0).toUpperCase() + v.slice(1);
 };
 
+// Nilai awal dropdown penghasilan; harus sama dengan salah satu <option value>.
+const DEFAULT_PENGHASILAN = "0-500000";
+
 // Ubah satu data mustahik dari format server → format baris tabel/form.
 const mapApiToRow = (item) => ({
   id: String(item?.id ?? ""),
@@ -36,10 +48,14 @@ const mapApiToRow = (item) => ({
   telp: item?.nomor_telpon ?? "-",
   alamat: item?.alamat ?? "",
   nik: item?.nik ?? "",
+  status: item?.status ?? "",
   tempatLahir: item?.tempat_lahir ?? "",
   tanggalLahir: formatDateInput(item?.tanggal_lahir),
   kategori: item?.kategori ?? "fakir",
   jenisKelamin: item?.jenis_kelamin ?? "laki-laki",
+  pekerjaan: item?.pekerjaan ?? "",
+  penghasilan: item?.penghasilan ?? "",
+  statusPekerjaan: item?.status_pekerjaan || "bekerja",
 });
 
 // Kebalikan mapApiToRow: ubah isi form → format yang dikirim ke server.
@@ -48,10 +64,14 @@ const mapFormToApi = (form) => ({
   nomor_telpon: form.telp,
   alamat: form.alamat,
   nik: (form.nik || "").trim() || null,
+  status: form.status,
   tempat_lahir: form.tempatLahir,
   tanggal_lahir: form.tanggalLahir || null,
   jenis_kelamin: form.jenisKelamin,
   kategori: form.kategori,
+  pekerjaan: form.pekerjaan,
+  penghasilan: form.penghasilan,
+  status_pekerjaan: form.statusPekerjaan,
 });
 
 // Halaman kelola Mustahik (penerima zakat): tabel + tambah/edit/hapus via modal,
@@ -64,6 +84,10 @@ export default function KelolaMustahik() {
   const [errorMsg, setErrorMsg] = useState("");
   const [errors, setErrors] = useState({});
   const [page, setPage] = useState(1);
+  const [sortConfig, setSortConfig] = useState({
+    key: "nama",
+    direction: "asc",
+  });
   const PAGE_SIZE = 5;
 
   // State untuk Modal Pop-up
@@ -77,13 +101,20 @@ export default function KelolaMustahik() {
     telp: "",
     alamat: "",
     nik: "",
+    status: "",
     tempatLahir: "",
     tanggalLahir: "",
     kategori: "fakir",
     jenisKelamin: "laki-laki",
+    pekerjaan: "",
+    penghasilan: DEFAULT_PENGHASILAN,
+    statusPekerjaan: "bekerja",
   });
 
   const [formData, setFormData] = useState(getEmptyFormData);
+
+  // Pekerjaan & penghasilan hanya ditampilkan bila mustahik berstatus bekerja.
+  const isBekerja = formData.statusPekerjaan === "bekerja";
 
   // Ambil semua data mustahik dari server lalu ubah ke format baris tabel.
   const loadData = async () => {
@@ -125,24 +156,118 @@ export default function KelolaMustahik() {
     );
   }, [mustahikList, searchQuery]);
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredMustahik.length / PAGE_SIZE),
+  const handleSort = (key) => {
+    setPage(1);
+
+    if (sortConfig.key !== key) {
+      setSortConfig({
+        key,
+        direction: "asc",
+      });
+      return;
+    }
+
+    if (sortConfig.direction === "asc") {
+      setSortConfig({
+        key,
+        direction: "desc",
+      });
+      return;
+    }
+
+    setSortConfig({
+      key: null,
+      direction: null,
+    });
+  };
+
+  const renderSortIcon = (key) => {
+    if (sortConfig.key !== key) {
+      return <ArrowUpDown size={14} />;
+    }
+
+    if (sortConfig.direction === "asc") {
+      return <ChevronUp size={14} />;
+    }
+
+    if (sortConfig.direction === "desc") {
+      return <ChevronDown size={14} />;
+    }
+
+    return <ArrowUpDown size={14} />;
+  };
+
+  const sortedMustahik = useMemo(() => {
+    if (!sortConfig.key) {
+      return [...filteredMustahik];
+    }
+
+    return [...filteredMustahik].sort((a, b) => {
+      let aValue = a[sortConfig.key] ?? "";
+      let bValue = b[sortConfig.key] ?? "";
+
+      if (typeof aValue === "string") {
+        aValue = aValue.toLowerCase();
+      }
+
+      if (typeof bValue === "string") {
+        bValue = bValue.toLowerCase();
+      }
+
+      if (aValue < bValue) {
+        return sortConfig.direction === "asc" ? -1 : 1;
+      }
+
+      if (aValue > bValue) {
+        return sortConfig.direction === "asc" ? 1 : -1;
+      }
+
+      return 0;
+    });
+  }, [filteredMustahik, sortConfig]);
+
+  const sortableHeader = (label, key) => (
+    <th
+      onClick={() => handleSort(key)}
+      className={`px-6 py-4 text-[11px] font-extrabold uppercase tracking-wider text-center cursor-pointer hover:bg-gray-100 ${
+        sortConfig.key === key ? "text-[#10B981]" : "text-gray-500"
+      }`}
+    >
+      <div className="flex items-center justify-center gap-1">
+        {label}
+        {renderSortIcon(key)}
+      </div>
+    </th>
   );
+
+  const totalPages = Math.max(1, Math.ceil(sortedMustahik.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
   const paginatedMustahik = useMemo(() => {
     const start = (safePage - 1) * PAGE_SIZE;
-    return filteredMustahik.slice(start, start + PAGE_SIZE);
-  }, [filteredMustahik, safePage]);
+    return sortedMustahik.slice(start, start + PAGE_SIZE);
+  }, [sortedMustahik, safePage]);
 
   // ─── Handlers ───
   // Update field form saat user mengetik.
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => {
+      const next = { ...prev, [name]: value };
+      if (name === "statusPekerjaan") {
+        // Pekerjaan & penghasilan hanya berlaku bagi yang bekerja: kosongkan
+        // supaya sisa isian lama tidak ikut terkirim ke server, dan pulihkan
+        // default dropdown saat user kembali memilih "bekerja".
+        next.pekerjaan = "";
+        next.penghasilan = value === "bekerja" ? DEFAULT_PENGHASILAN : "";
+      }
+      return next;
+    });
     setErrors((prev) => ({
       ...prev,
       [name]: "",
+      ...(name === "statusPekerjaan" && value !== "bekerja"
+        ? { pekerjaan: "", penghasilan: "" }
+        : {}),
     }));
   };
 
@@ -163,10 +288,14 @@ export default function KelolaMustahik() {
       telp: item.telp ?? "",
       alamat: item.alamat ?? "",
       nik: item.nik ?? "",
+      status: item.status ?? "",
       tempatLahir: item.tempatLahir ?? "",
       tanggalLahir: item.tanggalLahir ?? "",
       kategori: item.kategori ?? "fakir",
       jenisKelamin: item.jenisKelamin ?? "laki-laki",
+      pekerjaan: item.pekerjaan ?? "",
+      penghasilan: item.penghasilan || DEFAULT_PENGHASILAN,
+      statusPekerjaan: item.statusPekerjaan || "bekerja",
     });
     setIsModalOpen(true);
   };
@@ -275,16 +404,7 @@ export default function KelolaMustahik() {
       if (result.isConfirmed) {
         setIsModalOpen(false);
         setEditingId(null);
-        setFormData({
-          nama: "",
-          telp: "",
-          alamat: "",
-          nik: "",
-          tempatLahir: "",
-          tanggalLahir: "",
-          kategori: "fakir",
-          jenisKelamin: "laki-laki",
-        });
+        setFormData(getEmptyFormData());
       }
     });
   };
@@ -345,18 +465,10 @@ export default function KelolaMustahik() {
                   <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center w-20">
                     NO
                   </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    NAMA
-                  </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    NO.TELP
-                  </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    KATEGORI
-                  </th>
-                  <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center">
-                    JENIS KELAMIN
-                  </th>
+                  {sortableHeader("NAMA", "nama")}
+                  {sortableHeader("NO.TELP", "telp")}
+                  {sortableHeader("KATEGORI", "kategori")}
+                  {sortableHeader("JENIS KELAMIN", "jenisKelamin")}
                   <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider text-center w-28">
                     AKSI
                   </th>
@@ -634,7 +746,7 @@ export default function KelolaMustahik() {
                       Identitas
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="md:col-span-2">
+                      <div>
                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                           NIK
                           <span className="text-red-500"> *</span>
@@ -650,6 +762,28 @@ export default function KelolaMustahik() {
                         {errors.nik && (
                           <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
                             {errors.nik}
+                          </p>
+                        )}
+                      </div>
+                       <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                          Status
+                          <span className="text-red-500"> *</span>
+                        </label>
+                        <select
+                          name="status"
+                          required
+                          value={formData.status}
+                          onChange={handleInputChange}
+                          className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold cursor-pointer"
+                        >
+                          <option value="menikah">Menikah</option>
+                          <option value="lajang">Lajang</option>
+                          <option value="cerai">Cerai</option>
+                        </select>
+                        {errors.status && (
+                          <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                            {errors.status}
                           </p>
                         )}
                       </div>
@@ -703,6 +837,87 @@ export default function KelolaMustahik() {
                           </p>
                         )}
                       </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-base font-extrabold text-gray-900 mb-4">
+                      Data Pekerjaan & Penghasilan
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                       <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                          Status Pekerjaan
+                          <span className="text-red-500"> *</span>
+                        </label>
+                        <select
+                          name="statusPekerjaan"
+                          required
+                          value={formData.statusPekerjaan}
+                          onChange={handleInputChange}
+                          className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold cursor-pointer"
+                        >
+                          <option value="bekerja">Bekerja</option>
+                          <option value="tidak bekerja">Tidak Bekerja</option>
+                        </select>
+                        {errors.statusPekerjaan && (
+                          <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                            {errors.statusPekerjaan}
+                          </p>
+                        )}
+                      </div>
+                      {isBekerja && (
+                        <>
+                          <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                              Pekerjaan
+                              <span className="text-red-500"> *</span>
+                            </label>
+                            <input
+                              type="text"
+                              name="pekerjaan"
+                              value={formData.pekerjaan}
+                              onChange={handleInputChange}
+                              className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold"
+                              placeholder="Karyawan Swasta"
+                            />
+                            {errors.pekerjaan && (
+                              <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                                {errors.pekerjaan}
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                              Penghasilan
+                              <span className="text-red-500"> *</span>
+                            </label>
+                            <select
+                              name="penghasilan"
+                              required
+                              value={formData.penghasilan}
+                              onChange={handleInputChange}
+                              className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold cursor-pointer"
+                            >
+                              <option value="0-500000">Rp.0-Rp.500.000</option>
+                              <option value="500001-5000000">
+                                Rp.500.000-Rp.5.000.000
+                              </option>
+                              <option value="5000001-10000000">
+                                Rp.5.000.000-Rp.10.000.000
+                              </option>
+                              <option value="10000001+">
+                                Rp.10.000.000 keatas
+                              </option>
+                            </select>
+                            {errors.penghasilan && (
+                              <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                                {errors.penghasilan}
+                              </p>
+                            )}
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
