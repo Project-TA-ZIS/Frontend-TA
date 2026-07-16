@@ -48,14 +48,14 @@ const mapApiToRow = (item) => ({
   telp: item?.nomor_telpon ?? "-",
   alamat: item?.alamat ?? "",
   nik: item?.nik ?? "",
-  status: item?.status ?? "",
+  statusPernikahan: item?.status_pernikahan ?? "menikah",
   tempatLahir: item?.tempat_lahir ?? "",
   tanggalLahir: formatDateInput(item?.tanggal_lahir),
   kategori: item?.kategori ?? "fakir",
   jenisKelamin: item?.jenis_kelamin ?? "laki-laki",
   pekerjaan: item?.pekerjaan ?? "",
   penghasilan: item?.penghasilan ?? "",
-  statusPekerjaan: item?.status_pekerjaan || "bekerja",
+  statusPekerjaan: item?.status_pekerjaan || "tidak tetap",
 });
 
 // Kebalikan mapApiToRow: ubah isi form → format yang dikirim ke server.
@@ -64,7 +64,7 @@ const mapFormToApi = (form) => ({
   nomor_telpon: form.telp,
   alamat: form.alamat,
   nik: (form.nik || "").trim() || null,
-  status: form.status,
+  status_pernikahan: form.statusPernikahan,
   tempat_lahir: form.tempatLahir,
   tanggal_lahir: form.tanggalLahir || null,
   jenis_kelamin: form.jenisKelamin,
@@ -101,20 +101,20 @@ export default function KelolaMustahik() {
     telp: "",
     alamat: "",
     nik: "",
-    status: "",
+    statusPernikahan: "menikah",
     tempatLahir: "",
     tanggalLahir: "",
     kategori: "fakir",
     jenisKelamin: "laki-laki",
     pekerjaan: "",
     penghasilan: DEFAULT_PENGHASILAN,
-    statusPekerjaan: "bekerja",
+    statusPekerjaan: "tidak tetap",
   });
 
   const [formData, setFormData] = useState(getEmptyFormData);
 
-  // Pekerjaan & penghasilan hanya ditampilkan bila mustahik berstatus bekerja.
-  const isBekerja = formData.statusPekerjaan === "bekerja";
+  // Pekerjaan & penghasilan hanya ditampilkan bila mustahik berstatus tetap.
+  const isPekerjaanTetap = formData.statusPekerjaan === "tetap";
 
   // Ambil semua data mustahik dari server lalu ubah ke format baris tabel.
   const loadData = async () => {
@@ -254,18 +254,18 @@ export default function KelolaMustahik() {
     setFormData((prev) => {
       const next = { ...prev, [name]: value };
       if (name === "statusPekerjaan") {
-        // Pekerjaan & penghasilan hanya berlaku bagi yang bekerja: kosongkan
+        // Pekerjaan & penghasilan hanya berlaku bagi status tetap: kosongkan
         // supaya sisa isian lama tidak ikut terkirim ke server, dan pulihkan
-        // default dropdown saat user kembali memilih "bekerja".
+        // default dropdown saat user kembali memilih "tetap".
         next.pekerjaan = "";
-        next.penghasilan = value === "bekerja" ? DEFAULT_PENGHASILAN : "";
+        next.penghasilan = value === "tetap" ? DEFAULT_PENGHASILAN : "";
       }
       return next;
     });
     setErrors((prev) => ({
       ...prev,
       [name]: "",
-      ...(name === "statusPekerjaan" && value !== "bekerja"
+      ...(name === "statusPekerjaan" && value !== "tetap"
         ? { pekerjaan: "", penghasilan: "" }
         : {}),
     }));
@@ -288,14 +288,14 @@ export default function KelolaMustahik() {
       telp: item.telp ?? "",
       alamat: item.alamat ?? "",
       nik: item.nik ?? "",
-      status: item.status ?? "",
+      statusPernikahan: item.statusPernikahan ?? "menikah",
       tempatLahir: item.tempatLahir ?? "",
       tanggalLahir: item.tanggalLahir ?? "",
       kategori: item.kategori ?? "fakir",
       jenisKelamin: item.jenisKelamin ?? "laki-laki",
       pekerjaan: item.pekerjaan ?? "",
       penghasilan: item.penghasilan || DEFAULT_PENGHASILAN,
-      statusPekerjaan: item.statusPekerjaan || "bekerja",
+      statusPekerjaan: item.statusPekerjaan || "tidak tetap",
     });
     setIsModalOpen(true);
   };
@@ -765,15 +765,15 @@ export default function KelolaMustahik() {
                           </p>
                         )}
                       </div>
-                       <div>
+                      <div>
                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                          Status
+                          Status Pernikahan
                           <span className="text-red-500"> *</span>
                         </label>
                         <select
-                          name="status"
+                          name="statusPernikahan"
                           required
-                          value={formData.status}
+                          value={formData.statusPernikahan}
                           onChange={handleInputChange}
                           className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold cursor-pointer"
                         >
@@ -781,9 +781,9 @@ export default function KelolaMustahik() {
                           <option value="lajang">Lajang</option>
                           <option value="cerai">Cerai</option>
                         </select>
-                        {errors.status && (
+                        {errors.statusPernikahan && (
                           <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
-                            {errors.status}
+                            {errors.statusPernikahan}
                           </p>
                         )}
                       </div>
@@ -857,8 +857,8 @@ export default function KelolaMustahik() {
                           onChange={handleInputChange}
                           className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold cursor-pointer"
                         >
-                          <option value="bekerja">Bekerja</option>
-                          <option value="tidak bekerja">Tidak Bekerja</option>
+                          <option value="tetap">Tetap</option>
+                          <option value="tidak tetap">Tidak Tetap</option>
                         </select>
                         {errors.statusPekerjaan && (
                           <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
@@ -866,7 +866,7 @@ export default function KelolaMustahik() {
                           </p>
                         )}
                       </div>
-                      {isBekerja && (
+                      {isPekerjaanTetap && (
                         <>
                           <div>
                             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">

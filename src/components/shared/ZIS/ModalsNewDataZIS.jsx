@@ -117,11 +117,9 @@ export default function ModalsNewDataZIS({
               onChange={handleInputChange}
               className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-[#10B981]"
             >
-              <option value="Zakat Maal">Zakat Maal</option>
-              <option value="Zakat Fitrah Uang">Zakat Fitrah Uang</option>
-              <option value="Zakat Fitrah Beras">Zakat Fitrah Beras</option>
-              <option value="Infaq">Infaq</option>
-              <option value="Sedekah">Sedekah</option>
+              <option value="zakat maal">Zakat Maal</option>
+              <option value="infaq">Infaq</option>
+              <option value="sedekah">Sedekah</option>
             </select>
           </div>
 

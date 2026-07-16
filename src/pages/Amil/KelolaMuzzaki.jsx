@@ -52,6 +52,7 @@ export default function KelolaMuzzaki() {
     tanggalLahir: "",
     jenisKelamin: "laki-laki",
     pekerjaan: "",
+    statusPernikahan: "menikah",
   });
 
   // Ubah kode jenis kelamin menjadi label tampilan.
@@ -73,6 +74,7 @@ export default function KelolaMuzzaki() {
     tanggalLahir: formatDateInput(item?.tanggal_lahir),
     jenisKelamin: item?.jenis_kelamin ?? "laki-laki",
     pekerjaan: item?.pekerjaan ?? "",
+    statusPernikahan: item?.status_pernikahan ?? "",
   });
 
   // Kebalikan mapApiToRow: ubah isi form → format yang dikirim ke server.
@@ -86,7 +88,9 @@ export default function KelolaMuzzaki() {
     tanggal_lahir: form.tanggalLahir,
     jenis_kelamin: form.jenisKelamin,
     pekerjaan: form.pekerjaan,
+    status_pernikahan: form.statusPernikahan,
   });
+
 
   // Ambil semua data muzakki dari server lalu ubah ke format baris tabel.
   const loadData = async () => {
@@ -245,6 +249,7 @@ export default function KelolaMuzzaki() {
       tanggalLahir: "",
       jenisKelamin: "laki-laki",
       pekerjaan: "",
+      statusPernikahan: "menikah",
     });
     setIsModalOpen(true);
   };
@@ -263,6 +268,7 @@ export default function KelolaMuzzaki() {
       tanggalLahir: formatDateInput(item.tanggalLahir),
       jenisKelamin: item.jenisKelamin,
       pekerjaan: item.pekerjaan,
+      statusPernikahan: item.statusPernikahan,
     });
     setIsModalOpen(true);
   };
@@ -375,6 +381,7 @@ export default function KelolaMuzzaki() {
         tanggalLahir: "",
         jenisKelamin: "laki-laki",
         pekerjaan: "",
+        statusPernikahan: "menikah",
       });
 
       await loadData();
@@ -419,6 +426,7 @@ export default function KelolaMuzzaki() {
           tanggalLahir: "",
           jenisKelamin: "laki-laki",
           pekerjaan: "",
+          statusPernikahan: "menikah",
         });
       }
     });
@@ -761,6 +769,27 @@ export default function KelolaMuzzaki() {
                         {errors.nik && (
                           <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
                             {errors.nik}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                          Status Pernikahan
+                          <span className="text-red-500"> *</span>
+                        </label>
+                        <select
+                          name="statusPernikahan"
+                          value={formData.statusPernikahan}
+                          onChange={handleInputChange}
+                          className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-[#10B981] outline-none block px-4 py-3 font-semibold cursor-pointer"
+                        >
+                          <option value="menikah">Menikah</option>
+                          <option value="lajang">Lajang</option>
+                          <option value="cerai">Cerai</option>
+                        </select>
+                        {errors.statusPernikahan && (
+                          <p className="text-red-500 text-[11px] font-bold mt-1.5 pl-1">
+                            {errors.statusPernikahan}
                           </p>
                         )}
                       </div>
