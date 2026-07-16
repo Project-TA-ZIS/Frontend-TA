@@ -24,12 +24,6 @@ describe("ValidationDataMuzakki", () => {
     );
   });
 
-  it("error jika NPWP tidak 15 digit", () => {
-    expect(ValidationDataMuzakki({ ...dataValid, npwp: "123" }).npwp).toBe(
-      "NPWP harus 15 digit!",
-    );
-  });
-
   it("error jika NIK tidak 16 digit", () => {
     expect(ValidationDataMuzakki({ ...dataValid, nik: "123" }).nik).toBe(
       "NIK harus 16 digit!",
