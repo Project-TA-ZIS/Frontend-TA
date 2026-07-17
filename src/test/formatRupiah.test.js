@@ -14,6 +14,7 @@ describe("formatRupiah", () => {
   it("memformat nilai 0", () => {
     expect(normal(formatRupiah(0))).toContain("0");
   });
+  
 
   it("memformat angka pecahan dengan satu desimal (pemisah koma)", () => {
     expect(normal(formatRupiah(1500.5))).toContain("1.500,5");
