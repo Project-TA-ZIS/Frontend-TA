@@ -31,6 +31,12 @@ const BottomSummaryCards = ({
   saldoUpdatedAt,
   getTotalByKategori,
 }) => {
+  console.log("BottomSummaryCards props:", {
+    totalPenerimaan,
+    totalPenyaluran,
+    saldoZIS,
+    saldoUpdatedAt,
+  });
   
   // PERUBAHAN: pb-4 diturunkan drastis menjadi pb-1 agar jarak bawah tidak memakan tempat.
   const scrollContainerClass = "flex md:grid md:grid-cols-2 gap-3 overflow-x-auto pb-1 -mx-4 px-4 md:mx-0 md:px-0 md:pb-0 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden";
@@ -71,7 +77,7 @@ const BottomSummaryCards = ({
       <div className="flex md:grid md:grid-cols-3 gap-3 overflow-x-auto pb-1 -mx-4 px-4 md:mx-0 md:px-0 md:pb-0 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden">
         <TopSummaryCard
           label="Zakat Maal"
-          value={formatRupiah(getTotalByKategori("zakat mal"))}
+          value={formatRupiah(getTotalByKategori("zakat maal"))}
           valueClassName="text-xl md:text-2xl font-extrabold text-gray-900"
           className={scrollItemClass}
         />
