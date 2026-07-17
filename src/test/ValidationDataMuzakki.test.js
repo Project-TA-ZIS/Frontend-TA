@@ -11,6 +11,7 @@ const dataValid = {
   tempatLahir: "Jakarta",
   tanggalLahir: "1990-01-01",
   pekerjaan: "Pegawai",
+  statusPernikahan: "Menikah",
 };
 
 describe("ValidationDataMuzakki", () => {

@@ -8,6 +8,9 @@ const dataValid = {
   alamat: "Bandung",
   kategori: "Fakir",
   nik: "3201234567890123", // 16 digit
+  statusPernikahan: "Belum Menikah",
+  statusPekerjaan: "tidak tetap",
+  penghasilan: "0-500000",
   tempatLahir: "Bandung",
   tanggalLahir: "2000-01-01",
 };
