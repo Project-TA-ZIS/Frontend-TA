@@ -55,7 +55,7 @@ const getMaxYearFromItems = (items, dateKey) => {
 };
 
 // Samakan penulisan kategori dari server menjadi label baku yang dipakai UI
-// (mis. "zakat mal" → "Zakat Maal", "shodaqoh"/"sedekah" → "Sedekah").
+// (mis. "zakat maal" → "Zakat Maal", "shodaqoh"/"sedekah" → "Sedekah").
 const toUiZisKategori = (kategori) => {
   const k = (kategori || "")
     .toString()
@@ -63,7 +63,7 @@ const toUiZisKategori = (kategori) => {
     .toLowerCase()
     .replace(/[_-]/g, " ");
   if (!k) return null;
-  if (k.includes("zakat mal")) return "Zakat Maal";
+  if (k.includes("zakat maal")) return "Zakat Maal";
   if (k.includes("zakat fitrah uang")) return "Zakat Fitrah Uang";
   if (k.includes("zakat fitrah beras")) return "Zakat Fitrah Beras";
   if (k === "infaq") return "Infaq";
