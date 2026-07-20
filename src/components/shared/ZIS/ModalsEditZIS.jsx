@@ -137,14 +137,9 @@ export default function ModalsEditZIS({
             <MantineDateInput
               name="tanggal"
               value={editForm.tanggal}
-              onChange={(e) =>
-                setEditForm({
-                  ...editForm,
-                  tanggal: e.target.value,
-                })
-              }
               error={errors.tanggal}
               className="mt-1"
+              disabled
             />
             {errors.tanggal && (
               <p className="text-red-500 text-xs mt-1">{errors.tanggal}</p>

@@ -1,4 +1,5 @@
 import { DatePickerInput } from "@mantine/dates";
+import dayjs from "dayjs";
 import "dayjs/locale/id";
 import { formatDateInput } from "../../utils/formattedDate";
 
@@ -8,8 +9,13 @@ const MantineDateInput = ({
   onChange,
   className = "",
   error,
+  todayOnly = false,
+  highlightCurrentDay = false,
+  renderDay,
   ...props
 }) => {
+  const today = formatDateInput(new Date());
+
   const handleChange = (dateValue) => {
     const nextValue = formatDateInput(dateValue);
     onChange?.({
@@ -18,6 +24,16 @@ const MantineDateInput = ({
         value: nextValue,
       },
     });
+  };
+
+  const handleRenderDay = (date) => {
+    if (renderDay) return renderDay(date);
+
+    const isToday = formatDateInput(date) === today;
+    const dayClassName =
+      isToday && (todayOnly || highlightCurrentDay) ? "text-blue-600" : "";
+
+    return <span className={dayClassName}>{dayjs(date).date()}</span>;
   };
 
   return (
@@ -29,6 +45,10 @@ const MantineDateInput = ({
       locale="id"
       placeholder="Masukan tanggal"
       clearable
+      minDate={todayOnly ? today : undefined}
+      maxDate={todayOnly ? today : undefined}
+      defaultDate={todayOnly ? today : undefined}
+      renderDay={handleRenderDay}
       error={Boolean(error)}
       className={className}
       classNames={{

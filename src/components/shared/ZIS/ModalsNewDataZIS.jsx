@@ -60,6 +60,7 @@ export default function ModalsNewDataZIS({
               value={formData.tanggal}
               onChange={handleInputChange}
               error={errors.tanggal}
+              highlightCurrentDay
             />
             {errors.tanggal && (
               <p className="text-red-500 text-xs mt-1">{errors.tanggal}</p>
