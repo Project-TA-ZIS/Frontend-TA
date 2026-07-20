@@ -49,6 +49,7 @@ const CreateDataModal = ({
                 placeholder="Pilih tanggal transaksi"
                 onChange={handleInputChange}
                 error={errors.tanggal}
+                highlightCurrentDay
               />
               {errors.tanggal && (
                 <p className="mt-1 text-xs text-red-500">{errors.tanggal}</p>
